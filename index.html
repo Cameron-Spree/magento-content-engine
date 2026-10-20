@@ -529,11 +529,11 @@ We have 3 ways we can get these posts into Magento and wanted to see which optio
 Option 1: Manual Store-View Scope Paste (Zero Dev Time from Pixel)
 - Cameron uses our engine's 1-click Store View copier and pastes the scoped HTML & metadata directly into the Amasty Blog admin using the top-left Store View switcher.
 
-Option 2: Amasty CSV Import Profile (Minimal Setup)
-- Our engine exports an RFC-4180 compliant CSV containing the 5 store_view_code variations, URL keys, meta tags, and full HTML. If you can confirm the exact CSV column headers or import profile expected by our Amasty Blog version, we can bulk import via Magento Admin.
+Option 2: Fix Server CLI Path & Use Amasty CSV Import
+- Note: Right now in Magento Admin, export throws: "The export process failed to launch. Please, check your PHP executable path" and import hangs buffering because the PHP CLI path is unconfigured in Magento cron settings. If your team sets the PHP executable path (in Stores > Config > Advanced > System > Cron) and verifies queue consumers, we can import via CSV.
 
-Option 3: Automated Magento 2 REST API Push (Full Automation)
-- Our engine includes a serverless relay ready to push draft/scheduled posts directly to Amasty's REST endpoint (/rest/{store_code}/V1/amasty_blog/posts).
+Option 3: Automated Magento 2 REST API Push (Preferred — Bypasses Server CLI Issues Completely)
+- Our engine includes a serverless relay ready to push draft/scheduled posts directly to Amasty's REST endpoint (/rest/{store_code}/V1/amasty_blog/posts). REST API bypasses the CLI PHP path bug completely because it runs via web requests.
 - To enable this, we only need:
   1. A Magento Integration Bearer Token (System > Integrations) with API permissions for Amasty Blog & WYSIWYG Media.
   2. Confirmation of the 5 exact store_view_code strings (e.g. lawsons_en, avs_en, oxford_en, witham_en, landscape_en).
