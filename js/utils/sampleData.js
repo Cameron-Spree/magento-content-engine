@@ -53,12 +53,12 @@ export const SAMPLE_IMAGE_POOL = [
 
 export const SAMPLE_POST_PAYLOADS = [
   {
-    title: "Concrete vs Timber Fence Posts: Which Is Best for Long-Lasting Garden Boundaries?",
-    slug: "concrete-vs-timber-fence-posts-guide",
+    title: "Concrete vs Timber Fence Posts Guide",
+    slug: "concrete-vs-timber-fence-posts",
     categories: ["Fencing Guides", "Garden Advice"],
     tags: ["fence-posts", "concrete-fencing", "timber-fencing", "gravel-boards"],
     short_content: "Compare UC4 pressure-treated timber fence posts against steel-reinforced slotted concrete posts for wind resistance, lifespan, and aesthetics.",
-    meta_title: "Concrete vs Timber Fence Posts: Complete Buying Guide | Lawsons",
+    meta_title: "Concrete vs Timber Fence Posts Buying Guide",
     meta_description: "Discover whether slotted concrete fence posts or UC4 pressure-treated timber posts are right for your garden fence installation.",
     image_placeholders: ["timber fence", "paving"],
     content_html: `<p>Choosing the right fence post is the most critical structural decision in any boundary project. While fence panels can be swapped out in minutes, the posts carry the full wind load and sit directly in damp ground contact year-round.</p>
@@ -127,7 +127,7 @@ export const SAMPLE_POST_PAYLOADS = [
       lawsons: {
         store_code: "lawsons_en",
         title: "Concrete vs Timber Fence Posts: Which Is Best for Long-Lasting Boundaries? | Lawsons Guide",
-        url_key: "concrete-vs-timber-fence-posts-guide",
+        url_key: "concrete-vs-timber-fence-posts",
         short_content: "Lawsons trade & DIY guide comparing steel-reinforced concrete fence posts with UC4 pressure-treated timber posts across London and the South East.",
         meta_title: "Concrete vs Timber Fence Posts: Buying Guide | Lawsons",
         meta_description: "Compare concrete vs UC4 timber fence posts with Lawsons. Discover installation depths, postcrete ratios, and gravel board tips.",
@@ -197,7 +197,7 @@ export const SAMPLE_POST_PAYLOADS = [
       avs: {
         store_code: "avs_en",
         title: "Timber vs Concrete Fence Posts: Designing a Stronger Garden Boundary with AVS Fencing",
-        url_key: "concrete-vs-timber-fence-posts-guide",
+        url_key: "concrete-vs-timber-fence-posts",
         short_content: "AVS Fencing specialists compare contemporary timber posts against slotted concrete posts for slatted panels, closeboard, and acoustic fencing.",
         meta_title: "Timber vs Concrete Fence Posts Guide | AVS Fencing",
         meta_description: "Planning a new fence? AVS Fencing compares UC4 treated timber posts and concrete posts for durability, style, and easy installation.",
@@ -267,7 +267,7 @@ export const SAMPLE_POST_PAYLOADS = [
       oxford: {
         store_code: "oxford_en",
         title: "Choosing Between Timber & Concrete Fence Posts: The Oxford Fencing Supplies Guide",
-        url_key: "concrete-vs-timber-fence-posts-guide",
+        url_key: "concrete-vs-timber-fence-posts",
         short_content: "Established in 1986, Oxford Fencing Supplies explains when to use pressure-treated timber posts vs slotted concrete posts for lap and closeboard fencing.",
         meta_title: "Timber vs Concrete Fence Posts | Oxford Fencing Supplies",
         meta_description: "Expert advice from Oxford Fencing Supplies on selecting timber or concrete fence posts for lap panels, closeboard, and garden gates.",
@@ -337,7 +337,7 @@ export const SAMPLE_POST_PAYLOADS = [
       witham: {
         store_code: "witham_en",
         title: "Concrete Fencing vs Timber Posts: Heavy-Duty Boundary Advice from Witham Timber",
-        url_key: "concrete-vs-timber-fence-posts-guide",
+        url_key: "concrete-vs-timber-fence-posts",
         short_content: "With over 30 years of manufacturing experience, Witham Timber compares wet-cast concrete fence posts and pressure-treated timber posts.",
         meta_title: "Concrete vs Timber Fence Posts | Witham Timber",
         meta_description: "Built here, built to last. Compare Witham Timber's heavy-duty timber fence posts and concrete fencing posts for your next project.",
@@ -407,7 +407,7 @@ export const SAMPLE_POST_PAYLOADS = [
       landscape: {
         store_code: "landscape_en",
         title: "Groundworks & Post Foundations: Setting Concrete & Timber Posts | The Landscape Centre",
-        url_key: "concrete-vs-timber-fence-posts-guide",
+        url_key: "concrete-vs-timber-fence-posts",
         short_content: "The Landscape Centre covers sub-base drainage, ballast, post mix, and structural post selection for garden boundaries and sleeper walls.",
         meta_title: "Setting Timber & Concrete Fence Posts | The Landscape Centre",
         meta_description: "Get the foundations right. Learn how to bed concrete and timber fence posts with ballast, drainage shingle, and sleepers from The Landscape Centre.",

@@ -63,11 +63,12 @@ export function parseAndValidateJSON(rawInput) {
     }
 
     let cleanContentHtml = cleanHtmlFragment(baseHtmlRaw);
-    const slug = (p.slug || p.url_key || generateSlug(p.title)).trim();
+    const genericMasterTitle = cleanMasterGenericTitle(p.title);
+    const unifiedSlug = generateSimpleSlug(p.slug || p.url_key || p.title);
     const categories = Array.isArray(p.categories) ? p.categories : (p.categories ? [p.categories] : ["Fencing & Timber"]);
     const tags = Array.isArray(p.tags) ? p.tags : (p.tags ? [p.tags] : ["landscaping", "timber"]);
     const shortContent = p.short_content || stripHtml(cleanContentHtml).substring(0, 180) + "...";
-    const metaTitle = p.meta_title || p.yoast_meta_title || `${p.title.substring(0, 52)} | Lawsons`;
+    const metaTitle = p.meta_title || p.yoast_meta_title || `${genericMasterTitle.substring(0, 52)} | Lawsons`;
     const metaDesc = p.meta_description || p.yoast_meta_desc || stripHtml(cleanContentHtml).substring(0, 155);
 
     const extractedPlaceholders = extractPlaceholdersFromHtml(cleanContentHtml);
@@ -75,13 +76,13 @@ export function parseAndValidateJSON(rawInput) {
       ? [...new Set([...p.image_placeholders.map(k => String(k).trim().toLowerCase()), ...extractedPlaceholders])]
       : extractedPlaceholders;
 
-    // Build or enrich the 5 Magento Store View variations
-    const variations = buildFiveBrandVariations(p, cleanContentHtml, slug, shortContent, metaTitle, metaDesc);
+    // Build or enrich the 5 Magento Store View variations with UNIFIED simple URL key
+    const variations = buildFiveBrandVariations(p, cleanContentHtml, unifiedSlug, shortContent, metaTitle, metaDesc);
 
     validatedPosts.push({
       id: "mce_post_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
-      title: p.title.trim(),
-      slug,
+      title: genericMasterTitle,
+      slug: unifiedSlug,
       categories: categories.map(c => String(c).trim()),
       tags: tags.map(t => String(t).trim()),
       short_content: shortContent.trim(),
@@ -128,7 +129,7 @@ export function buildFiveBrandVariations(rawPost, baseHtml, slug, baseShortConte
       store_code: brand.storeCode,
       store_id: brand.storeId,
       title: rawTitle.trim(),
-      url_key: (existing.url_key || slug).trim(),
+      url_key: slug.trim(), // ALL VARIATIONS SHARE THE EXACT SAME UNIFIED URL KEY FOR MARKETING EMAILS
       short_content: rawShort.trim(),
       meta_title: rawMetaTitle.trim(),
       meta_description: rawMetaDesc.trim(),
@@ -314,12 +315,37 @@ function autoWrapParagraphs(html) {
     .join("\n");
 }
 
-export function generateSlug(title) {
-  return String(title || "blog-post")
+export function cleanMasterGenericTitle(title) {
+  if (!title) return "Garden & Fencing Guide";
+  return String(title)
+    .replace(/\s*\|\s*.*$/i, "")
+    .replace(/:\s*(Lawsons|AVS|Oxford|Witham|Landscape Centre|The Landscape Centre).*$/i, "")
+    .replace(/\b(at|from|with|by)\s+(Lawsons|AVS|Oxford|Witham|Landscape Centre)\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function generateSimpleSlug(titleOrSlug) {
+  if (!titleOrSlug) return "garden-fencing-guide";
+  let str = String(titleOrSlug)
     .toLowerCase()
-    .replace(/[^\w\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-");
+    .replace(/\s*\|\s*.*$/i, "")
+    .replace(/[^\w\s-]/g, " ")
+    .trim();
+
+  // Strip common stop/filler words to keep the URL as concise and clean as possible
+  const stopWords = new Set([
+    "the", "a", "an", "and", "or", "of", "in", "to", "for", "with", "by", "at", "from",
+    "is", "are", "which", "how", "what", "complete", "ultimate", "best", "buying", "guide"
+  ]);
+
+  const words = str.split(/\s+/).filter(w => w.length > 1 && !stopWords.has(w));
+  const shortSlug = words.slice(0, 5).join("-");
+  return shortSlug || "garden-fencing-guide";
+}
+
+export function generateSlug(title) {
+  return generateSimpleSlug(title);
 }
 
 function stripHtml(html) {

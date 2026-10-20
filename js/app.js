@@ -225,7 +225,7 @@ function bindAllEvents() {
   });
 
   onClick("btn-reset-prompt", () => {
-    document.getElementById("prompt-topic").value = "Concrete vs Timber Fence Posts: Which Is Best for Long-Lasting Garden Boundaries?";
+    document.getElementById("prompt-topic").value = "Concrete vs Timber Fence Posts Guide";
     document.getElementById("prompt-author").value = "Lawsons Editorial Team";
     document.getElementById("prompt-categories").value = "Fencing Guides, Garden Advice";
     document.getElementById("prompt-keywords").value = "concrete vs timber fence posts, slotted concrete posts, UC4 treated fence posts, gravel boards";
@@ -752,19 +752,23 @@ function renderPostQueue() {
                 <input type="text" id="edit-gtitle-${post.id}" value="${escapeHtml(post.title)}">
               </div>
               <div class="form-group">
-                <label>Author</label>
-                <input type="text" id="edit-gauthor-${post.id}" value="${escapeHtml(authorStr)}">
+                <label>Unified Simple URL Key (Synced Across All 5 Brands)</label>
+                <input type="text" id="edit-gslug-${post.id}" value="${escapeHtml(post.slug)}">
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
+                <label>Author</label>
+                <input type="text" id="edit-gauthor-${post.id}" value="${escapeHtml(authorStr)}">
+              </div>
+              <div class="form-group">
                 <label>Categories (Comma separated)</label>
                 <input type="text" id="edit-gcats-${post.id}" value="${escapeHtml(catStr)}">
               </div>
-              <div class="form-group">
-                <label>Tags (Comma separated)</label>
-                <input type="text" id="edit-gtags-${post.id}" value="${escapeHtml(tagStr)}">
-              </div>
+            </div>
+            <div class="form-group">
+              <label>Tags (Comma separated)</label>
+              <input type="text" id="edit-gtags-${post.id}" value="${escapeHtml(tagStr)}">
             </div>
             <button type="button" class="btn btn-primary btn-sm" data-save-global-edit="${post.id}">
               Save All Store Views Setup
@@ -1002,6 +1006,16 @@ function renderPostQueue() {
       if (!post) return;
 
       post.title = document.getElementById(`edit-gtitle-${postId}`).value.trim();
+      const rawSlug = document.getElementById(`edit-gslug-${postId}`)?.value || post.slug;
+      const cleanSlug = rawSlug.toLowerCase().replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-");
+      post.slug = cleanSlug;
+
+      // Sync unified URL key across all 5 brand variations so marketing emails match 100%!
+      if (!post.variations) post.variations = {};
+      Object.keys(post.variations).forEach(k => {
+        post.variations[k].url_key = cleanSlug;
+      });
+
       post.author = document.getElementById(`edit-gauthor-${postId}`).value.trim();
       post.categories = document.getElementById(`edit-gcats-${postId}`).value.split(",").map(s => s.trim()).filter(Boolean);
       post.tags = document.getElementById(`edit-gtags-${postId}`).value.split(",").map(s => s.trim()).filter(Boolean);
@@ -1009,7 +1023,7 @@ function renderPostQueue() {
       saveStateToStorage();
       renderPostQueue();
       refreshExportPreview();
-      showToast("Saved All Store Views Global Setup!");
+      showToast("Saved & unified URL key across all 5 Store Views!");
     });
   });
 
@@ -1031,7 +1045,14 @@ function renderPostQueue() {
       if (!post.variations[bId]) post.variations[bId] = {};
 
       post.variations[bId].title = document.getElementById(`edit-title-${postId}`).value;
-      post.variations[bId].url_key = document.getElementById(`edit-slug-${postId}`).value;
+      const rawBrandSlug = document.getElementById(`edit-slug-${postId}`).value.toLowerCase().replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-");
+      post.slug = rawBrandSlug;
+
+      // Keep all variations unified to this exact simple URL key for email marketing!
+      Object.keys(post.variations).forEach(k => {
+        post.variations[k].url_key = rawBrandSlug;
+      });
+
       post.variations[bId].meta_title = document.getElementById(`edit-mtitle-${postId}`).value;
       post.variations[bId].meta_description = document.getElementById(`edit-mdesc-${postId}`).value;
       post.variations[bId].content_html = document.getElementById(`edit-html-${postId}`).value;
@@ -1039,7 +1060,7 @@ function renderPostQueue() {
       saveStateToStorage();
       renderPostQueue();
       refreshExportPreview();
-      showToast(`Saved ${getBrandById(bId).name} Store View updates!`);
+      showToast(`Saved ${getBrandById(bId).name} updates & unified URL key!`);
     });
   });
 

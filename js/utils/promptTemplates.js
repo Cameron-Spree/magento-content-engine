@@ -99,9 +99,10 @@ ${linksFormatted}`;
 Your task is to take ONE core blog topic and generate a **Multi-Brand Store View JSON Payload** containing **5 uniquely written, SEO-distinct variations** across our 5 Magento Store Views so that each brand ranks independently on Google with ZERO duplicate content penalties.
 
 ## Core Topic & Target SEO Brief
-- **Master Topic / Working Title:** ${topic}
+- **Master Topic / Generic Title:** ${topic} (Keep this title broad, generic, and brand-neutral for the All Store Views master scope)
 - **Target Keywords:** ${keywords}
 - **Target Depth per Variation:** ${wordCount}
+- **Unified Simple URL Key Rule:** Choose a clean, concise, 2-to-4 word hyphenated slug (e.g., "concrete-vs-timber-fence-posts"). MANDATORY: Every variation inside "variations" MUST share the EXACT SAME "url_key" as the master "slug" so email marketing links are uniform across all 5 websites!
 
 ## The 5 Magento Store Views & Their Internal Link Banks
 ${brandSections}
@@ -109,7 +110,8 @@ ${brandSections}
 ## Mandatory HTML & Amasty PageBuilder-Safe Rules
 1. Use clean semantic HTML tags (\`<h2>\`, \`<h3>\`, \`<p>\`, \`<ul>\`, \`<li>\`, \`<strong>\`, \`<table>\`).
 2. **MANDATORY SINGLE QUOTES IN HTML ATTRIBUTES:** Inside JSON strings, always use single quotes for HTML attributes (e.g., \`<a href='https://...'>\`) so you never break JSON syntax.
-3. **UNIQUE COPY PER BRAND:** Each brand inside \`"variations"\` MUST have its own rewritten \`title\`, \`short_content\` (1-2 sentence Amasty summary), \`meta_title\`, \`meta_description\`, and \`content_html\` tailored to that brand's audience and linking ONLY to that brand's domain URLs!
+3. **MANDATORY UNIFIED URL KEY:** The "slug" at root AND the "url_key" in EVERY variation (lawsons, avs, oxford, witham, landscape) MUST BE 100% IDENTICAL and as simple as possible (e.g., "concrete-vs-timber-fence-posts").
+4. **UNIQUE COPY PER BRAND:** Each brand inside \`"variations"\` MUST have its own rewritten \`title\`, \`short_content\` (1-2 sentence Amasty summary), \`meta_title\`, \`meta_description\`, and \`content_html\` tailored to that brand's audience and linking ONLY to that brand's domain URLs!
 ${imageInstruction}
 ${widgetRules.join("\n")}
 
@@ -118,12 +120,12 @@ Respond ONLY with a valid \`\`\`json code block matching this exact structure:
 
 \`\`\`json
 {
-  "title": "${topic}",
-  "slug": "example-seo-url-key",
+  "title": "Clean Generic Master Title for All Store Views",
+  "slug": "simple-keyword-slug",
   "categories": ["Fencing", "Landscaping Advice"],
   "tags": ["fencing", "timber", "installation-guide"],
   "short_content": "Concise 2-sentence executive summary for the Amasty blog listing grid.",
-  "meta_title": "Master SEO Title | Lawsons Group",
+  "meta_title": "Clean Generic Master SEO Title | Lawsons Group",
   "meta_description": "150-160 character high-CTR meta description for search engines.",
   "image_placeholders": ${imgPlaceholderNum > 0 ? '["fence post", "gravel board"]' : '[]'},
   "content_html": "<p>Default fallback store view HTML content...</p>",
@@ -131,7 +133,7 @@ Respond ONLY with a valid \`\`\`json code block matching this exact structure:
     "lawsons": {
       "store_code": "lawsons_en",
       "title": "Unique Title Tailored for Lawsons Timber & Building Materials",
-      "url_key": "example-seo-url-key",
+      "url_key": "simple-keyword-slug",
       "short_content": "Lawsons-specific 2-sentence summary for the blog index page.",
       "meta_title": "SEO Title | Lawsons",
       "meta_description": "Unique 155-char meta description for Lawsons.",
@@ -140,7 +142,7 @@ Respond ONLY with a valid \`\`\`json code block matching this exact structure:
     "avs": {
       "store_code": "avs_en",
       "title": "Unique Title Tailored for AVS Fencing & Landscaping",
-      "url_key": "example-seo-url-key",
+      "url_key": "simple-keyword-slug",
       "short_content": "AVS-specific 2-sentence summary.",
       "meta_title": "SEO Title | AVS Fencing",
       "meta_description": "Unique 155-char meta description for AVS Fencing.",
@@ -149,7 +151,7 @@ Respond ONLY with a valid \`\`\`json code block matching this exact structure:
     "oxford": {
       "store_code": "oxford_en",
       "title": "Unique Title Tailored for Oxford Fencing Supplies",
-      "url_key": "example-seo-url-key",
+      "url_key": "simple-keyword-slug",
       "short_content": "Oxford Fencing-specific 2-sentence summary.",
       "meta_title": "SEO Title | Oxford Fencing Supplies",
       "meta_description": "Unique 155-char meta description for Oxford Fencing.",
@@ -158,7 +160,7 @@ Respond ONLY with a valid \`\`\`json code block matching this exact structure:
     "witham": {
       "store_code": "witham_en",
       "title": "Unique Title Tailored for Witham Timber",
-      "url_key": "example-seo-url-key",
+      "url_key": "simple-keyword-slug",
       "short_content": "Witham Timber-specific 2-sentence summary.",
       "meta_title": "SEO Title | Witham Timber",
       "meta_description": "Unique 155-char meta description for Witham Timber.",
@@ -167,7 +169,7 @@ Respond ONLY with a valid \`\`\`json code block matching this exact structure:
     "landscape": {
       "store_code": "landscape_en",
       "title": "Unique Title Tailored for The Landscape Centre",
-      "url_key": "example-seo-url-key",
+      "url_key": "simple-keyword-slug",
       "short_content": "The Landscape Centre-specific 2-sentence summary.",
       "meta_title": "SEO Title | The Landscape Centre",
       "meta_description": "Unique 155-char meta description for The Landscape Centre.",
