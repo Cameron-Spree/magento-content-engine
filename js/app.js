@@ -1,9 +1,11 @@
 /**
  * Magento Content Engine — Main Application Controller
  * Lawsons Group 5-Brand Amasty Blog Studio (Liquid Glass Edition)
+ * Includes Interactive In-Place Preview Editing, Click-to-Replace Image Picker,
+ * and All Store Views (Global Scope) Manual Upload Workflow.
  */
 
-import { BRANDS, BRAND_LIST, getBrandById } from "./utils/brandsConfig.js";
+import { BRANDS, BRAND_LIST, ALL_STORE_SCOPE, ALL_SCOPES_LIST, getBrandById } from "./utils/brandsConfig.js";
 import { generateAIPrompt } from "./utils/promptTemplates.js";
 import { parseAndValidateJSON } from "./utils/jsonValidator.js";
 import { autoMatchPostMedia, slugifyFilename } from "./utils/mediaMatcher.js";
@@ -18,12 +20,14 @@ import { DEFAULT_SITE_SETTINGS, SAMPLE_IMAGE_POOL, SAMPLE_POST_PAYLOADS } from "
 const STORAGE_KEY = "mce_lawsons_state_v1";
 
 const state = {
-  activeBrandId: "lawsons",
+  activeBrandId: "all", // "all" (Global Scope) or "lawsons" | "avs" | "oxford" | "witham" | "landscape"
   promptMode: "multiplier", // "multiplier" | "single"
   posts: [],
   imagePool: [],
   settings: JSON.parse(JSON.stringify(DEFAULT_SITE_SETTINGS)),
-  previewModalPostId: null
+  previewModalPostId: null,
+  liveEditMode: true,
+  imagePickerTarget: null // { type: "hero" | "body", el: HTMLElement, oldSrc: string }
 };
 
 // ============================================================================
@@ -32,7 +36,6 @@ const state = {
 document.addEventListener("DOMContentLoaded", () => {
   loadStateFromStorage();
 
-  // Set default date in scheduler to today
   const schedDateInput = document.getElementById("sched-start-date");
   if (schedDateInput && !schedDateInput.value) {
     schedDateInput.value = new Date().toISOString().split("T")[0];
@@ -55,19 +58,24 @@ function loadStateFromStorage() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      // Auto-load sample data on very first visit so the app feels alive immediately
       loadSampleData(true);
       return;
     }
     const parsed = JSON.parse(raw);
-    if (parsed.activeBrandId && BRANDS[parsed.activeBrandId]) {
+    if (parsed.activeBrandId && (parsed.activeBrandId === "all" || BRANDS[parsed.activeBrandId])) {
       state.activeBrandId = parsed.activeBrandId;
     }
-    if (Array.isArray(parsed.posts)) state.posts = parsed.posts;
+    if (Array.isArray(parsed.posts)) {
+      state.posts = parsed.posts.map(p => ({
+        ...p,
+        author: p.author || "Lawsons Editorial Team",
+        uploadProgress: p.uploadProgress || { all: false, lawsons: false, avs: false, oxford: false, witham: false, landscape: false }
+      }));
+    }
     if (Array.isArray(parsed.imagePool)) state.imagePool = parsed.imagePool;
     if (parsed.settings) {
       state.settings = {
-        ... JSON.parse(JSON.stringify(DEFAULT_SITE_SETTINGS)),
+        ...JSON.parse(JSON.stringify(DEFAULT_SITE_SETTINGS)),
         ...parsed.settings,
         brandLinksBank: {
           ...JSON.parse(JSON.stringify(DEFAULT_SITE_SETTINGS.brandLinksBank)),
@@ -107,7 +115,11 @@ function updateHeaderStats() {
   setText("badge-ingest-count", totalPosts);
   setText("badge-media-count", totalMedia);
   setText("badge-queue-count", totalPosts);
-  setText("active-brand-domain-indicator", `${activeBrand.domain} (${activeBrand.storeCode})`);
+
+  const indicatorText = state.activeBrandId === "all"
+    ? "All Store Views (Global Setup Scope)"
+    : `${activeBrand.domain} (${activeBrand.storeCode})`;
+  setText("active-brand-domain-indicator", indicatorText);
 }
 
 function setText(id, val) {
@@ -116,7 +128,7 @@ function setText(id, val) {
 }
 
 // ============================================================================
-// DYNAMIC 5-BRAND LIQUID GLASS THEME ENGINE
+// DYNAMIC 5-BRAND + ALL STORE VIEWS THEME ENGINE
 // ============================================================================
 function applyBrandTheme(brandId) {
   const brand = getBrandById(brandId);
@@ -130,7 +142,6 @@ function applyBrandTheme(brandId) {
   root.style.setProperty("--brand-tint", hexToRgba(brand.palette.primary, 0.09));
   root.style.setProperty("--brand-glow", hexToRgba(brand.palette.primary, 0.24));
 
-  // Highlight active pill in global switcher
   document.querySelectorAll("#global-brand-switcher .brand-scope-pill").forEach(btn => {
     btn.classList.toggle("active", btn.dataset.brand === brand.id);
   });
@@ -158,25 +169,22 @@ function hexToRgba(hex, alpha) {
 // EVENT BINDINGS
 // ============================================================================
 function bindAllEvents() {
-  // Global 5-Brand Switcher Pills
+  // Global Store View Scope Switcher Pills
   document.querySelectorAll("#global-brand-switcher .brand-scope-pill").forEach(btn => {
     btn.addEventListener("click", () => {
       const brandId = btn.dataset.brand;
       applyBrandTheme(brandId);
       saveStateToStorage();
-      showToast(`Switched Store View Scope to ${getBrandById(brandId).fullName}`);
+      showToast(`Switched active scope to ${getBrandById(brandId).fullName}`);
     });
   });
 
   // Main Navigation Tabs
   document.querySelectorAll(".nav-tabs .tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const targetTab = btn.dataset.tab;
-      switchTab(targetTab);
-    });
+    btn.addEventListener("click", () => switchTab(btn.dataset.tab));
   });
 
-  // Header Quick Actions
+  // Top Header Actions
   onClick("btn-load-sample", () => loadSampleData(false));
   onClick("btn-quick-export-csv", () => downloadAmastyCSVFile());
   onClick("btn-open-settings", openSettingsModal);
@@ -188,7 +196,7 @@ function bindAllEvents() {
     closeModal("modal-preview");
   });
 
-  // Tab 1: Prompt Studio Controls
+  // Tab 1: Prompt Studio
   onClick("btn-mode-multiplier", () => {
     state.promptMode = "multiplier";
     document.getElementById("btn-mode-multiplier").className = "btn btn-primary btn-sm";
@@ -201,12 +209,14 @@ function bindAllEvents() {
     state.promptMode = "single";
     document.getElementById("btn-mode-single").className = "btn btn-primary btn-sm";
     document.getElementById("btn-mode-multiplier").className = "btn btn-outline btn-sm";
-    setText("prompt-mode-hint", `Generates an article focused on ${getBrandById(state.activeBrandId).fullName}. Our ingestion engine will still automatically adapt it for the other 4 brands.`);
+    const brandName = state.activeBrandId === "all" ? "Lawsons" : getBrandById(state.activeBrandId).name;
+    setText("prompt-mode-hint", `Generates an article focused on ${brandName}. Our ingestion engine will still automatically adapt it for the other 4 brands.`);
     refreshPromptOutput();
   });
 
-  ["prompt-topic", "prompt-keywords", "prompt-word-count", "prompt-image-count",
-   "widget-spotlight", "widget-product-cards", "widget-table", "widget-callout"].forEach(id => {
+  ["prompt-topic", "prompt-author", "prompt-categories", "prompt-keywords",
+   "prompt-word-count", "prompt-image-count", "widget-spotlight", "widget-product-cards",
+   "widget-table", "widget-callout"].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       el.addEventListener("input", refreshPromptOutput);
@@ -216,6 +226,8 @@ function bindAllEvents() {
 
   onClick("btn-reset-prompt", () => {
     document.getElementById("prompt-topic").value = "Concrete vs Timber Fence Posts: Which Is Best for Long-Lasting Garden Boundaries?";
+    document.getElementById("prompt-author").value = "Lawsons Editorial Team";
+    document.getElementById("prompt-categories").value = "Fencing Guides, Garden Advice";
     document.getElementById("prompt-keywords").value = "concrete vs timber fence posts, slotted concrete posts, UC4 treated fence posts, gravel boards";
     refreshPromptOutput();
     showToast("Prompt inputs reset to default.");
@@ -233,7 +245,6 @@ function bindAllEvents() {
     document.getElementById("raw-json-input").value = "";
     document.getElementById("json-validation-feedback").innerHTML = "";
   });
-
   onClick("btn-parse-json", handleJsonIngestion);
 
   // Tab 3: Media Pool
@@ -286,6 +297,16 @@ function bindAllEvents() {
     const txt = document.getElementById("debug-report-output").value;
     copyToClipboard(txt, "Diagnostic report copied!");
   });
+
+  // Live Preview Modal In-Place Edit Controls
+  onClick("btn-toggle-live-edit", toggleInPlaceLiveEditMode);
+  onClick("btn-save-live-edits", saveCurrentModalInPlaceEdits);
+  onClick("btn-close-img-drawer", closeImagePickerDrawer);
+
+  const drawerUploadInput = document.getElementById("drawer-instant-upload");
+  if (drawerUploadInput) {
+    drawerUploadInput.addEventListener("change", handleDrawerInstantUpload);
+  }
 }
 
 function onClick(id, handler) {
@@ -303,7 +324,7 @@ function switchTab(tabId) {
 }
 
 // ============================================================================
-// TAB 1: PROMPT GENERATOR & DIRECT GEMINI AI GENERATION
+// TAB 1: PROMPT GENERATOR
 // ============================================================================
 function refreshPromptOutput() {
   const topic = document.getElementById("prompt-topic")?.value || "";
@@ -318,9 +339,11 @@ function refreshPromptOutput() {
     wantToKnowMore: document.getElementById("widget-callout")?.checked ?? true
   };
 
+  const targetBrandId = state.activeBrandId === "all" ? "lawsons" : state.activeBrandId;
+
   const promptText = generateAIPrompt({
     mode: state.promptMode,
-    activeBrandId: state.activeBrandId,
+    activeBrandId: targetBrandId,
     topic,
     keywords,
     wordCount,
@@ -366,7 +389,7 @@ async function handleDirectGeminiGeneration() {
 }
 
 // ============================================================================
-// TAB 2: JSON INGESTION & 5-BRAND MULTIPLIER
+// TAB 2: JSON INGESTION
 // ============================================================================
 function handleJsonIngestion() {
   const rawInput = document.getElementById("raw-json-input").value;
@@ -379,7 +402,16 @@ function handleJsonIngestion() {
     return;
   }
 
-  const matchedPosts = validation.posts.map(p => autoMatchPostMedia(p, state.imagePool, state.settings));
+  const authorVal = document.getElementById("prompt-author")?.value || "Lawsons Editorial Team";
+  const matchedPosts = validation.posts.map(p => {
+    const postWithMeta = {
+      ...p,
+      author: p.author || authorVal,
+      uploadProgress: { all: false, lawsons: false, avs: false, oxford: false, witham: false, landscape: false }
+    };
+    return autoMatchPostMedia(postWithMeta, state.imagePool, state.settings);
+  });
+
   state.posts.unshift(...matchedPosts);
   saveStateToStorage();
   renderPostQueue();
@@ -395,7 +427,14 @@ function loadSampleData(silent = false) {
   const rawSamples = JSON.stringify(SAMPLE_POST_PAYLOADS, null, 2);
   const validation = parseAndValidateJSON(rawSamples);
   if (validation.valid) {
-    state.posts = validation.posts.map(p => autoMatchPostMedia(p, state.imagePool, state.settings));
+    state.posts = validation.posts.map(p => {
+      const postWithMeta = {
+        ...p,
+        author: "Lawsons Editorial Team",
+        uploadProgress: { all: true, lawsons: false, avs: false, oxford: false, witham: false, landscape: false }
+      };
+      return autoMatchPostMedia(postWithMeta, state.imagePool, state.settings);
+    });
   }
   saveStateToStorage();
   renderMediaPool();
@@ -545,7 +584,7 @@ function renderMediaPool() {
 }
 
 // ============================================================================
-// TAB 4: MULTI-STORE POST QUEUE, 1-CLICK COPIERS & LIVE PREVIEW
+// TAB 4: POST QUEUE & ALL STORE VIEWS WORKFLOW
 // ============================================================================
 function handleApplySchedule() {
   const startDateStr = document.getElementById("sched-start-date").value;
@@ -575,7 +614,7 @@ function renderPostQueue() {
       <div class="card" style="text-align: center; padding: 48px 24px;">
         <h3 style="font-size: 17px; margin-bottom: 8px;">Your Multi-Store Post Queue is Empty</h3>
         <p style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 18px;">
-          Generate a 5-Brand post in Tab 1, paste JSON in Tab 2, or load our 5-Brand Sample Data to test the Store View switcher.
+          Generate a 5-Brand post in Tab 1, paste JSON in Tab 2, or load our 5-Brand Sample Data.
         </p>
         <button type="button" class="btn btn-primary" id="btn-empty-load-sample">
           Load 5-Brand Sample Post
@@ -586,35 +625,171 @@ function renderPostQueue() {
     return;
   }
 
+  const isGlobalScope = state.activeBrandId === "all";
   const activeBrand = getBrandById(state.activeBrandId);
 
-  container.innerHTML = state.posts.map((post, idx) => {
+  container.innerHTML = state.posts.map((post) => {
+    const thumbUrl = post.featured_image ? (post.featured_image.previewUrl || post.featured_image.url) : "";
+    const progress = post.uploadProgress || { all: false, lawsons: false, avs: false, oxford: false, witham: false, landscape: false };
+    const completedCount = Object.values(progress).filter(Boolean).length;
+
+    // Scope pills on card
+    const scopePills = ALL_SCOPES_LIST.map(scope => {
+      const isAct = scope.id === state.activeBrandId;
+      const isDone = progress[scope.id];
+      return `
+        <button type="button" class="brand-scope-pill ${isAct ? "active" : ""}" style="padding: 5px 11px; font-size: 12px;" data-card-scope="${scope.id}">
+          <span class="brand-dot" style="background: ${scope.palette.primary}; border: 2px solid ${scope.palette.secondary};"></span>
+          <span>${scope.id === "all" ? "🌐 All Store Views" : scope.name}</span>
+          ${isDone ? `<span style="color:#10b981; font-weight:800; font-size:11px;">✓</span>` : ""}
+        </button>
+      `;
+    }).join("");
+
+    // Step tracker pills
+    const trackerPills = [
+      { id: "all", label: "0. All Store Views" },
+      { id: "lawsons", label: "1. Lawsons" },
+      { id: "avs", label: "2. AVS" },
+      { id: "oxford", label: "3. Oxford" },
+      { id: "witham", label: "4. Witham" },
+      { id: "landscape", label: "5. Landscape" }
+    ].map(step => {
+      const isChecked = progress[step.id];
+      return `
+        <button type="button" class="step-pill ${isChecked ? "completed" : ""}" data-toggle-step="${step.id}" data-post="${post.id}" title="Click to toggle uploaded status">
+          <span>${isChecked ? "✓" : "○"}</span>
+          <span>${step.label}</span>
+        </button>
+      `;
+    }).join("");
+
+    // CONTENT FOR "ALL STORE VIEWS" GLOBAL SCOPE
+    if (isGlobalScope) {
+      const catStr = (post.categories || []).join(", ");
+      const tagStr = (post.tags || []).join(", ");
+      const authorStr = post.author || "Lawsons Editorial Team";
+
+      return `
+        <article class="queue-card" data-post-id="${post.id}">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; flex-wrap: wrap;">
+            <div style="display: flex; gap: 16px; flex: 1; min-width: 280px;">
+              ${thumbUrl ? `<img src="${escapeHtml(thumbUrl)}" alt="${escapeHtml(post.title)}" style="width: 120px; height: 90px; object-fit: cover; border-radius: 12px; flex-shrink: 0; border: 1px solid rgba(15,23,42,0.1);">` : ""}
+              <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
+                  <span class="brand-store-code-tag" style="background: rgba(15, 23, 42, 0.08); color: #0f172a; font-weight: 800;">
+                    🌐 Master Scope: All Store Views (Default)
+                  </span>
+                  <span class="brand-store-code-tag">📅 ${escapeHtml(post.post_date)}</span>
+                  <span class="brand-store-code-tag">Author: ${escapeHtml(authorStr)}</span>
+                </div>
+                <h3 style="font-size: 18px; font-weight: 800; color: var(--text-primary); line-height: 1.3; margin-bottom: 6px;">
+                  ${escapeHtml(post.title)}
+                </h3>
+                <div style="font-size: 13px; color: var(--text-secondary); display: flex; gap: 16px; flex-wrap: wrap; margin-top: 4px;">
+                  <span><strong>Categories:</strong> ${escapeHtml(catStr || "Fencing")}</span>
+                  <span><strong>Tags:</strong> ${escapeHtml(tagStr || "timber, fencing")}</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="btn btn-primary btn-sm" data-open-preview="${post.id}">
+                <i data-lucide="monitor"></i> Live Storefront Preview & Edit
+              </button>
+              <button type="button" class="btn btn-outline btn-sm" data-toggle-global-edit="${post.id}">
+                <i data-lucide="edit-3"></i> Edit Global Meta
+              </button>
+              <button type="button" class="btn btn-outline btn-sm" data-delete-post="${post.id}" title="Remove Post">
+                ✕
+              </button>
+            </div>
+          </div>
+
+          <!-- Step Progress Tracker Strip -->
+          <div class="upload-tracker-strip">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Manual Upload Progress:</span>
+              <span class="brand-store-code-tag" style="background:#f0fdf4; color:#15803d; font-weight:700;">${completedCount}/6 Scopes Uploaded</span>
+            </div>
+            <div class="step-checklist">${trackerPills}</div>
+          </div>
+
+          <!-- Scope Switcher Strip & 1-Click Global Copy Buttons -->
+          <div class="scope-copy-strip">
+            <div style="display: flex; align-items: center; gap: 6px; margin-right: 8px; flex-wrap: wrap;">
+              <span style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Scope:</span>
+              ${scopePills}
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-left: auto;">
+              <button type="button" class="btn btn-secondary btn-sm" data-copy-global="title" data-post="${post.id}">
+                Copy Master Title
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" data-copy-global="author" data-post="${post.id}">
+                Copy Author
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" data-copy-global="categories" data-post="${post.id}">
+                Copy Categories
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" data-copy-global="tags" data-post="${post.id}">
+                Copy Tags
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" data-copy-global="date" data-post="${post.id}">
+                Copy Date
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" data-copy-global="all_combined" data-post="${post.id}">
+                Copy All Global Setup (Combined)
+              </button>
+            </div>
+          </div>
+
+          <!-- Collapsible Global Edit Drawer -->
+          <div id="edit-global-drawer-${post.id}" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(15,23,42,0.08);">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Master Generic Title (All Store Views)</label>
+                <input type="text" id="edit-gtitle-${post.id}" value="${escapeHtml(post.title)}">
+              </div>
+              <div class="form-group">
+                <label>Author</label>
+                <input type="text" id="edit-gauthor-${post.id}" value="${escapeHtml(authorStr)}">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Categories (Comma separated)</label>
+                <input type="text" id="edit-gcats-${post.id}" value="${escapeHtml(catStr)}">
+              </div>
+              <div class="form-group">
+                <label>Tags (Comma separated)</label>
+                <input type="text" id="edit-gtags-${post.id}" value="${escapeHtml(tagStr)}">
+              </div>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" data-save-global-edit="${post.id}">
+              Save All Store Views Setup
+            </button>
+          </div>
+        </article>
+      `;
+    }
+
+    // CONTENT FOR SPECIFIC BRAND SCOPE (Lawsons, AVS, Oxford, Witham, Landscape)
     const variation = (post.variations && post.variations[activeBrand.id]) ? post.variations[activeBrand.id] : {};
     const displayTitle = variation.title || post.title;
     const displayUrlKey = variation.url_key || post.slug;
     const displayShort = variation.short_content || post.short_content || "";
     const displayMetaTitle = variation.meta_title || post.meta_title || displayTitle;
     const displayMetaDesc = variation.meta_description || post.meta_description || "";
-    const thumbUrl = post.featured_image ? (post.featured_image.previewUrl || post.featured_image.url) : "";
-
-    const brandMiniPills = BRAND_LIST.map(b => {
-      const isAct = b.id === activeBrand.id;
-      return `
-        <button type="button" class="brand-scope-pill ${isAct ? "active" : ""}" style="padding: 5px 11px; font-size: 12px;" data-card-brand="${b.id}">
-          <span class="brand-dot" style="background: ${b.palette.primary}; border: 2px solid ${b.palette.secondary};"></span>
-          <span>${b.name}</span>
-        </button>
-      `;
-    }).join("");
 
     return `
       <article class="queue-card" data-post-id="${post.id}">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; flex-wrap: wrap;">
           <div style="display: flex; gap: 16px; flex: 1; min-width: 280px;">
-            ${thumbUrl ? `<img src="${escapeHtml(thumbUrl)}" alt="${escapeHtml(displayTitle)}" style="width: 120px; height: 86px; object-fit: cover; border-radius: 12px; flex-shrink: 0; border: 1px solid rgba(15,23,42,0.1);">` : ""}
+            ${thumbUrl ? `<img src="${escapeHtml(thumbUrl)}" alt="${escapeHtml(displayTitle)}" style="width: 120px; height: 90px; object-fit: cover; border-radius: 12px; flex-shrink: 0; border: 1px solid rgba(15,23,42,0.1);">` : ""}
             <div style="flex: 1;">
               <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
-                <span class="brand-store-code-tag" style="background: var(--brand-tint); color: var(--brand-primary); font-weight: 700;">
+                <span class="brand-store-code-tag" style="background: var(--brand-tint); color: var(--brand-primary); font-weight: 800;">
                   Store View: ${activeBrand.name} (${activeBrand.storeCode})
                 </span>
                 <span class="brand-store-code-tag">📅 ${escapeHtml(post.post_date)}</span>
@@ -631,7 +806,7 @@ function renderPostQueue() {
 
           <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <button type="button" class="btn btn-primary btn-sm" data-open-preview="${post.id}">
-              <i data-lucide="monitor"></i> Live ${activeBrand.name} Website Preview
+              <i data-lucide="monitor"></i> Live ${activeBrand.name} Preview & Edit
             </button>
             <button type="button" class="btn btn-outline btn-sm" data-toggle-edit="${post.id}">
               <i data-lucide="edit-3"></i> Edit Scope
@@ -642,11 +817,20 @@ function renderPostQueue() {
           </div>
         </div>
 
-        <!-- Store View Quick Switcher & 1-Click Amasty Admin Clipboard Bar -->
+        <!-- Step Progress Tracker Strip -->
+        <div class="upload-tracker-strip">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Manual Upload Progress:</span>
+            <span class="brand-store-code-tag" style="background:#f0fdf4; color:#15803d; font-weight:700;">${completedCount}/6 Scopes Uploaded</span>
+          </div>
+          <div class="step-checklist">${trackerPills}</div>
+        </div>
+
+        <!-- Store View Quick Switcher & 1-Click Clipboard Bar -->
         <div class="scope-copy-strip">
-          <div style="display: flex; align-items: center; gap: 6px; margin-right: 8px;">
+          <div style="display: flex; align-items: center; gap: 6px; margin-right: 8px; flex-wrap: wrap;">
             <span style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Scope:</span>
-            ${brandMiniPills}
+            ${scopePills}
           </div>
 
           <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-left: auto;">
@@ -707,15 +891,59 @@ function renderPostQueue() {
 
   if (window.lucide) window.lucide.createIcons();
 
-  // Bind card-level brand switcher buttons
-  container.querySelectorAll("[data-card-brand]").forEach(btn => {
+  // Bind card scope switcher buttons
+  container.querySelectorAll("[data-card-scope]").forEach(btn => {
     btn.addEventListener("click", () => {
-      applyBrandTheme(btn.dataset.cardBrand);
+      applyBrandTheme(btn.dataset.cardScope);
       saveStateToStorage();
     });
   });
 
-  // Bind 1-click field copy buttons
+  // Bind manual upload step check toggle
+  container.querySelectorAll("[data-toggle-step]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const pId = btn.dataset.post;
+      const stepId = btn.dataset.toggleStep;
+      const post = state.posts.find(p => p.id === pId);
+      if (!post) return;
+      if (!post.uploadProgress) post.uploadProgress = {};
+      post.uploadProgress[stepId] = !post.uploadProgress[stepId];
+      saveStateToStorage();
+      renderPostQueue();
+    });
+  });
+
+  // Bind 1-click Global Copy buttons (All Store Views)
+  container.querySelectorAll("[data-copy-global]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const postId = btn.dataset.post;
+      const field = btn.dataset.copyGlobal;
+      const post = state.posts.find(p => p.id === postId);
+      if (!post) return;
+
+      if (!post.uploadProgress) post.uploadProgress = {};
+      post.uploadProgress.all = true;
+      saveStateToStorage();
+
+      if (field === "title") {
+        copyToClipboard(post.title, "Copied Master Title!");
+      } else if (field === "author") {
+        copyToClipboard(post.author || "Lawsons Editorial Team", "Copied Author!");
+      } else if (field === "categories") {
+        copyToClipboard((post.categories || []).join(", "), "Copied Categories!");
+      } else if (field === "tags") {
+        copyToClipboard((post.tags || []).join(", "), "Copied Tags!");
+      } else if (field === "date") {
+        copyToClipboard(post.post_date || "", "Copied Publish Date!");
+      } else if (field === "all_combined") {
+        const bundle = `Title: ${post.title}\nAuthor: ${post.author || "Lawsons Editorial Team"}\nCategories: ${(post.categories || []).join(", ")}\nTags: ${(post.tags || []).join(", ")}\nDate: ${post.post_date}`;
+        copyToClipboard(bundle, "Copied All Global Setup Metadata!");
+      }
+      renderPostQueue();
+    });
+  });
+
+  // Bind 1-click brand field copy buttons
   container.querySelectorAll("[data-copy-field]").forEach(btn => {
     btn.addEventListener("click", () => {
       const postId = btn.dataset.post;
@@ -723,7 +951,7 @@ function renderPostQueue() {
       const post = state.posts.find(p => p.id === postId);
       if (!post) return;
 
-      const bId = state.activeBrandId;
+      const bId = state.activeBrandId === "all" ? "lawsons" : state.activeBrandId;
       const brand = getBrandById(bId);
       const v = (post.variations && post.variations[bId]) ? post.variations[bId] : {};
 
@@ -741,6 +969,12 @@ function renderPostQueue() {
         const includeCss = state.settings.includeScopedCssInCopy !== false;
         const htmlPayload = buildScopedHtmlPayload(post, bId, state.imagePool, includeCss);
         copyToClipboard(htmlPayload, `Copied ${brand.name} Self-Contained Custom HTML + CSS!`);
+
+        // Mark this brand step as uploaded
+        if (!post.uploadProgress) post.uploadProgress = {};
+        post.uploadProgress[bId] = true;
+        saveStateToStorage();
+        renderPostQueue();
       }
     });
   });
@@ -748,17 +982,42 @@ function renderPostQueue() {
   // Bind Live Website Preview Modal
   container.querySelectorAll("[data-open-preview]").forEach(btn => {
     btn.addEventListener("click", () => {
-      openStorefrontPreviewModal(btn.dataset.openPreview, state.activeBrandId);
+      const targetBrand = state.activeBrandId === "all" ? "lawsons" : state.activeBrandId;
+      openStorefrontPreviewModal(btn.dataset.openPreview, targetBrand);
     });
   });
 
-  // Bind Inline Edit Drawer
+  // Bind Global Edit Drawer
+  container.querySelectorAll("[data-toggle-global-edit]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const drawer = document.getElementById(`edit-global-drawer-${btn.dataset.toggleGlobalEdit}`);
+      if (drawer) drawer.style.display = drawer.style.display === "none" ? "block" : "none";
+    });
+  });
+
+  container.querySelectorAll("[data-save-global-edit]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const postId = btn.dataset.saveGlobalEdit;
+      const post = state.posts.find(p => p.id === postId);
+      if (!post) return;
+
+      post.title = document.getElementById(`edit-gtitle-${postId}`).value.trim();
+      post.author = document.getElementById(`edit-gauthor-${postId}`).value.trim();
+      post.categories = document.getElementById(`edit-gcats-${postId}`).value.split(",").map(s => s.trim()).filter(Boolean);
+      post.tags = document.getElementById(`edit-gtags-${postId}`).value.split(",").map(s => s.trim()).filter(Boolean);
+
+      saveStateToStorage();
+      renderPostQueue();
+      refreshExportPreview();
+      showToast("Saved All Store Views Global Setup!");
+    });
+  });
+
+  // Bind Brand Edit Drawer
   container.querySelectorAll("[data-toggle-edit]").forEach(btn => {
     btn.addEventListener("click", () => {
       const drawer = document.getElementById(`edit-drawer-${btn.dataset.toggleEdit}`);
-      if (drawer) {
-        drawer.style.display = drawer.style.display === "none" ? "block" : "none";
-      }
+      if (drawer) drawer.style.display = drawer.style.display === "none" ? "block" : "none";
     });
   });
 
@@ -767,7 +1026,7 @@ function renderPostQueue() {
       const postId = btn.dataset.saveEdit;
       const post = state.posts.find(p => p.id === postId);
       if (!post) return;
-      const bId = state.activeBrandId;
+      const bId = state.activeBrandId === "all" ? "lawsons" : state.activeBrandId;
       if (!post.variations) post.variations = {};
       if (!post.variations[bId]) post.variations[bId] = {};
 
@@ -797,7 +1056,7 @@ function renderPostQueue() {
 }
 
 // ============================================================================
-// AUTHENTIC 5-BRAND LIVE WEBSITE PREVIEW MODAL (MATCHING UPLOADED SCREENSHOTS)
+// AUTHENTIC STOREFRONT PREVIEW & INTERACTIVE IN-PLACE LIVE EDITING
 // ============================================================================
 function openStorefrontPreviewModal(postId, brandId) {
   state.previewModalPostId = postId;
@@ -809,7 +1068,8 @@ function renderStorefrontModalContent(postId, brandId) {
   const post = state.posts.find(p => p.id === postId);
   if (!post) return;
 
-  const brand = getBrandById(brandId);
+  const actualBrandId = brandId === "all" ? "lawsons" : brandId;
+  const brand = getBrandById(actualBrandId);
   const v = (post.variations && post.variations[brand.id]) ? post.variations[brand.id] : {};
   const title = v.title || post.title;
   const urlKey = v.url_key || post.slug;
@@ -826,7 +1086,8 @@ function renderStorefrontModalContent(postId, brandId) {
 
     pillsContainer.querySelectorAll("[data-modal-brand]").forEach(bBtn => {
       bBtn.addEventListener("click", () => {
-        applyBrandTheme(bBtn.dataset.modalBrand);
+        saveCurrentModalInPlaceEdits(false);
+        renderStorefrontModalContent(postId, bBtn.dataset.modalBrand);
       });
     });
   }
@@ -836,6 +1097,7 @@ function renderStorefrontModalContent(postId, brandId) {
   if (copyBtn) {
     copyBtn.textContent = `Copy ${brand.name} Custom HTML + CSS`;
     copyBtn.onclick = () => {
+      saveCurrentModalInPlaceEdits(false);
       const htmlPayload = buildScopedHtmlPayload(post, brand.id, state.imagePool, true);
       copyToClipboard(htmlPayload, `Copied ${brand.name} Custom HTML + CSS!`);
     };
@@ -845,10 +1107,10 @@ function renderStorefrontModalContent(postId, brandId) {
   setText("preview-browser-url", `${brand.domain}/blog/${urlKey}`);
   setText("preview-store-code-badge", `store_view: ${brand.storeCode}`);
 
-  // Render authentic brand website header matching the 4 uploaded screenshots!
+  // Header chrome
   document.getElementById("preview-storefront-header").innerHTML = buildAuthenticBrandHeaderHTML(brand);
 
-  // Render article meta, title, 16:9 hero cover, and scoped HTML body
+  // Article meta
   document.getElementById("preview-article-meta-bar").innerHTML = `
     <div style="display:flex; align-items:center; gap:10px; font-size:12.5px; color:#64748b; font-weight:600;">
       <span style="background:${brand.palette.surfaceTint}; color:${brand.palette.primary}; padding:4px 10px; border-radius:6px; border:1px solid ${brand.palette.borderTint};">
@@ -857,30 +1119,184 @@ function renderStorefrontModalContent(postId, brandId) {
       <span>•</span>
       <span>Published on ${escapeHtml(post.post_date.split(" ")[0])}</span>
       <span>•</span>
-      <span>By ${escapeHtml(brand.name)} Technical Team</span>
+      <span>By ${escapeHtml(post.author || "Lawsons Editorial Team")}</span>
     </div>
   `;
 
-  setText("preview-article-title", title);
+  // Editable Title
+  const titleEl = document.getElementById("preview-article-title");
+  titleEl.textContent = title;
+  titleEl.contentEditable = state.liveEditMode ? "true" : "false";
 
+  // Hero Cover Image (Click to Replace)
   const heroEl = document.getElementById("preview-article-hero-img");
-  if (post.featured_image && (post.featured_image.previewUrl || post.featured_image.url)) {
-    const src = post.featured_image.previewUrl || post.featured_image.url;
-    heroEl.innerHTML = `<img src="${escapeHtml(src)}" alt="${escapeHtml(title)}" style="width:100%; height:360px; object-fit:cover; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.08);">`;
-  } else {
-    heroEl.innerHTML = "";
-  }
+  const heroThumb = post.featured_image ? (post.featured_image.previewUrl || post.featured_image.url) : "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1200&q=80";
+  heroEl.innerHTML = `
+    <img src="${escapeHtml(heroThumb)}" alt="${escapeHtml(title)}" style="width:100%; height:360px; object-fit:cover; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.08);">
+  `;
+  heroEl.onclick = () => openImagePickerDrawer("hero", null, heroThumb);
 
-  const scopedHtml = buildScopedHtmlPayload(post, brand.id, state.imagePool, true);
-  document.getElementById("preview-article-body").innerHTML = scopedHtml;
+  // Editable Body Content
+  const bodyEl = document.getElementById("preview-article-body");
+  const scopedHtml = buildScopedHtmlPayload(post, brand.id, state.imagePool, false);
+  bodyEl.innerHTML = scopedHtml;
+  bodyEl.contentEditable = state.liveEditMode ? "true" : "false";
 
-  // Render authentic brand footer matching the uploaded screenshots!
+  // Attach click-to-replace listeners to all <img> tags in the body
+  bodyEl.querySelectorAll("img").forEach(img => {
+    img.style.cursor = "pointer";
+    img.title = "Click to Replace Image";
+    img.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openImagePickerDrawer("body", img, img.src);
+    });
+  });
+
+  // Footer chrome
   document.getElementById("preview-storefront-footer").innerHTML = buildAuthenticBrandFooterHTML(brand);
+
+  updateLiveEditVisualClasses();
 }
 
-/**
- * Replicates the visual header chrome of Lawsons, AVS, Oxford Fencing, Witham Timber, and Landscape Centre
- */
+function toggleInPlaceLiveEditMode() {
+  state.liveEditMode = !state.liveEditMode;
+  const label = document.getElementById("live-edit-btn-label");
+  const banner = document.getElementById("live-edit-indicator-bar");
+
+  if (label) label.textContent = state.liveEditMode ? "In-Place Edit: ON" : "In-Place Edit: OFF";
+  if (banner) banner.style.display = state.liveEditMode ? "flex" : "none";
+
+  const titleEl = document.getElementById("preview-article-title");
+  const bodyEl = document.getElementById("preview-article-body");
+  if (titleEl) titleEl.contentEditable = state.liveEditMode ? "true" : "false";
+  if (bodyEl) bodyEl.contentEditable = state.liveEditMode ? "true" : "false";
+
+  updateLiveEditVisualClasses();
+  showToast(state.liveEditMode ? "Interactive In-Place Editing enabled!" : "In-Place Editing disabled.");
+}
+
+function updateLiveEditVisualClasses() {
+  const modal = document.getElementById("modal-preview");
+  if (!modal) return;
+  modal.classList.toggle("live-edit-mode-active", state.liveEditMode);
+}
+
+function saveCurrentModalInPlaceEdits(showUserToast = true) {
+  if (!state.previewModalPostId) return;
+  const post = state.posts.find(p => p.id === state.previewModalPostId);
+  if (!post) return;
+
+  const activeBId = state.activeBrandId === "all" ? "lawsons" : state.activeBrandId;
+  const editedTitle = document.getElementById("preview-article-title")?.innerText.trim() || post.title;
+  const editedHtml = document.getElementById("preview-article-body")?.innerHTML.trim() || post.content_html;
+
+  if (!post.variations) post.variations = {};
+  if (!post.variations[activeBId]) post.variations[activeBId] = {};
+
+  post.variations[activeBId].title = editedTitle;
+  post.variations[activeBId].content_html = editedHtml;
+
+  saveStateToStorage();
+  renderPostQueue();
+  refreshExportPreview();
+
+  if (showUserToast) {
+    showToast(`Saved live edits for ${getBrandById(activeBId).name}!`);
+  }
+}
+
+// ============================================================================
+// CLICK-TO-REPLACE IMAGE PICKER DRAWER
+// ============================================================================
+function openImagePickerDrawer(targetType, imgElement = null, oldSrc = "") {
+  state.imagePickerTarget = { type: targetType, el: imgElement, oldSrc };
+  const drawer = document.getElementById("image-picker-drawer");
+  const list = document.getElementById("drawer-image-list");
+  if (!drawer || !list) return;
+
+  if (state.imagePool.length === 0) {
+    list.innerHTML = `<div style="padding:16px; font-size:13px; color:#64748b;">No images in media pool. Use "Upload & Replace" above to select a file from your computer.</div>`;
+  } else {
+    list.innerHTML = state.imagePool.map(img => `
+      <div class="image-picker-card" data-pick-img-id="${img.id}">
+        <img src="${escapeHtml(img.previewUrl || img.url)}" alt="${escapeHtml(img.title)}">
+        <div style="padding:6px 8px; font-size:11px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+          ${escapeHtml(img.title)}
+        </div>
+      </div>
+    `).join("");
+
+    list.querySelectorAll("[data-pick-img-id]").forEach(card => {
+      card.addEventListener("click", () => {
+        const selected = state.imagePool.find(i => i.id === card.dataset.pickImgId);
+        if (selected) applyImageReplacement(selected);
+      });
+    });
+  }
+
+  drawer.classList.add("active");
+}
+
+function closeImagePickerDrawer() {
+  document.getElementById("image-picker-drawer")?.classList.remove("active");
+  state.imagePickerTarget = null;
+}
+
+function applyImageReplacement(selectedImage) {
+  if (!state.previewModalPostId || !state.imagePickerTarget) return;
+  const post = state.posts.find(p => p.id === state.previewModalPostId);
+  if (!post) return;
+
+  const newSrc = selectedImage.previewUrl || selectedImage.url;
+  const activeBId = state.activeBrandId === "all" ? "lawsons" : state.activeBrandId;
+
+  if (state.imagePickerTarget.type === "hero") {
+    post.featured_image = selectedImage;
+    post.featured_image_id = selectedImage.id;
+    const heroImgEl = document.querySelector("#preview-article-hero-img img");
+    if (heroImgEl) heroImgEl.src = newSrc;
+    showToast(`Replaced Cover Hero Image with "${selectedImage.title}"!`);
+  } else if (state.imagePickerTarget.type === "body" && state.imagePickerTarget.el) {
+    const oldUrl = state.imagePickerTarget.el.src;
+    state.imagePickerTarget.el.src = newSrc;
+    saveCurrentModalInPlaceEdits(false);
+    showToast(`Replaced body image with "${selectedImage.title}"!`);
+  }
+
+  saveStateToStorage();
+  renderPostQueue();
+  refreshExportPreview();
+  closeImagePickerDrawer();
+}
+
+async function handleDrawerInstantUpload(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const compressed = await compressImageIfNeeded(file, 3.5);
+  const dataUrl = await fileToDataUrl(compressed);
+  const cleanName = slugifyFilename(file.name);
+  const derivedTitle = file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
+
+  const newImg = {
+    id: "img_" + Date.now(),
+    title: derivedTitle,
+    filename: cleanName,
+    url: `/media/wysiwyg/blog/${cleanName}`,
+    previewUrl: dataUrl,
+    magentoPath: `/media/wysiwyg/blog/${cleanName}`,
+    tags: derivedTitle.toLowerCase().split(/\s+/)
+  };
+
+  state.imagePool.unshift(newImg);
+  renderMediaPool();
+  applyImageReplacement(newImg);
+  event.target.value = "";
+}
+
+// ============================================================================
+// AUTHENTIC BRAND STOREFRONT CHROME GENERATORS
+// ============================================================================
 function buildAuthenticBrandHeaderHTML(brand) {
   if (brand.id === "lawsons") {
     return `
@@ -889,141 +1305,93 @@ function buildAuthenticBrandHeaderHTML(brand) {
         <span>Include VAT ✓ | Branch Finder | Trade Accounts</span>
       </div>
       <div style="background:#008a2e; color:#ffffff; padding:16px 28px; display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;">
-        <div style="display:flex; align-items:center; gap:12px;">
-          <div style="font-size:24px; font-weight:900; letter-spacing:0.04em; color:#ffdd00; line-height:1;">
-            LAWSONS
-            <span style="display:block; font-size:9px; color:#ffffff; font-weight:600; letter-spacing:0.02em; margin-top:2px;">TIMBER, BUILDING & FENCING SUPPLIES</span>
-          </div>
+        <div style="font-size:24px; font-weight:900; letter-spacing:0.04em; color:#ffdd00; line-height:1;">
+          LAWSONS
+          <span style="display:block; font-size:9px; color:#ffffff; font-weight:600; letter-spacing:0.02em; margin-top:2px;">TIMBER, BUILDING & FENCING SUPPLIES</span>
         </div>
-        <div style="background:#ffffff; color:#64748b; padding:8px 16px; border-radius:4px; font-size:12.5px; width:320px;">
-          Search for a product or category...
-        </div>
+        <div style="background:#ffffff; color:#64748b; padding:8px 16px; border-radius:4px; font-size:12.5px; width:300px;">Search products...</div>
         <div style="font-size:12px; font-weight:600; display:flex; gap:16px;">
-          <span>Store Locator</span>
-          <span>My Account</span>
-          <span>My Basket</span>
+          <span>Store Locator</span><span>My Account</span><span>Basket</span>
         </div>
       </div>
       <div style="background:#006822; color:#ffffff; padding:10px 28px; font-size:12px; font-weight:600; display:flex; gap:20px; flex-wrap:wrap;">
-        <span>Fencing Supplies</span>
-        <span>Landscaping</span>
-        <span>Garden Buildings</span>
-        <span>Timber & Sheet</span>
-        <span>Building & Roofing</span>
-        <span>Doors & Joinery</span>
+        <span>Fencing Supplies</span><span>Landscaping</span><span>Garden Buildings</span><span>Timber & Sheet</span>
         <span style="color:#ffdd00; font-weight:800;">Special Offers</span>
       </div>
     `;
   }
-
   if (brand.id === "avs") {
     return `
       <div style="background:#3e5b82; color:#ffffff; font-size:11px; font-weight:600; padding:5px 28px; display:flex; justify-content:space-between;">
         <span>AVS Fencing & Landscaping Supplies — Delivery or Click & Collect</span>
-        <span>Include VAT ✓ | Find Your Nearest AVS Branch</span>
+        <span>Include VAT ✓ | Nearest AVS Branch</span>
       </div>
       <div style="background:#333333; color:#ffffff; padding:16px 28px; display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;">
         <div style="display:flex; align-items:center; gap:10px;">
-          <div style="border:2px solid #ffffff; padding:4px 8px; font-weight:900; font-size:18px; letter-spacing:0.05em;">AVS</div>
-          <span style="font-size:11px; color:#d1d5db; font-weight:600; text-transform:uppercase; letter-spacing:0.04em;">Fencing & Landscaping Supplies</span>
+          <div style="border:2px solid #ffffff; padding:4px 8px; font-weight:900; font-size:18px;">AVS</div>
+          <span style="font-size:11px; color:#d1d5db; font-weight:600; text-transform:uppercase;">Fencing & Landscaping</span>
         </div>
-        <div style="background:#ffffff; color:#64748b; padding:8px 16px; border-radius:4px; font-size:12.5px; width:300px;">
-          Search fencing, sleepers, decking...
-        </div>
+        <div style="background:#ffffff; color:#64748b; padding:8px 16px; border-radius:4px; font-size:12.5px; width:300px;">Search fencing, sleepers...</div>
         <div style="font-size:12px; display:flex; gap:14px;">
-          <span>Branch Locator</span>
-          <span>My Account</span>
-          <span>Basket</span>
+          <span>Branches</span><span>Account</span><span>Basket</span>
         </div>
       </div>
-      <div style="background:#262626; color:#ffffff; padding:10px 28px; font-size:12px; font-weight:600; display:flex; gap:24px; flex-wrap:wrap; border-bottom:3px solid #7a6248;">
-        <span>Fencing</span>
-        <span>Landscaping</span>
-        <span>Railway Sleepers</span>
-        <span>Decking</span>
-        <span>Garden Tools</span>
-        <span style="background:#111111; padding:2px 10px; border-radius:3px;">Special Offers</span>
+      <div style="background:#262626; color:#ffffff; padding:10px 28px; font-size:12px; font-weight:600; display:flex; gap:24px; border-bottom:3px solid #7a6248;">
+        <span>Fencing</span><span>Landscaping</span><span>Railway Sleepers</span><span>Decking</span><span style="background:#111; padding:2px 10px; border-radius:3px;">Offers</span>
       </div>
     `;
   }
-
   if (brand.id === "oxford") {
     return `
       <div style="background:#0085ca; color:#ffffff; font-size:11px; padding:5px 28px; display:flex; justify-content:space-between;">
-        <span>Established in 1986 — Oxfordshire's Leading Fencing & Timber Merchants</span>
-        <span>Include VAT ✓ | Call Us on 01865 820999</span>
+        <span>Established in 1986 — Oxfordshire's Leading Fencing Specialists</span>
+        <span>Call: 01865 820999</span>
       </div>
       <div style="background:#ffffff; color:#0f3b68; padding:16px 28px; display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap; border-bottom:1px solid #e2e8f0;">
         <div>
-          <div style="font-size:22px; font-weight:900; color:#0f3b68; letter-spacing:0.06em;">OXFORD</div>
+          <div style="font-size:22px; font-weight:900; color:#0f3b68;">OXFORD</div>
           <div style="font-size:10px; font-weight:700; color:#0085ca; letter-spacing:0.16em;">FENCING SUPPLIES</div>
         </div>
-        <div style="background:#f8fafc; border:1px solid #cbd5e1; color:#64748b; padding:8px 16px; border-radius:4px; font-size:12.5px; width:300px;">
-          Search for a product or category...
-        </div>
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; color:#64748b; padding:8px 16px; border-radius:4px; font-size:12.5px; width:300px;">Search products...</div>
         <div style="font-size:12px; font-weight:700; color:#0f3b68; display:flex; gap:14px;">
-          <span>My Account</span>
-          <span>Quick Order</span>
-          <span>My Basket</span>
+          <span>Account</span><span>Basket</span>
         </div>
       </div>
-      <div style="background:#0085ca; color:#ffffff; padding:10px 28px; font-size:12px; font-weight:600; display:flex; gap:20px; flex-wrap:wrap;">
-        <span>Fence Panels</span>
-        <span>Closeboard Fencing</span>
-        <span>Fence Posts</span>
-        <span>Gates</span>
-        <span>Specialist Fencing</span>
-        <span>Landscaping Supplies</span>
-        <span>Timber Decking</span>
-        <span style="background:#d32f2f; padding:2px 10px; border-radius:3px; font-weight:700;">Special Offers</span>
+      <div style="background:#0085ca; color:#ffffff; padding:10px 28px; font-size:12px; font-weight:600; display:flex; gap:20px;">
+        <span>Fence Panels</span><span>Closeboard</span><span>Posts</span><span>Gates</span><span>Sleepers</span>
+        <span style="background:#d32f2f; padding:2px 10px; border-radius:3px; font-weight:700;">Offers</span>
       </div>
     `;
   }
-
   if (brand.id === "witham") {
     return `
       <div style="background:#19325c; color:#ffffff; font-size:11px; padding:5px 28px; display:flex; justify-content:space-between;">
         <span>Manufactured On Site — Built Here. Built To Last.</span>
-        <span>Include VAT ✓ | Trade & Retail Welcome</span>
+        <span>Include VAT ✓</span>
       </div>
       <div style="background:#ffffff; color:#19325c; padding:16px 28px; display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap; border-bottom:1px solid #e2e8f0;">
         <div style="display:flex; align-items:center; gap:10px;">
           <div style="font-size:21px; font-weight:900; color:#19325c;">Witham Timber</div>
-          <span style="font-size:10px; color:#0076a8; font-weight:700; text-transform:uppercase;">Fencing & Timber Merchants</span>
         </div>
-        <div style="background:#f8fafc; border:1px solid #cbd5e1; color:#64748b; padding:8px 16px; border-radius:4px; font-size:12.5px; width:300px;">
-          Search for a product or code...
-        </div>
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; color:#64748b; padding:8px 16px; border-radius:4px; font-size:12.5px; width:300px;">Search code...</div>
         <div style="font-size:12px; font-weight:700; color:#19325c; display:flex; gap:14px;">
-          <span>My Account</span>
-          <span>My Basket</span>
+          <span>Account</span><span>Basket</span>
         </div>
       </div>
-      <div style="background:#0076a8; color:#ffffff; padding:10px 28px; font-size:12px; font-weight:600; display:flex; gap:20px; flex-wrap:wrap;">
-        <span>Timber Fencing</span>
-        <span>Fence Panels & Trellis</span>
-        <span>Gates</span>
-        <span>Concrete Fencing</span>
-        <span>Railway Sleepers</span>
-        <span>Decking</span>
-        <span style="background:#c92a2a; padding:2px 10px; border-radius:3px; font-weight:700;">Special Offers</span>
+      <div style="background:#0076a8; color:#ffffff; padding:10px 28px; font-size:12px; font-weight:600; display:flex; gap:20px;">
+        <span>Timber Fencing</span><span>Panels</span><span>Gates</span><span>Concrete Fencing</span><span>Sleepers</span>
+        <span style="background:#c92a2a; padding:2px 10px; border-radius:3px; font-weight:700;">Offers</span>
       </div>
     `;
   }
-
-  // Default: The Landscape Centre
   return `
     <div style="background:#1b4332; color:#ffffff; padding:16px 28px; display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap; border-bottom:3px solid #b5835a;">
       <div>
-        <div style="font-size:20px; font-weight:900; color:#ffffff; letter-spacing:0.03em;">THE LANDSCAPE CENTRE</div>
+        <div style="font-size:20px; font-weight:900; color:#ffffff;">THE LANDSCAPE CENTRE</div>
         <div style="font-size:10.5px; color:#b7e4c7;">AGGREGATES • TOPSOIL • PAVING • SLEEPERS • TURF</div>
       </div>
       <div style="font-size:12px; font-weight:600; display:flex; gap:18px;">
-        <span>Bulk Aggregates</span>
-        <span>Topsoil & Bark</span>
-        <span>Paving</span>
-        <span>Sleepers</span>
-        <span>Turf</span>
+        <span>Aggregates</span><span>Topsoil</span><span>Paving</span><span>Sleepers</span><span>Turf</span>
       </div>
     </div>
   `;
@@ -1039,7 +1407,7 @@ function buildAuthenticBrandFooterHTML(brand) {
 }
 
 // ============================================================================
-// TAB 5: AMASTY CSV & MAGENTO 2 REST API EXPORTS
+// TAB 5: AMASTY CSV & MAGENTO REST API EXPORTS
 // ============================================================================
 function refreshExportPreview() {
   const scope = document.getElementById("export-scope-select")?.value || "all_brands";
@@ -1119,8 +1487,9 @@ function openSettingsModal() {
   document.getElementById("setting-magento-url").value = state.settings.magentoBaseUrl || "https://www.lawsons.co.uk";
 
   const brandSelect = document.getElementById("setting-brand-links-select");
-  brandSelect.value = state.activeBrandId;
-  loadBrandLinksIntoTextarea(state.activeBrandId);
+  const editTarget = state.activeBrandId === "all" ? "lawsons" : state.activeBrandId;
+  brandSelect.value = editTarget;
+  loadBrandLinksIntoTextarea(editTarget);
 
   document.getElementById("modal-settings").classList.add("active");
 }
@@ -1145,10 +1514,7 @@ function handleSaveSettings() {
     .filter(Boolean)
     .map(line => {
       const [urlPart, labelPart] = line.split("|").map(s => (s || "").trim());
-      return {
-        url: urlPart,
-        label: labelPart || urlPart
-      };
+      return { url: urlPart, label: labelPart || urlPart };
     });
 
   if (!state.settings.brandLinksBank) state.settings.brandLinksBank = {};

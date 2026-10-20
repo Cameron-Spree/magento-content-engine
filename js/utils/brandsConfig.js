@@ -2,12 +2,52 @@
  * Lawsons Group Multi-Brand Configuration for Magento 2 (Amasty Blog Pro)
  * Authentic brand palettes, button styles, store view codes, and internal links banks
  * derived directly from live store designs:
+ * 0. All Store Views (Default Global Scope)
  * 1. Lawsons (lawsons.co.uk)
  * 2. AVS Fencing & Landscaping Supplies (avsfencing.co.uk)
  * 3. Oxford Fencing Supplies (oxfordfencing.co.uk)
  * 4. Witham Timber (withamtimber.co.uk)
  * 5. The Landscape Centre (the-landscape-centre.co.uk)
  */
+
+export const ALL_STORE_SCOPE = {
+  id: "all",
+  name: "All Store Views",
+  fullName: "All Store Views (Global / Default Scope)",
+  storeCode: "default",
+  storeId: 0,
+  domain: "https://www.lawsons.co.uk",
+  blogSubpath: "/blog/",
+  mediaPath: "/media/wysiwyg/blog/",
+  tagline: "Global Master Configuration & Common Metadata (Categories, Author, Tags, Master Title)",
+  tone: "Master trade & merchant authority encompassing all group brands",
+  palette: {
+    primary: "#0f172a",          // Modern Slate Charcoal
+    primaryDark: "#020617",
+    secondary: "#38bdf8",        // Apple Sky Blue Accent
+    secondaryText: "#ffffff",
+    headerBg: "#0f172a",
+    headerTopStrip: "#38bdf8",
+    footerBg: "#0f172a",
+    surfaceTint: "#f1f5f9",
+    borderTint: "#cbd5e1",
+    badgeBg: "#2563eb",
+    textMain: "#0f172a"
+  },
+  ctaDefaults: {
+    heading: "Explore Quality Timber, Fencing & Landscaping Across Lawsons Group",
+    subtext: "Browse our extensive trade & retail inventory across our branch network in London and the South East.",
+    primaryBtnText: "Explore Range",
+    primaryBtnUrl: "https://www.lawsons.co.uk/fencing-supplies",
+    secondaryBtnText: "Find a Branch",
+    secondaryBtnUrl: "https://www.lawsons.co.uk/branch-locator"
+  },
+  linksBank: [
+    { url: "https://www.lawsons.co.uk/fencing-supplies", label: "Fencing Supplies" },
+    { url: "https://www.lawsons.co.uk/landscaping-supplies", label: "Landscaping Supplies" },
+    { url: "https://www.lawsons.co.uk/timber-and-sheet-materials", label: "Timber & Sheet Materials" }
+  ]
+};
 
 export const BRANDS = {
   lawsons: {
@@ -233,7 +273,9 @@ export const BRANDS = {
 };
 
 export const BRAND_LIST = Object.values(BRANDS);
+export const ALL_SCOPES_LIST = [ALL_STORE_SCOPE, ...BRAND_LIST];
 
 export function getBrandById(brandId) {
+  if (brandId === "all") return ALL_STORE_SCOPE;
   return BRANDS[brandId] || BRANDS.lawsons;
 }

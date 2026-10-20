@@ -1,7 +1,7 @@
 /**
  * Magento Content Engine — Apple "Liquid Glass" Design System
- * Luminous frosted glassmorphism, specular edge highlights, ambient mesh gradients,
- * and dynamic Lawsons Group 5-Brand Storefront theming.
+ * Structured Full-Width Header, Interactive In-Place Live Preview Editing,
+ * All Store Views (Global) Scope, and Lawsons Group 5-Brand Theming.
  */
 
 :root {
@@ -9,10 +9,10 @@
   --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
 
-  /* Liquid Glass Palette (Bright Daylight Mode) */
+  /* Liquid Glass Canvas & Surfaces */
   --bg-canvas: #f2f5fa;
   --glass-bg: rgba(255, 255, 255, 0.72);
-  --glass-bg-strong: rgba(255, 255, 255, 0.88);
+  --glass-bg-strong: rgba(255, 255, 255, 0.90);
   --glass-bg-subtle: rgba(255, 255, 255, 0.52);
   --glass-border: rgba(255, 255, 255, 0.88);
   --glass-border-outer: rgba(15, 23, 42, 0.07);
@@ -89,58 +89,64 @@ body::before {
   pointer-events: none;
 }
 
-#app {
-  max-width: 1480px;
-  margin: 0 auto;
-  padding: 20px 28px 60px;
+/* ==========================================================================
+   ACTUAL STRUCTURED FULL-WIDTH TOP HEADER (APPLE STYLE)
+   ========================================================================== */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 950;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.09);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04);
 }
 
-/* ==========================================================================
-   TOP LIQUID GLASS HEADER
-   ========================================================================== */
-.app-header {
+.site-header-inner {
+  max-width: 1560px;
+  margin: 0 auto;
+  padding: 12px 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 16px;
-  padding: 16px 24px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--glass-border);
-  outline: 1px solid var(--glass-border-outer);
-  box-shadow: var(--shadow-glass);
-  margin-bottom: 18px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .brand-logo {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .logo-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
   background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 16px var(--brand-glow), inset 0 1px 1px rgba(255,255,255,0.4);
+  box-shadow: 0 4px 14px var(--brand-glow), inset 0 1px 1px rgba(255,255,255,0.4);
   transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 .logo-icon svg {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
 }
 
 .brand-text h1 {
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.025em;
   color: var(--text-primary);
@@ -151,7 +157,7 @@ body::before {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--text-secondary);
   margin-top: 2px;
@@ -160,27 +166,26 @@ body::before {
 .header-stats {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .stat-pill {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 7px 14px;
+  gap: 6px;
+  padding: 6px 12px;
   border-radius: var(--radius-pill);
-  background: var(--glass-bg-strong);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  outline: 1px solid rgba(15, 23, 42, 0.05);
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
   box-shadow: var(--shadow-pill);
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--text-secondary);
 }
 
 .stat-pill svg {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   color: var(--brand-primary);
 }
 
@@ -198,7 +203,16 @@ body::before {
 }
 
 /* ==========================================================================
-   GLOBAL 5-BRAND STORE VIEW SWITCHER BAR (LIQUID GLASS DOCK)
+   APP MAIN CONTAINER
+   ========================================================================== */
+#app {
+  max-width: 1560px;
+  margin: 0 auto;
+  padding: 20px 28px 60px;
+}
+
+/* ==========================================================================
+   GLOBAL STORE VIEW SCOPE SWITCHER BAR (INCLUDING ALL STORE VIEWS)
    ========================================================================== */
 .brand-switcher-bar {
   display: flex;
@@ -237,7 +251,7 @@ body::before {
 .brand-pills-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
   background: rgba(15, 23, 42, 0.04);
   padding: 5px;
@@ -248,13 +262,13 @@ body::before {
 .brand-scope-pill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 15px;
+  gap: 7px;
+  padding: 7px 14px;
   border-radius: var(--radius-pill);
   border: 1px solid transparent;
   background: transparent;
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--text-secondary);
   cursor: pointer;
@@ -263,7 +277,7 @@ body::before {
 
 .brand-scope-pill:hover {
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.65);
 }
 
 .brand-scope-pill.active {
@@ -275,8 +289,8 @@ body::before {
 }
 
 .brand-dot {
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   flex-shrink: 0;
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
@@ -295,7 +309,7 @@ body::before {
    NAVIGATION TABS (SEGMENTED LIQUID GLASS PILLS)
    ========================================================================== */
 .nav-tabs-container {
-  margin-bottom: 24px;
+  margin-bottom: 22px;
 }
 
 .nav-tabs {
@@ -303,7 +317,7 @@ body::before {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  padding: 7px;
+  padding: 6px;
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
@@ -366,7 +380,7 @@ body::before {
 }
 
 /* ==========================================================================
-   LIQUID GLASS CARDS, PANELS & GRID LAYOUTS
+   CARDS, PANELS & GRID LAYOUTS
    ========================================================================== */
 .tab-panel {
   display: none;
@@ -524,7 +538,6 @@ textarea:focus {
   background: rgba(248, 250, 252, 0.9);
 }
 
-/* Checkbox Cards */
 .checkbox-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -567,7 +580,7 @@ textarea:focus {
 }
 
 /* ==========================================================================
-   TACTILE APPLE GLASS BUTTONS
+   BUTTONS
    ========================================================================== */
 .btn {
   display: inline-flex;
@@ -609,19 +622,19 @@ textarea:focus {
 }
 
 .btn-secondary {
-  background: var(--glass-bg-strong);
+  background: #ffffff;
   color: var(--text-primary);
-  border-color: rgba(15, 23, 42, 0.1);
+  border-color: rgba(15, 23, 42, 0.12);
   box-shadow: var(--shadow-pill);
 }
 
 .btn-secondary:hover {
-  background: #ffffff;
+  background: #f8fafc;
   transform: translateY(-1px);
 }
 
 .btn-outline {
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.65);
   color: var(--text-secondary);
   border-color: rgba(15, 23, 42, 0.12);
 }
@@ -644,12 +657,12 @@ textarea:focus {
 }
 
 /* ==========================================================================
-   POST QUEUE & LIVE BRAND STOREFRONT PREVIEW CHROME
+   POST QUEUE CARDS & MANUAL UPLOAD CHECKLIST TRACKER
    ========================================================================== */
 .queue-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
 .queue-card {
@@ -659,12 +672,59 @@ textarea:focus {
   border: 1px solid var(--glass-border);
   outline: 1px solid var(--glass-border-outer);
   box-shadow: var(--shadow-glass);
-  padding: 20px;
+  padding: 22px;
   transition: all 0.22s ease;
 }
 
 .queue-card:hover {
   box-shadow: var(--shadow-glass-hover);
+}
+
+/* Manual Upload Progress Tracker */
+.upload-tracker-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(15, 23, 42, 0.03);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: var(--radius-md);
+  margin-top: 14px;
+}
+
+.step-checklist {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.step-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.step-pill:hover {
+  border-color: var(--brand-primary);
+}
+
+.step-pill.completed {
+  background: #f0fdf4;
+  border-color: #86efac;
+  color: #15803d;
+  font-weight: 700;
 }
 
 /* Store View Quick-Copy Strip */
@@ -674,13 +734,133 @@ textarea:focus {
   flex-wrap: wrap;
   gap: 8px;
   padding: 12px 14px;
-  background: rgba(15, 23, 42, 0.03);
+  background: rgba(15, 23, 42, 0.02);
   border: 1px solid rgba(15, 23, 42, 0.07);
   border-radius: var(--radius-md);
-  margin-top: 14px;
+  margin-top: 10px;
 }
 
-/* Live Brand Website Preview Chrome (Replicating Lawsons, AVS, Oxford, Witham, Landscape) */
+/* Global / All Store Views Metadata Card in Queue */
+.global-scope-details-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-top: 12px;
+}
+
+/* ==========================================================================
+   INTERACTIVE IN-PREVIEW LIVE EDITING (APPLE STYLE)
+   ========================================================================== */
+.live-edit-mode-active [contenteditable="true"] {
+  outline: 2px dashed rgba(0, 122, 255, 0.35);
+  outline-offset: 4px;
+  border-radius: 4px;
+  cursor: text;
+  transition: outline 0.15s ease, background 0.15s ease;
+}
+
+.live-edit-mode-active [contenteditable="true"]:hover {
+  outline: 2px dashed rgba(0, 122, 255, 0.7);
+  background: rgba(0, 122, 255, 0.03);
+}
+
+.live-edit-mode-active [contenteditable="true"]:focus {
+  outline: 2px solid var(--accent-blue);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+}
+
+/* Clickable Replaceable Images in Preview */
+.live-edit-mode-active .live-preview-img-wrapper {
+  position: relative;
+  cursor: pointer;
+  display: block;
+}
+
+.live-edit-mode-active .live-preview-img-wrapper:hover::after {
+  content: "📷 Click to Replace Image";
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  pointer-events: none;
+  animation: fadeSlideUp 0.15s ease;
+}
+
+.live-edit-mode-active .live-preview-img-wrapper:hover img {
+  filter: brightness(0.92);
+  outline: 3px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+/* Floating Image Replacement Drawer inside Modal */
+.image-selector-drawer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(28px);
+  border-top: 1px solid #cbd5e1;
+  box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.2);
+  padding: 20px 24px;
+  z-index: 1100;
+  display: none;
+  animation: slideUpDrawer 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.image-selector-drawer.active {
+  display: block;
+}
+
+@keyframes slideUpDrawer {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.image-picker-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 10px 0;
+}
+
+.image-picker-card {
+  width: 140px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  overflow: hidden;
+  background: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: all 0.18s ease;
+}
+
+.image-picker-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-blue);
+  box-shadow: 0 6px 16px rgba(0, 122, 255, 0.2);
+}
+
+.image-picker-card img {
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+  display: block;
+}
+
+/* ==========================================================================
+   LIVE STOREFRONT BROWSER SHELL (REPLICATING BRAND WEBSITES)
+   ========================================================================== */
 .storefront-preview-shell {
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -737,7 +917,7 @@ textarea:focus {
 }
 
 /* ==========================================================================
-   MEDIA LIBRARY CARDS
+   MEDIA LIBRARY GRID
    ========================================================================== */
 .media-grid {
   display: grid;
@@ -778,8 +958,8 @@ textarea:focus {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(15, 23, 42, 0.35);
-  backdrop-filter: blur(10px);
+  background: rgba(15, 23, 42, 0.40);
+  backdrop-filter: blur(12px);
   display: none;
   align-items: center;
   justify-content: center;
@@ -791,7 +971,7 @@ textarea:focus {
 }
 
 .modal-content {
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(32px);
   border-radius: var(--radius-xl);
   border: 1px solid #ffffff;
@@ -801,6 +981,7 @@ textarea:focus {
   max-height: 90vh;
   overflow-y: auto;
   padding: 28px;
+  position: relative;
 }
 
 .toast-container {
@@ -814,7 +995,7 @@ textarea:focus {
 }
 
 .toast {
-  background: rgba(15, 23, 42, 0.88);
+  background: rgba(15, 23, 42, 0.90);
   backdrop-filter: blur(16px);
   color: #ffffff;
   padding: 12px 18px;

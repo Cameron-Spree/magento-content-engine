@@ -22,9 +22,11 @@
 </head>
 <body>
 
-  <div id="app">
-    <!-- Top Liquid Glass Header -->
-    <header class="app-header">
+  <!-- ======================================================================
+       STRUCTURED FULL-WIDTH TOP HEADER (APPLE STYLE)
+       ====================================================================== -->
+  <header class="site-header">
+    <div class="site-header-inner">
       <div class="header-left">
         <div class="brand-logo">
           <div class="logo-icon" id="header-logo-badge">
@@ -33,7 +35,7 @@
           <div class="brand-text">
             <h1>Magento Content Engine</h1>
             <span class="version-badge" id="app-version-tag">
-              v1.0.0 • Lawsons Group 5-Brand Amasty Studio
+              Lawsons Group • 5-Brand Amasty Studio v1.1.0
             </span>
           </div>
         </div>
@@ -47,7 +49,7 @@
         </div>
         <div class="stat-pill">
           <i data-lucide="git-branch"></i>
-          <span>Store View Variations:</span>
+          <span>Store Variations (x5):</span>
           <span class="stat-value" id="count-variations">0</span>
         </div>
         <div class="stat-pill">
@@ -58,7 +60,7 @@
         <div class="stat-pill">
           <i data-lucide="check-circle-2"></i>
           <span>Active Scope:</span>
-          <span class="stat-value" id="active-scope-stat">Lawsons</span>
+          <span class="stat-value" id="active-scope-stat">All Store Views</span>
         </div>
       </div>
 
@@ -76,17 +78,28 @@
           <i data-lucide="download"></i> Export Amasty CSV
         </button>
       </div>
-    </header>
+    </div>
+  </header>
 
-    <!-- Global 5-Brand Store View Scope Switcher Dock -->
+  <!-- ======================================================================
+       MAIN APPLICATION WORKSPACE
+       ====================================================================== -->
+  <div id="app">
+
+    <!-- Global Store View Scope Switcher Bar (Including "All Store Views" Master Scope) -->
     <section class="brand-switcher-bar" aria-label="Magento Store View Scope Switcher">
       <div class="brand-switcher-label">
         <i data-lucide="store"></i>
-        <span>Magento Store View Scope:</span>
+        <span>Active Store View Scope:</span>
       </div>
 
       <div class="brand-pills-group" id="global-brand-switcher">
-        <button type="button" class="brand-scope-pill active" data-brand="lawsons">
+        <button type="button" class="brand-scope-pill active" data-brand="all" title="Master Global Scope: Define generic title, author, categories, tags">
+          <span class="brand-dot" style="background: #0f172a; border: 2px solid #38bdf8;"></span>
+          <span>🌐 All Store Views (Global)</span>
+          <span class="brand-store-code-tag">default</span>
+        </button>
+        <button type="button" class="brand-scope-pill" data-brand="lawsons">
           <span class="brand-dot" style="background: #008a2e; border: 2px solid #ffdd00;"></span>
           <span>Lawsons</span>
           <span class="brand-store-code-tag">lawsons_en</span>
@@ -115,11 +128,11 @@
 
       <div style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
         <i data-lucide="shield-check" style="width: 14px; height: 14px; color: var(--brand-primary);"></i>
-        <span id="active-brand-domain-indicator">https://www.lawsons.co.uk</span>
+        <span id="active-brand-domain-indicator">Global Master Configuration Scope</span>
       </div>
     </section>
 
-    <!-- Main Segmented Liquid Glass Navigation Tabs -->
+    <!-- Main Navigation Tabs -->
     <nav class="nav-tabs-container">
       <div class="nav-tabs">
         <button class="tab-btn active" data-tab="tab-prompt">
@@ -148,7 +161,7 @@
       </div>
     </nav>
 
-    <!-- MAIN CONTENT WORKSPACE -->
+    <!-- MAIN CONTENT PANELS -->
     <main class="main-content">
 
       <!-- ====================================================================
@@ -158,7 +171,7 @@
         <div class="panel-header">
           <div>
             <h2><i data-lucide="sparkles"></i> AI 5-Brand Multiplier & Prompt Studio</h2>
-            <p class="panel-subtitle">Turn 1 blog concept into 5 unique, SEO-safe variations for Lawsons, AVS, Oxford, Witham, and The Landscape Centre with PageBuilder-safe HTML.</p>
+            <p class="panel-subtitle">Generate 1 master concept that branches into 5 SEO-safe brand variations with PageBuilder-safe HTML and custom link banks.</p>
           </div>
           <div style="display: flex; gap: 10px;">
             <button class="btn btn-outline btn-sm" id="btn-reset-prompt">
@@ -168,18 +181,18 @@
         </div>
 
         <div class="split-grid">
-          <!-- Left: Topic & Multiplier Controls -->
+          <!-- Left: Brief Controls -->
           <div class="card">
             <div class="card-title">
               <i data-lucide="sliders"></i>
-              <span>Article Brief & Store View Mode</span>
+              <span>Article Brief & Multi-Store Settings</span>
             </div>
 
             <div class="form-group">
               <label>Prompt Generation Strategy</label>
               <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 <button type="button" class="btn btn-primary btn-sm" id="btn-mode-multiplier">
-                  <i data-lucide="git-Fork"></i> 5-Brand Multiplier (Recommended)
+                  <i data-lucide="git-fork"></i> 5-Brand Multiplier (Recommended)
                 </button>
                 <button type="button" class="btn btn-outline btn-sm" id="btn-mode-single">
                   <i data-lucide="file-text"></i> Single Store Focus
@@ -191,8 +204,19 @@
             </div>
 
             <div class="form-group">
-              <label for="prompt-topic">Master Article Topic / Working Title</label>
-              <input type="text" id="prompt-topic" value="Concrete vs Timber Fence Posts: Which Is Best for Long-Lasting Garden Boundaries?" placeholder="e.g., How to Build a Raised Garden Bed with Railway Sleepers">
+              <label for="prompt-topic">Master Generic Title / Topic</label>
+              <input type="text" id="prompt-topic" value="Concrete vs Timber Fence Posts: Which Is Best for Long-Lasting Garden Boundaries?">
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="prompt-author">Default Author Name</label>
+                <input type="text" id="prompt-author" value="Lawsons Editorial Team">
+              </div>
+              <div class="form-group">
+                <label for="prompt-categories">Master Categories <span class="label-hint">(Comma separated)</span></label>
+                <input type="text" id="prompt-categories" value="Fencing Guides, Garden Advice">
+              </div>
             </div>
 
             <div class="form-group">
@@ -264,7 +288,7 @@
             </div>
           </div>
 
-          <!-- Right: Generated System Prompt Preview -->
+          <!-- Right: Live System Prompt Preview -->
           <div class="card" style="display: flex; flex-direction: column;">
             <div class="card-title" style="justify-content: space-between;">
               <div style="display: flex; align-items: center; gap: 8px;">
@@ -273,7 +297,7 @@
               </div>
               <span class="brand-store-code-tag" id="prompt-char-counter">Ready</span>
             </div>
-            <textarea id="generated-prompt-output" class="code-textarea" style="flex: 1; min-height: 410px;" readonly></textarea>
+            <textarea id="generated-prompt-output" class="code-textarea" style="flex: 1; min-height: 430px;" readonly></textarea>
           </div>
         </div>
       </section>
@@ -285,11 +309,11 @@
         <div class="panel-header">
           <div>
             <h2><i data-lucide="braces"></i> Multi-Brand JSON Ingestion & Auto-Multiplier</h2>
-            <p class="panel-subtitle">Paste the JSON block from ChatGPT, Claude, or Gemini. Single-article JSON is automatically multiplied across all 5 Store Views.</p>
+            <p class="panel-subtitle">Paste JSON from your AI assistant. Auto-populates all 5 Store Views with PageBuilder-safe HTML.</p>
           </div>
           <div style="display: flex; gap: 10px;">
             <button class="btn btn-outline btn-sm" id="btn-clear-json">
-              <i data-lucide="trash-2"></i> Clear Editor
+              <i data-lucide="trash-2"></i> Clear
             </button>
             <button class="btn btn-primary btn-sm" id="btn-parse-json">
               <i data-lucide="check-check"></i> Validate & Ingest to Queue
@@ -310,20 +334,20 @@
           <div class="card">
             <div class="card-title">
               <i data-lucide="shield-check"></i>
-              <span>How the Magento PageBuilder Bypass Works</span>
+              <span>How the Multi-Store Workflow Operates</span>
             </div>
             <div style="display: flex; flex-direction: column; gap: 14px; font-size: 13.5px; color: var(--text-secondary); line-height: 1.6;">
+              <div style="padding: 14px; border-radius: 12px; background: rgba(15, 23, 42, 0.04); border: 1px solid rgba(15, 23, 42, 0.08);">
+                <strong style="color: var(--text-primary); display: block; margin-bottom: 4px;">Step 1: All Store Views (Global Setup)</strong>
+                Set up the post in Magento under <em>All Store Views</em>: Paste Master Title, Author, Categories, Tags, and Featured Image.
+              </div>
               <div style="padding: 14px; border-radius: 12px; background: rgba(0, 138, 46, 0.06); border: 1px solid rgba(0, 138, 46, 0.16);">
-                <strong style="color: var(--text-primary); display: block; margin-bottom: 4px;">1. Eliminates Double Mobile/Desktop Images</strong>
-                When dragging images in Magento PageBuilder, Amasty often outputs both mobile & desktop tags side by side. Our engine wraps images in a clean <code>&lt;figure class="mce-media-figure"&gt;</code> with explicit single-image CSS rules.
+                <strong style="color: var(--text-primary); display: block; margin-bottom: 4px;">Step 2: Store View Specific Overrides</strong>
+                Switch Magento's top-left scope to <strong>Lawsons</strong>, <strong>AVS</strong>, <strong>Oxford</strong>, <strong>Witham</strong>, or <strong>The Landscape Centre</strong>, uncheck "Use Default", and paste each brand's unique Title, URL Key, Meta, and Custom HTML.
               </div>
               <div style="padding: 14px; border-radius: 12px; background: rgba(0, 133, 202, 0.06); border: 1px solid rgba(0, 133, 202, 0.16);">
-                <strong style="color: var(--text-primary); display: block; margin-bottom: 4px;">2. Replaces Broken Native Product Widgets</strong>
-                Instead of Magento's fragile product widget, our engine builds responsive <code>.mce-product-grid</code> cards styled with each brand's exact button colors (e.g. Lawsons Green & Yellow, AVS Slate & Timber Brown, Oxford Navy & Sky Blue).
-              </div>
-              <div style="padding: 14px; border-radius: 12px; background: rgba(15, 23, 42, 0.04); border: 1px solid rgba(15, 23, 42, 0.09);">
-                <strong style="color: var(--text-primary); display: block; margin-bottom: 4px;">3. Top-of-Post Scoped CSS Injection</strong>
-                Every copied HTML payload automatically includes the scoped <code>&lt;style&gt;</code> block at the top so your custom HTML box renders identically across all 5 websites.
+                <strong style="color: var(--text-primary); display: block; margin-bottom: 4px;">Step 3: In-Preview Live Editing & Image Swaps</strong>
+                Need to tweak wording or swap an image? Open the Live Preview, click on any text to edit in place, or click any image to pick a replacement from your pool!
               </div>
             </div>
           </div>
@@ -331,13 +355,13 @@
       </section>
 
       <!-- ====================================================================
-           TAB 3: /pub/media/ STUDIO & ANTI-DUPLICATE IMAGE BUILDER
+           TAB 3: /pub/media/ STUDIO
            ==================================================================== -->
       <section id="tab-media" class="tab-panel">
         <div class="panel-header">
           <div>
             <h2><i data-lucide="images"></i> Magento <code>/pub/media/</code> Studio</h2>
-            <p class="panel-subtitle">Upload local photos or register Magento WYSIWYG image paths. Auto-matches <code>{{IMAGE:keyword}}</code> placeholders across all posts.</p>
+            <p class="panel-subtitle">Manage media pool, upload local photos (auto-compressed), and copy single-image anti-duplicate HTML snippets.</p>
           </div>
           <div style="display: flex; gap: 10px;">
             <button class="btn btn-secondary btn-sm" id="btn-rematch-all-media">
@@ -355,17 +379,17 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="media-title-input">Image Title / Alt Text</label>
-                <input type="text" id="media-title-input" placeholder="e.g., Pressure Treated Slatted Fence Panel">
+                <input type="text" id="media-title-input" placeholder="e.g., Slotted Concrete Fence Post & Gravel Board">
               </div>
               <div class="form-group">
                 <label for="media-tags-input">Matching Keywords <span class="label-hint">(Comma separated)</span></label>
-                <input type="text" id="media-tags-input" placeholder="e.g., timber fence, fence post, gravel board">
+                <input type="text" id="media-tags-input" placeholder="e.g., concrete fence, post, gravel board">
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label for="media-url-input">Magento Media Path or Live Image URL</label>
-                <input type="text" id="media-url-input" placeholder="/media/wysiwyg/blog/fence-post.jpg or https://...">
+                <input type="text" id="media-url-input" placeholder="/media/wysiwyg/blog/concrete-post.jpg or https://...">
               </div>
               <div class="form-group">
                 <label for="media-file-input">Or Select Local Photo File(s)</label>
@@ -380,10 +404,10 @@
           <div class="card">
             <div class="card-title">
               <i data-lucide="code-2"></i>
-              <span>Quick Single-Image HTML Snippet Generator</span>
+              <span>Single-Image HTML Generator (No PageBuilder Image Doubling)</span>
             </div>
             <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
-              Need to drop a single photo into an existing Magento Custom HTML block without PageBuilder doubling up mobile + desktop images? Copy any image's <strong>Single-Image HTML</strong> button below.
+              Copy any image's <strong>Single-Image HTML</strong> button to drop a clean responsive image into Magento without PageBuilder rendering both mobile & desktop photos simultaneously.
             </p>
             <div class="form-group">
               <label for="magento-media-folder-input">Default Magento Media Folder Prefix</label>
@@ -396,13 +420,13 @@
       </section>
 
       <!-- ====================================================================
-           TAB 4: MULTI-STORE POST QUEUE, SCOPE COPIER & LIVE WEBSITE PREVIEW
+           TAB 4: MULTI-STORE POST QUEUE, SCOPE COPIER & LIVE PREVIEW
            ==================================================================== -->
       <section id="tab-queue" class="tab-panel">
         <div class="panel-header">
           <div>
-            <h2><i data-lucide="layout-template"></i> Multi-Store Post Queue & Storefront Preview</h2>
-            <p class="panel-subtitle">Switch between Lawsons, AVS, Oxford, Witham, and Landscape Centre to preview live storefront styling and copy Store View fields in 1 click.</p>
+            <h2><i data-lucide="layout-template"></i> Multi-Store Post Queue & Scope Copier</h2>
+            <p class="panel-subtitle">Copy global setup fields first under All Store Views, then switch store views to copy each brand's tailored content and preview live styling.</p>
           </div>
           <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
             <label style="display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: 12.5px; cursor: pointer;">
@@ -441,18 +465,17 @@
       </section>
 
       <!-- ====================================================================
-           TAB 5: AMASTY EXPORT & PIXEL AGENCY INTEGRATION HUB
+           TAB 5: AMASTY EXPORT & PIXEL AGENCY HUB
            ==================================================================== -->
       <section id="tab-export" class="tab-panel">
         <div class="panel-header">
           <div>
-            <h2><i data-lucide="share-2"></i> Amasty Export & Pixel Agency Integration Hub</h2>
-            <p class="panel-subtitle">Export multi-store CSVs, REST API JSON bundles, or copy the technical briefing for Pixel.</p>
+            <h2><i data-lucide="share-2"></i> Amasty Export & Pixel Agency Hub</h2>
+            <p class="panel-subtitle">Download multi-store CSVs, REST API JSON bundles, or copy the technical briefing for Pixel.</p>
           </div>
         </div>
 
         <div class="split-grid" style="margin-bottom: 24px;">
-          <!-- Left: Export Packages -->
           <div class="card">
             <div class="card-title">
               <i data-lucide="package-check"></i>
@@ -484,15 +507,14 @@
             </div>
           </div>
 
-          <!-- Right: Pixel Developer Briefing & Options Card -->
           <div class="card">
             <div class="card-title" style="justify-content: space-between;">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <i data-lucide="briefcase"></i>
-                <span>Ready-to-Send Technical Briefing for Pixel</span>
+                <span>Ready-to-Send Briefing for Pixel</span>
               </div>
               <button type="button" class="btn btn-outline btn-sm" id="btn-copy-pixel-brief">
-                <i data-lucide="copy"></i> Copy Briefing for Pixel
+                <i data-lucide="copy"></i> Copy Briefing
               </button>
             </div>
             <textarea id="pixel-briefing-text" class="code-textarea" rows="12" readonly>Hi Pixel team,
@@ -519,12 +541,11 @@ Let us know which route you recommend!</textarea>
           </div>
         </div>
 
-        <!-- Live Export Preview Box -->
         <div class="card">
           <div class="card-title" style="justify-content: space-between;">
             <div style="display: flex; align-items: center; gap: 8px;">
               <i data-lucide="code"></i>
-              <span>Live Multi-Store Payload Preview</span>
+              <span>Live Multi-Store CSV Payload Preview</span>
             </div>
             <button type="button" class="btn btn-outline btn-sm" id="btn-refresh-export-preview">
               <i data-lucide="refresh-cw"></i> Refresh Preview
@@ -538,20 +559,28 @@ Let us know which route you recommend!</textarea>
   </div>
 
   <!-- ======================================================================
-       MODAL 1: LIVE BRAND STOREFRONT BLOG PREVIEW & VARIATION EDITOR
+       MODAL 1: LIVE BRAND STOREFRONT PREVIEW & IN-PLACE LIVE EDITOR
        ====================================================================== -->
   <div class="modal-overlay" id="modal-preview">
-    <div class="modal-content" style="max-width: 1120px; padding: 0; overflow: hidden;">
-      <!-- Top Liquid Glass Modal Control Bar -->
-      <div style="padding: 16px 24px; background: rgba(255,255,255,0.92); border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-        <div style="display: flex; align-items: center; gap: 10px;">
+    <div class="modal-content" style="max-width: 1140px; padding: 0; overflow: hidden; position: relative;">
+      <!-- Top Control Bar -->
+      <div style="padding: 14px 24px; background: rgba(255,255,255,0.94); border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
           <i data-lucide="eye" style="color: var(--brand-primary);"></i>
-          <strong style="font-size: 15px;">Live Brand Storefront Preview:</strong>
+          <strong style="font-size: 14.5px;">Store View:</strong>
           <div id="modal-brand-pills" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
         </div>
-        <div style="display: flex; gap: 8px;">
+
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <!-- In-Place Editing Mode Toggle -->
+          <button type="button" class="btn btn-outline btn-sm" id="btn-toggle-live-edit">
+            <i data-lucide="pencil"></i> <span id="live-edit-btn-label">In-Place Edit: ON</span>
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-save-live-edits">
+            <i data-lucide="check"></i> Save In-Place Edits
+          </button>
           <button type="button" class="btn btn-primary btn-sm" id="btn-modal-copy-html">
-            <i data-lucide="copy"></i> Copy This Brand's Custom HTML
+            <i data-lucide="copy"></i> Copy Custom HTML
           </button>
           <button type="button" class="btn btn-outline btn-sm" id="btn-close-preview-modal">
             <i data-lucide="x"></i> Close
@@ -559,8 +588,14 @@ Let us know which route you recommend!</textarea>
         </div>
       </div>
 
-      <!-- Simulated Live Brand Website Chrome + Blog Article Stage -->
-      <div style="max-height: 80vh; overflow-y: auto; background: #f8fafc; padding: 20px;">
+      <!-- In-Place Edit Notice Banner -->
+      <div id="live-edit-indicator-bar" style="background: #eff6ff; border-bottom: 1px solid #bfdbfe; padding: 8px 24px; font-size: 12px; color: #1e40af; display: flex; align-items: center; justify-content: space-between;">
+        <span>✏️ <strong>Interactive In-Place Edit Mode:</strong> Click any text heading, paragraph, table cell, or button to edit. Click on any image to replace it from your media pool!</span>
+        <span style="font-weight: 700; color: #2563eb;">Live Edits Sync Directly to This Store View</span>
+      </div>
+
+      <!-- Simulated Live Brand Website Chrome -->
+      <div style="max-height: 75vh; overflow-y: auto; background: #f8fafc; padding: 20px;" id="preview-scroll-viewport">
         <div class="storefront-preview-shell">
           <div class="storefront-browser-bar">
             <div class="browser-dots">
@@ -572,20 +607,42 @@ Let us know which route you recommend!</textarea>
             <span id="preview-store-code-badge" class="brand-store-code-tag">store_view: lawsons_en</span>
           </div>
 
-          <!-- Dynamic Brand Website Header Mockup (Matches Uploaded Screenshots!) -->
+          <!-- Dynamic Brand Website Header Mockup -->
           <div id="preview-storefront-header" class="storefront-brand-header"></div>
 
-          <!-- Blog Post Hero & Content Body -->
+          <!-- Blog Article Stage -->
           <div class="storefront-article-Stage">
             <div id="preview-article-meta-bar" style="margin-bottom: 14px;"></div>
-            <h1 id="preview-article-title" style="font-size: 30px; font-weight: 800; line-height: 1.25; margin-bottom: 16px; color: #111827;"></h1>
-            <div id="preview-article-hero-img" style="margin-bottom: 26px;"></div>
-            <div id="preview-article-body"></div>
+            <h1 id="preview-article-title" contenteditable="true" style="font-size: 30px; font-weight: 800; line-height: 1.25; margin-bottom: 16px; color: #111827;"></h1>
+            
+            <!-- Hero Cover Image Wrapper (Click to Replace) -->
+            <div id="preview-article-hero-img" class="live-preview-img-wrapper" style="margin-bottom: 26px;" title="Click to Replace Featured Hero Image"></div>
+            
+            <!-- Editable Article Body -->
+            <div id="preview-article-body" contenteditable="true"></div>
           </div>
 
           <!-- Dynamic Brand Website Footer Mockup -->
           <div id="preview-storefront-footer"></div>
         </div>
+      </div>
+
+      <!-- Click-to-Replace Image Picker Drawer -->
+      <div class="image-selector-drawer" id="image-picker-drawer">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div>
+            <strong style="font-size: 14px; color: var(--text-primary);">📷 Select Replacement Image</strong>
+            <span style="font-size: 12px; color: var(--text-muted); margin-left: 8px;">Click any photo below to instantly replace this slot</span>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <label class="btn btn-secondary btn-sm" style="margin: 0; cursor: pointer;">
+              <i data-lucide="upload"></i> Upload & Replace
+              <input type="file" id="drawer-instant-upload" accept="image/*" style="display: none;">
+            </label>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-close-img-drawer">✕ Close</button>
+          </div>
+        </div>
+        <div class="image-picker-scroll" id="drawer-image-list"></div>
       </div>
     </div>
   </div>
