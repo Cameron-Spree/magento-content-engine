@@ -1,0 +1,829 @@
+/**
+ * Magento Content Engine — Apple "Liquid Glass" Design System
+ * Luminous frosted glassmorphism, specular edge highlights, ambient mesh gradients,
+ * and dynamic Lawsons Group 5-Brand Storefront theming.
+ */
+
+:root {
+  /* Typography */
+  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+
+  /* Liquid Glass Palette (Bright Daylight Mode) */
+  --bg-canvas: #f2f5fa;
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-bg-strong: rgba(255, 255, 255, 0.88);
+  --glass-bg-subtle: rgba(255, 255, 255, 0.52);
+  --glass-border: rgba(255, 255, 255, 0.88);
+  --glass-border-outer: rgba(15, 23, 42, 0.07);
+  --glass-blur: blur(28px) saturate(190%);
+
+  /* Shadows & Specular Highlights */
+  --shadow-glass: 
+    0 12px 34px -6px rgba(15, 23, 42, 0.06),
+    0 3px 10px -2px rgba(15, 23, 42, 0.03),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
+  --shadow-glass-hover:
+    0 18px 42px -8px rgba(15, 23, 42, 0.09),
+    0 4px 12px -2px rgba(15, 23, 42, 0.05),
+    inset 0 1px 0 0 rgba(255, 255, 255, 1);
+  --shadow-pill:
+    0 4px 14px -2px rgba(15, 23, 42, 0.07),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+
+  /* Text Hierarchy */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+
+  /* Dynamic Active Brand Accents (Default: Lawsons) */
+  --brand-primary: #008a2e;
+  --brand-primary-dark: #006822;
+  --brand-secondary: #ffdd00;
+  --brand-secondary-text: #111827;
+  --brand-tint: rgba(0, 138, 46, 0.08);
+  --brand-glow: rgba(0, 138, 46, 0.22);
+
+  /* System Semantic Colors */
+  --accent-blue: #007aff;
+  --accent-indigo: #5856d6;
+  --accent-emerald: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-danger: #ef4444;
+
+  /* Radii */
+  --radius-xl: 24px;
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+  --radius-pill: 9999px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  background-color: var(--bg-canvas);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Ambient Iridescent Liquid Mesh Background */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -10%;
+  z-index: -2;
+  background:
+    radial-gradient(circle at 12% 16%, rgba(0, 138, 46, 0.11) 0%, transparent 38%),
+    radial-gradient(circle at 86% 12%, rgba(0, 133, 202, 0.12) 0%, transparent 42%),
+    radial-gradient(circle at 75% 82%, rgba(255, 221, 0, 0.10) 0%, transparent 40%),
+    radial-gradient(circle at 22% 78%, rgba(62, 91, 130, 0.11) 0%, transparent 44%),
+    linear-gradient(135deg, #f6f8fc 0%, #eef2f9 50%, #f3f7fa 100%);
+  pointer-events: none;
+}
+
+#app {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 20px 28px 60px;
+}
+
+/* ==========================================================================
+   TOP LIQUID GLASS HEADER
+   ========================================================================== */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px 24px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--glass-border);
+  outline: 1px solid var(--glass-border-outer);
+  box-shadow: var(--shadow-glass);
+  margin-bottom: 18px;
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px var(--brand-glow), inset 0 1px 1px rgba(255,255,255,0.4);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.logo-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.brand-text h1 {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+
+.version-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.header-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg-strong);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  outline: 1px solid rgba(15, 23, 42, 0.05);
+  box-shadow: var(--shadow-pill);
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.stat-pill svg {
+  width: 14px;
+  height: 14px;
+  color: var(--brand-primary);
+}
+
+.stat-value {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   GLOBAL 5-BRAND STORE VIEW SWITCHER BAR (LIQUID GLASS DOCK)
+   ========================================================================== */
+.brand-switcher-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 12px 20px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  outline: 1px solid var(--glass-border-outer);
+  box-shadow: var(--shadow-glass);
+  margin-bottom: 18px;
+}
+
+.brand-switcher-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.brand-switcher-label svg {
+  width: 16px;
+  height: 16px;
+  color: var(--brand-primary);
+}
+
+.brand-pills-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: rgba(15, 23, 42, 0.04);
+  padding: 5px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.brand-scope-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.brand-scope-pill:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.brand-scope-pill.active {
+  background: #ffffff;
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  font-weight: 700;
+}
+
+.brand-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
+}
+
+.brand-store-code-tag {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   NAVIGATION TABS (SEGMENTED LIQUID GLASS PILLS)
+   ========================================================================== */
+.nav-tabs-container {
+  margin-bottom: 24px;
+}
+
+.nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 7px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  outline: 1px solid var(--glass-border-outer);
+  box-shadow: var(--shadow-glass);
+}
+
+.tab-btn {
+  flex: 1;
+  min-width: 175px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 11px 16px;
+  border-radius: 13px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tab-btn svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.75;
+}
+
+.tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.tab-btn.active {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  color: var(--brand-primary);
+  border-color: rgba(255, 255, 255, 1);
+  box-shadow: 0 6px 18px -4px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.05);
+  font-weight: 700;
+}
+
+.tab-btn.active svg {
+  opacity: 1;
+  color: var(--brand-primary);
+}
+
+.badge-count {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-tint);
+  color: var(--brand-primary);
+}
+
+/* ==========================================================================
+   LIQUID GLASS CARDS, PANELS & GRID LAYOUTS
+   ========================================================================== */
+.tab-panel {
+  display: none;
+  animation: fadeSlideUp 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.panel-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.panel-header h2 svg {
+  width: 22px;
+  height: 22px;
+  color: var(--brand-primary);
+}
+
+.panel-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  outline: 1px solid var(--glass-border-outer);
+  box-shadow: var(--shadow-glass);
+  padding: 24px;
+  transition: box-shadow 0.25s ease;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
+}
+
+.card-title svg {
+  width: 17px;
+  height: 17px;
+  color: var(--brand-primary);
+}
+
+.split-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 22px;
+}
+
+@media (max-width: 1080px) {
+  .split-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   FORMS, INPUTS & LIQUID GLASS CONTROLS
+   ========================================================================== */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.label-hint {
+  font-weight: 500;
+  color: var(--text-muted);
+  font-size: 11.5px;
+}
+
+input[type="text"],
+input[type="url"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+select,
+textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(15, 23, 42, 0.11);
+  background: rgba(255, 255, 255, 0.82);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  color: var(--text-primary);
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03);
+  transition: all 0.18s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px var(--brand-tint);
+}
+
+.code-textarea {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  background: rgba(248, 250, 252, 0.9);
+}
+
+/* Checkbox Cards */
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.checkbox-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 13px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.checkbox-card:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: var(--brand-primary);
+}
+
+.checkbox-card input[type="checkbox"] {
+  margin-top: 3px;
+  accent-color: var(--brand-primary);
+  width: 15px;
+  height: 15px;
+}
+
+.checkbox-card-text strong {
+  display: block;
+  font-size: 12.5px;
+  color: var(--text-primary);
+}
+
+.checkbox-card-text span {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   TACTILE APPLE GLASS BUTTONS
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.btn-sm {
+  padding: 7px 13px;
+  font-size: 12.5px;
+  border-radius: 9px;
+}
+
+.btn-primary {
+  background: linear-gradient(180deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px var(--brand-glow), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px var(--brand-glow), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.btn-secondary {
+  background: var(--glass-bg-strong);
+  color: var(--text-primary);
+  border-color: rgba(15, 23, 42, 0.1);
+  box-shadow: var(--shadow-pill);
+}
+
+.btn-secondary:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--text-secondary);
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+.btn-outline:hover {
+  background: #ffffff;
+  color: var(--text-primary);
+  border-color: rgba(15, 23, 42, 0.22);
+}
+
+.btn-accent-ai {
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.btn-accent-ai:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(99, 102, 241, 0.38);
+}
+
+/* ==========================================================================
+   POST QUEUE & LIVE BRAND STOREFRONT PREVIEW CHROME
+   ========================================================================== */
+.queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.queue-card {
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  outline: 1px solid var(--glass-border-outer);
+  box-shadow: var(--shadow-glass);
+  padding: 20px;
+  transition: all 0.22s ease;
+}
+
+.queue-card:hover {
+  box-shadow: var(--shadow-glass-hover);
+}
+
+/* Store View Quick-Copy Strip */
+.scope-copy-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 14px;
+  background: rgba(15, 23, 42, 0.03);
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  border-radius: var(--radius-md);
+  margin-top: 14px;
+}
+
+/* Live Brand Website Preview Chrome (Replicating Lawsons, AVS, Oxford, Witham, Landscape) */
+.storefront-preview-shell {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.10);
+  background: #ffffff;
+}
+
+.storefront-browser-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 12px;
+  color: #475569;
+}
+
+.browser-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.browser-dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.browser-url-pill {
+  background: #ffffff;
+  padding: 4px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid #cbd5e1;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: #334155;
+  max-width: 540px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.storefront-brand-header {
+  transition: all 0.25s ease;
+}
+
+.storefront-article-Stage {
+  padding: 32px 36px;
+  max-width: 920px;
+  margin: 0 auto;
+  background: #ffffff;
+}
+
+/* ==========================================================================
+   MEDIA LIBRARY CARDS
+   ========================================================================== */
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.media-card {
+  background: var(--glass-bg-strong);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  outline: 1px solid var(--glass-border-outer);
+  overflow: hidden;
+  box-shadow: var(--shadow-glass);
+  display: flex;
+  flex-direction: column;
+}
+
+.media-card-thumb {
+  height: 150px;
+  width: 100%;
+  object-fit: cover;
+  background: #e2e8f0;
+}
+
+.media-card-body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+/* ==========================================================================
+   MODALS & TOAST NOTIFICATIONS
+   ========================================================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.35);
+  backdrop-filter: blur(10px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-content {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(32px);
+  border-radius: var(--radius-xl);
+  border: 1px solid #ffffff;
+  box-shadow: 0 25px 70px -10px rgba(15, 23, 42, 0.22);
+  width: 100%;
+  max-width: 980px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 28px;
+}
+
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toast {
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(16px);
+  color: #ffffff;
+  padding: 12px 18px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: fadeSlideUp 0.2s ease;
+}
