@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WP Content Engine - v2.5.1</title>
+  <meta name="description" content="Construct, manage, schedule, and export bulk WordPress blog posts with Yoast SEO metadata and attached media via WXR 1.2 XML format.">
+  
+  <!-- Inline SVG favicon — no external file request, no broken icon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231a1a1a'/><text x='16' y='22' font-family='serif' font-size='18' font-weight='bold' fill='%23c9a84c' text-anchor='middle'>W</text></svg>" type="image/svg+xml">
+
+  <!-- Fonts: Async loading to prevent render/load blocking -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"></noscript>
+  
+  <!-- Lucide & JSZip are loaded dynamically after page load — see bottom of body -->
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="marble-theme">
+
+  <div id="app">
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="brand-logo">
+          <div class="logo-icon"><i data-lucide="landmark"></i></div>
+          <div class="brand-text">
+            <h1>WP Content Engine</h1>
+            <span class="version-badge" id="app-version-tag">v8.8.0 • Build 16:22</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-stats">
+        <div class="stat-pill" id="stat-total-posts">
+          <i data-lucide="scroll"></i>
+          <span class="stat-label">Posts:</span>
+          <span class="stat-value" id="count-total">0</span>
+        </div>
+        <div class="stat-pill" id="stat-scheduled">
+          <i data-lucide="calendar"></i>
+          <span class="stat-label">Scheduled:</span>
+          <span class="stat-value" id="count-scheduled">0</span>
+        </div>
+        <div class="stat-pill" id="stat-media">
+          <i data-lucide="image"></i>
+          <span class="stat-label">Media Assets:</span>
+          <span class="stat-value" id="count-media">0</span>
+        </div>
+        <div class="stat-pill status-ready" id="stat-ready">
+          <i data-lucide="award"></i>
+          <span class="stat-label">Export Ready:</span>
+          <span class="stat-value" id="count-ready">0</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <a href="../index.html" class="btn btn-outline btn-sm" id="btn-switch-platform" style="text-decoration: none; border-color: var(--accent-gold-dark);">
+          <i data-lucide="arrow-left"></i> Switch Platform
+        </a>
+        <button class="btn btn-outline btn-sm" id="btn-open-debug" style="border-color: var(--accent-gold-dark);">
+          <i data-lucide="bug"></i> System Diagnostics
+        </button>
+        <button class="btn btn-outline btn-sm" id="btn-open-settings">
+          <i data-lucide="settings"></i> Site & Links Settings
+        </button>
+        <button class="btn btn-secondary btn-sm" id="btn-load-sample">
+          <i data-lucide="sparkles"></i> Load Sample Data
+        </button>
+        <button class="btn btn-primary btn-sm" id="btn-quick-export">
+          <i data-lucide="download"></i> Export WXR XML
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Navigation Tabs with Roman Numerals -->
+    <nav class="nav-tabs-container">
+      <div class="nav-tabs">
+        <button class="tab-btn active" data-tab="tab-prompt">
+          <i data-lucide="bot"></i>
+          <span class="tab-title">I. AI Prompt Generator</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-ingest">
+          <i data-lucide="file-json"></i>
+          <span class="tab-title">II. JSON Ingestion</span>
+          <span class="badge-count" id="badge-ingest-count">0</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-media">
+          <i data-lucide="image"></i>
+          <span class="tab-title">III. Media Library</span>
+          <span class="badge-count" id="badge-media-count">0</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-queue">
+          <i data-lucide="calendar-clock"></i>
+          <span class="tab-title">IV. Post Queue & Scheduler</span>
+          <span class="badge-count" id="badge-queue-count">0</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-export">
+          <i data-lucide="code-2"></i>
+          <span class="tab-title">V. WXR XML Export</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Workspace Content -->
+    <main class="main-content">
+      
+      <!-- TAB 1: AI Prompt Generator -->
+      <section id="tab-prompt" class="tab-panel active">
+        <div class="panel-header">
+          <div>
+            <h2><i data-lucide="scroll"></i> External AI Prompt Generator</h2>
+            <p class="panel-subtitle">Generate bulletproof system prompts for ChatGPT, Claude, or Gemini. Customize HTML widgets and content length below.</p>
+          </div>
+          <button class="btn btn-outline" id="btn-reset-prompt-form">
+            <i data-lucide="rotate-ccw"></i> Reset Inputs
+          </button>
+        </div>
+
+        <!-- Mode Switcher -->
+        <div class="card" style="margin-bottom: 24px; padding: 18px 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <i data-lucide="layers" style="color: var(--accent-gold-dark);"></i>
+              <strong style="font-family: var(--font-cinzel); font-size: 14px;">PROMPT GENERATION MODE:</strong>
+            </div>
+            <div class="mode-toggle-buttons">
+              <button type="button" class="btn btn-primary" id="btn-mode-single">
+                <i data-lucide="file-text"></i> Single Article Mode (Detailed)
+              </button>
+              <button type="button" class="btn btn-outline" id="btn-mode-bulk">
+                <i data-lucide="layers"></i> Bulk Topical Cluster Mode (5-10 Articles)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Single Article Mode View -->
+        <div id="view-mode-single" class="grid-2col">
+          <!-- Left Form Controls -->
+          <div class="card form-card">
+            <h3><i data-lucide="sliders"></i> Single Article Parameters</h3>
+            
+            <div class="form-group">
+              <label for="prompt-topic">Blog Post Topic / Main Subject <span class="required">*</span></label>
+              <input type="text" id="prompt-topic" class="form-input" placeholder="e.g. How to Choose the Right STIHL Chainsaw" value="The Complete Guide to Selecting & Maintaining STIHL Garden Machinery">
+            </div>
+
+            <div class="form-group">
+              <label for="prompt-keywords">Target Keywords (Comma Separated)</label>
+              <input type="text" id="prompt-keywords" class="form-input" placeholder="e.g. stihl chainsaws, garden machinery, lawnmowers" value="stihl garden machinery, chainsaw maintenance, lawnmower service, briants of risborough">
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="prompt-niche">Site Niche / Domain</label>
+                <input type="text" id="prompt-niche" class="form-input" placeholder="e.g. Garden Machinery & Outdoor Power Equipment" value="Briants of Risborough - Garden Machinery & Tools">
+              </div>
+              <div class="form-group">
+                <label for="prompt-tone">Brand Tone</label>
+                <select id="prompt-tone" class="form-select">
+                  <option value="Authoritative, practical, & expert guidance">Authoritative & Expert Guidance</option>
+                  <option value="Conversational, friendly, & helpful">Conversational & Helpful</option>
+                  <option value="Technical, deep-dive maintenance guide">Technical & Deep-dive</option>
+                  <option value="Persuasive & product recommendation focused">Persuasive & Product Recommendation</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="prompt-word-count">Target Word Count</label>
+                <select id="prompt-word-count" class="form-select">
+                  <option value="300-500 words">300 - 500 words (Short & Quick Read)</option>
+                  <option value="500-800 words">500 - 800 words (Standard Short Post)</option>
+                  <option value="800-1200 words" selected>800 - 1,200 words (Standard Article)</option>
+                  <option value="1200-1800 words">1,200 - 1,800 words (Deep Dive Guide)</option>
+                  <option value="1800-2500 words">1,800 - 2,500 words (Comprehensive Guide)</option>
+                  <option value="2500+ words">2,500+ words (Cornerstone Pillar Content)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="prompt-images-count">Inline Image Placeholders</label>
+                <select id="prompt-images-count" class="form-select">
+                  <option value="0" selected>0 (Featured Cover Image Only)</option>
+                  <option value="1">1 inline image</option>
+                  <option value="2">2 inline images</option>
+                  <option value="3">3 inline images</option>
+                  <option value="4 to 6">4 to 6 inline images</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- HTML Widgets & Structure Toggles -->
+            <div class="widget-toggles-card">
+              <label class="widget-toggles-title"><i data-lucide="layout-template"></i> Structure & HTML Widgets Builder</label>
+              
+              <div class="checkbox-grid">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="toggle-widget-know-more" checked>
+                  <span>Include "Want to Know More?" Recommended Links Box</span>
+                </label>
+
+                <label class="checkbox-label">
+                  <input type="checkbox" id="toggle-widget-category-spotlight" checked>
+                  <span>Include Category / Product CTA Banner</span>
+                </label>
+
+                <label class="checkbox-label">
+                  <input type="checkbox" id="toggle-widget-table" checked>
+                  <span>Include HTML Data / Comparison Table</span>
+                </label>
+
+                <label class="checkbox-label">
+                  <input type="checkbox" id="toggle-strict-formatting" checked>
+                  <span>Strict Paragraph `<p>` Spacing & Mandatory Tag Closing</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="internal-links-summary-box">
+              <div class="summary-box-header">
+                <i data-lucide="link-2"></i>
+                <strong>Internal Links Auto-Injection Status</strong>
+              </div>
+              <p id="internal-links-status-text">Using stored site links bank + queued batch post URLs for cross-linking.</p>
+              <button class="btn btn-outline btn-sm" id="btn-edit-links-bank" type="button" style="margin-top: 8px;">
+                <i data-lucide="edit"></i> Manage Links Bank
+              </button>
+            </div>
+          </div>
+
+          <!-- Right Generated Output -->
+          <div class="card output-card">
+            <div class="card-header-flex">
+              <h3><i data-lucide="terminal"></i> Generated Single AI Prompt</h3>
+              <button class="btn btn-primary" id="btn-copy-prompt">
+                <i data-lucide="copy"></i> Copy Prompt to Clipboard
+              </button>
+            </div>
+            
+            <div class="prompt-output-wrapper">
+              <textarea id="prompt-output" class="code-textarea" readonly></textarea>
+            </div>
+            <div class="prompt-instructions-banner">
+              <i data-lucide="info"></i>
+              <span>Copy this prompt and paste it directly into <strong>ChatGPT</strong>, <strong>Claude</strong>, or <strong>Gemini</strong>. Then copy the returned JSON output into Tab II.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bulk Topical Cluster Mode View -->
+        <div id="view-mode-bulk" class="grid-2col hidden">
+          <!-- Left Form Controls -->
+          <div class="card form-card">
+            <h3><i data-lucide="layers"></i> Topical Cluster Parameters</h3>
+            
+            <div class="form-group">
+              <label for="bulk-cluster-topic">Topical Cluster Subject / Niche <span class="required">*</span></label>
+              <input type="text" id="bulk-cluster-topic" class="form-input" placeholder="e.g. STIHL Chainsaw Safety & Maintenance" value="STIHL Garden Machinery & Power Tools">
+            </div>
+
+            <div class="form-group">
+              <label for="bulk-questions-input">Cluster Questions / Article Titles (One Title / Question per line) <span class="required">*</span></label>
+              <textarea id="bulk-questions-input" class="code-textarea" rows="8" placeholder="How to Cut a Tree Safely with a STIHL Chainsaw
+What 2-Stroke Fuel Mixture Does a STIHL Engine Need?
+How Often Should You Service a Lawnmower?
+Best Chainsaw Protective Boots and Clothing Guide
+How to Sharpen a STIHL Chainsaw Chain at Home">How to Cut a Tree Safely with a STIHL Chainsaw
+What 2-Stroke Fuel Mixture Does a STIHL Engine Need?
+How Often Should You Service a Lawnmower?
+Best Chainsaw Protective Boots and Clothing Guide
+How to Sharpen a STIHL Chainsaw Chain at Home</textarea>
+              <span class="help-text">Each line generates a separate prompt with automatic cross-linking to all other cluster articles!</span>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="bulk-word-count">Target Word Count</label>
+                <select id="bulk-word-count" class="form-select">
+                  <option value="500-800 words">500 - 800 words (Standard Short Post)</option>
+                  <option value="800-1200 words" selected>800 - 1,200 words (Standard Article)</option>
+                  <option value="1200-1800 words">1,200 - 1,800 words (Deep Dive Guide)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="bulk-tone">Brand Tone</label>
+                <select id="bulk-tone" class="form-select">
+                  <option value="Authoritative, practical, & expert guidance">Authoritative & Expert Guidance</option>
+                  <option value="Conversational, friendly, & helpful">Conversational & Helpful</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+              <button type="button" class="btn btn-success btn-block" id="btn-generate-bulk-cluster" style="padding: 14px; font-size: 14px; font-weight: 600;">
+                <i data-lucide="sparkles"></i> Generate Cluster Prompts Now
+              </button>
+            </div>
+          </div>
+
+          <!-- Right Generated Bulk Cluster Output -->
+          <div class="card output-card">
+            <div class="card-header-flex">
+              <div>
+                <h3><i data-lucide="terminal"></i> Generated Cluster Prompts</h3>
+                <span class="badge badge-info" id="bulk-prompts-count">5 Prompts Ready</span>
+              </div>
+              <button class="btn btn-primary btn-sm" id="btn-copy-all-bulk-prompts">
+                <i data-lucide="copy"></i> Copy All Prompts
+              </button>
+            </div>
+
+            <div class="bulk-prompts-list" id="bulk-prompts-container" style="max-height: 520px; overflow-y: auto;">
+              <!-- Cluster prompt cards rendered dynamically with individual copy buttons -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: Ingestion & Smart Media Manager -->
+      <section id="tab-ingest" class="tab-panel">
+        <div class="panel-header">
+          <div>
+            <h2><i data-lucide="file-json"></i> JSON Ingestion & Smart Media Pool</h2>
+            <p class="panel-subtitle">Import raw AI JSON output and link image URLs to content placeholders and featured post media.</p>
+          </div>
+          <div class="header-buttons">
+            <button class="btn btn-secondary" id="btn-paste-sample-json">
+              <i data-lucide="file-plus"></i> Load Demo JSON Payload
+            </button>
+          </div>
+        </div>
+
+        <div class="grid-ingest">
+          <!-- Raw JSON Ingestion Panel -->
+          <div class="card">
+            <div class="card-header-flex">
+              <h3><i data-lucide="code"></i> Paste Raw Chatbot JSON</h3>
+              <span id="json-status-badge" class="badge badge-neutral">Waiting for Input</span>
+            </div>
+            <p class="card-desc">Paste the JSON response from your external AI chatbot below. Supports single object or JSON array of posts `[...]`.</p>
+
+            <div class="json-textarea-wrapper">
+              <textarea id="raw-json-input" class="code-textarea" rows="12" placeholder='Paste JSON here... Example:
+{
+  "title": "How to Cut a Tree Safely",
+  "slug": "how-to-cut-a-tree-safely",
+  "categories": ["Chainsaws", "Garden Advice"],
+  "tags": ["tree-cutting", "stihl", "safety"],
+  "yoast_meta_title": "How to Cut a Tree Safely: Complete Guide",
+  "yoast_meta_desc": "Learn how to cut a tree safely with STIHL equipment...",
+  "content_html": "<p>Content HTML...</p>"
+}'></textarea>
+            </div>
+
+            <div id="json-error-banner" class="error-banner hidden">
+              <i data-lucide="alert-triangle"></i>
+              <span id="json-error-msg">JSON syntax error</span>
+            </div>
+
+            <div class="action-bar-right">
+              <button class="btn btn-outline" id="btn-clear-json"><i data-lucide="trash-2"></i> Clear</button>
+              <button class="btn btn-success" id="btn-ingest-json"><i data-lucide="arrow-right-circle"></i> Parse & Ingest Posts</button>
+            </div>
+          </div>
+
+          <!-- Smart In-Body & Featured Cover Media Panel -->
+          <div class="card">
+            <div class="card-header-flex">
+              <div>
+                <h3><i data-lucide="sparkles"></i> Smart Media Suggestions & Featured Cover Selector</h3>
+                <p class="card-desc">Search 7,000+ WordPress assets by blog title or keywords. Set your post's <strong>Featured Cover Image</strong> or insert HTML images into your post body with 1 click.</p>
+              </div>
+              <div class="header-buttons">
+                <label class="btn btn-secondary btn-sm" for="file-upload-input" style="cursor: pointer;">
+                  <i data-lucide="upload"></i> Upload
+                </label>
+                <input type="file" id="file-upload-input" accept="image/*" multiple class="hidden">
+                <button class="btn btn-outline btn-sm" id="btn-auto-suggest-post-media" title="Auto-search WP Library using Blog Title & Headings">
+                  <i data-lucide="wand-2"></i> Auto-Suggest
+                </button>
+              </div>
+            </div>
+
+            <!-- In-Panel Live WordPress Media Search Bar & Title Keyword Pills -->
+            <div style="margin-bottom: 14px;">
+              <div id="ingest-title-keywords-wrapper" style="margin-bottom: 10px; display:none; background: rgba(0,0,0,0.3); padding: 8px 10px; border-radius: 6px; border: 1px dashed var(--border-gold-subtle);">
+                <div style="font-size: 11px; color: var(--accent-gold-dark); font-family: var(--font-mono); margin-bottom: 6px;">💡 Click Title Keyword to Search 7,000+ WP Library:</div>
+                <div id="ingest-title-keywords-pills" style="display:flex; flex-wrap:wrap; gap: 6px;"></div>
+              </div>
+
+              <div style="display:flex; gap: 8px;">
+                <input type="text" id="ingest-media-search-input" class="form-input" placeholder="Search 7,000+ WP assets by keyword (e.g. stihl, chainsaw, lawnmower)...">
+                <button class="btn btn-primary btn-sm" id="btn-ingest-search-wp" style="white-space:nowrap;">
+                  <i data-lucide="search"></i> Search WP
+                </button>
+              </div>
+              <div id="ingest-active-featured-banner" style="margin-top: 8px; font-size: 11px; color: var(--accent-gold-dark); font-family: var(--font-mono); display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px;">
+                <div>Selected Featured Cover: <span id="ingest-featured-title" style="color: #fff; font-weight:600;">(None selected — Click "⭐ Set Featured" on any image below)</span></div>
+                <span class="badge badge-info" id="ingest-body-images-count-badge">In-Body Images Inserted: 0</span>
+              </div>
+            </div>
+
+            <div class="media-pool-grid" id="media-pool-container" style="max-height: 520px; overflow-y: auto;">
+              <!-- Media assets will be rendered dynamically here with ⭐ Set Featured and ➕ Insert HTML Body buttons -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: Media Library & Asset Pool -->
+      <section id="tab-media" class="tab-panel">
+        <div class="panel-header">
+          <div>
+            <h2><i data-lucide="image"></i> Media Library & Asset Pool</h2>
+            <p class="panel-subtitle">Upload, sort, rename, edit, and organize all featured cover images and in-body content media.</p>
+          </div>
+          <div class="header-buttons">
+            <label class="btn btn-secondary" for="file-upload-input-media" style="cursor: pointer;">
+              <i data-lucide="upload"></i> Upload Images
+            </label>
+            <input type="file" id="file-upload-input-media" accept="image/*" multiple class="hidden">
+            <button class="btn btn-primary" id="btn-open-add-image-media">
+              <i data-lucide="plus"></i> Add Image URL
+            </button>
+            <button class="btn btn-outline" id="btn-download-zip-media">
+              <i data-lucide="file-archive"></i> Download Media Zip (.zip)
+            </button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 24px;">
+          <div class="form-row" style="margin-bottom: 0; align-items: flex-end;">
+            <div class="form-group inline-group" style="flex: 1;">
+              <label for="media-search-input">Search Local & Live WordPress Assets</label>
+              <div style="display:flex; gap: 8px;">
+                <input type="text" id="media-search-input" class="form-input" placeholder="Type keyword (e.g. stihl, chainsaw, lawnmower) to search local & 7,000+ WP library...">
+                <button class="btn btn-primary" id="btn-search-wp-media" style="white-space:nowrap;">
+                  <i data-lucide="search"></i> Search 7,000+ WP Library
+                </button>
+              </div>
+            </div>
+            <div class="form-group inline-group" style="width: 180px;">
+              <label for="media-sort-select">Sort By</label>
+              <select id="media-sort-select" class="form-select">
+                <option value="newest">Newest Added</option>
+                <option value="title">Title (A-Z)</option>
+                <option value="filename">Filename (A-Z)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header-flex">
+            <h3><i data-lucide="images"></i> Media Asset Gallery</h3>
+            <span class="badge badge-info" id="media-gallery-count">0 Assets</span>
+          </div>
+
+          <div class="media-pool-grid" id="full-media-library-container" style="max-height: none;">
+            <!-- Media library cards rendered dynamically -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: Post Queue & Scheduler -->
+      <section id="tab-queue" class="tab-panel">
+        <div class="panel-header">
+          <div>
+            <h2><i data-lucide="calendar-clock"></i> Post Queue & Batch Scheduler</h2>
+            <p class="panel-subtitle">Review ingested posts, configure publication schedules, and edit post details before WXR export.</p>
+          </div>
+          <div class="header-buttons">
+            <button class="btn btn-outline btn-danger-soft" id="btn-clear-queue">
+              <i data-lucide="trash-2"></i> Clear Queue
+            </button>
+          </div>
+        </div>
+
+        <!-- Schedule Controls Bar -->
+        <div class="card schedule-bar-card">
+          <div class="schedule-bar-header">
+            <h3><i data-lucide="clock"></i> Batch Schedule Generator</h3>
+            <div class="schedule-mode-toggle">
+              <label class="radio-label">
+                <input type="radio" name="schedule-mode" value="interval" checked> Interval Schedule
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="schedule-mode" value="manual"> Manual Date Pickers
+              </label>
+            </div>
+          </div>
+
+          <div id="schedule-interval-controls" class="schedule-controls-row">
+            <div class="form-group inline-group">
+              <label for="sched-start-date">Start Date</label>
+              <input type="date" id="sched-start-date" class="form-input">
+            </div>
+            <div class="form-group inline-group">
+              <label for="sched-start-time">Publish Time</label>
+              <input type="time" id="sched-start-time" class="form-input" value="09:00">
+            </div>
+            <div class="form-group inline-group">
+              <label for="sched-frequency">Interval Every</label>
+              <div class="input-unit-group">
+                <input type="number" id="sched-interval-num" class="form-input" value="3" min="1" max="365">
+                <select id="sched-interval-unit" class="form-select">
+                  <option value="days">Days</option>
+                  <option value="hours">Hours</option>
+                  <option value="weeks">Weeks</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-secondary" id="btn-apply-schedule">
+              <i data-lucide="wand-2"></i> Calculate & Batch Schedule
+            </button>
+          </div>
+        </div>
+
+        <!-- Post Queue Table / Cards -->
+        <div class="queue-list" id="queue-posts-container">
+          <!-- Queue cards will be rendered dynamically here -->
+        </div>
+      </section>
+
+      <!-- TAB 4: WXR XML Export Engine -->
+      <section id="tab-export" class="tab-panel">
+        <div class="panel-header">
+          <div>
+            <h2><i data-lucide="code-2"></i> WordPress WXR 1.2 XML Export Engine</h2>
+            <p class="panel-subtitle">Generates standard WordPress Importer XML with Yoast SEO postmeta and embedded media attachments.</p>
+          </div>
+          <div class="header-buttons">
+            <button class="btn btn-outline" id="btn-copy-xml">
+              <i data-lucide="copy"></i> Copy XML Code
+            </button>
+            <button class="btn btn-secondary" id="btn-download-media-zip">
+              <i data-lucide="file-archive"></i> Download Media Zip (.zip)
+            </button>
+            <button class="btn btn-success btn-lg" id="btn-download-xml">
+              <i data-lucide="download"></i> Download WordPress XML (.xml)
+            </button>
+          </div>
+        </div>
+
+        <div class="export-meta-cards grid-3col">
+          <div class="card meta-stat-card">
+            <div class="meta-stat-icon"><i data-lucide="file-check-2"></i></div>
+            <div>
+              <span class="meta-stat-title">Posts to Export</span>
+              <h3 id="xml-stat-posts">0 Posts</h3>
+            </div>
+          </div>
+          <div class="card meta-stat-card">
+            <div class="meta-stat-icon"><i data-lucide="image"></i></div>
+            <div>
+              <span class="meta-stat-title">Media Attachments</span>
+              <h3 id="xml-stat-attachments">0 Attachments</h3>
+            </div>
+          </div>
+          <div class="card meta-stat-card">
+            <div class="meta-stat-icon"><i data-lucide="award"></i></div>
+            <div>
+              <span class="meta-stat-title">Yoast Meta Status</span>
+              <h3 id="xml-stat-yoast">100% Configured</h3>
+            </div>
+          </div>
+        </div>
+
+        <div class="card xml-preview-card">
+          <div class="card-header-flex">
+            <h3><i data-lucide="file-code"></i> Generated WXR 1.2 XML Document</h3>
+            <span class="badge badge-success"><i data-lucide="check"></i> Valid XML 1.2 Schema</span>
+          </div>
+
+          <div class="xml-editor-wrapper">
+            <textarea id="xml-output-textarea" class="code-textarea" readonly rows="20"></textarea>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL 1: Post HTML Live Preview -->
+  <div id="modal-preview" class="modal-overlay hidden">
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 id="preview-modal-title">Post Title Preview</h3>
+          <span id="preview-modal-slug" class="modal-slug-tag">/slug</span>
+        </div>
+        <button class="btn-close-modal"><i data-lucide="x"></i></button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="preview-seo-bar">
+          <div class="seo-box">
+            <strong>Yoast SEO Title:</strong>
+            <span id="preview-seo-title">---</span>
+            <span id="preview-seo-title-count" class="char-counter">0/60</span>
+          </div>
+          <div class="seo-box">
+            <strong>Yoast SEO Description:</strong>
+            <span id="preview-seo-desc">---</span>
+            <span id="preview-seo-desc-count" class="char-counter">0/155</span>
+          </div>
+        </div>
+
+        <div class="preview-taxonomy-bar">
+          <div id="preview-categories" class="tag-list"></div>
+          <div id="preview-tags" class="tag-list"></div>
+        </div>
+
+        <div class="featured-img-preview-box" id="preview-featured-box">
+          <!-- Featured Image render -->
+        </div>
+
+        <div class="html-render-container" id="preview-html-content">
+          <!-- Rendered post HTML -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Post Edit Drawer -->
+  <div id="modal-edit" class="modal-overlay hidden">
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h3><i data-lucide="edit-3"></i> Edit Post Content & Metadata</h3>
+        <button class="btn-close-modal"><i data-lucide="x"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="edit-post-id">
+        
+        <div class="form-group">
+          <label for="edit-post-title">Post Title</label>
+          <input type="text" id="edit-post-title" class="form-input">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-post-slug">URL Slug</label>
+            <input type="text" id="edit-post-slug" class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="edit-post-status">WP Status</label>
+            <select id="edit-post-status" class="form-select">
+              <option value="future">future (Scheduled)</option>
+              <option value="publish">publish (Live)</option>
+              <option value="draft">draft (Draft)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-post-categories">Categories (Comma separated)</label>
+            <input type="text" id="edit-post-categories" class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="edit-post-tags">Tags (Comma separated)</label>
+            <input type="text" id="edit-post-tags" class="form-input">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-yoast-title">Yoast Meta Title</label>
+            <input type="text" id="edit-yoast-title" class="form-input" maxlength="70">
+          </div>
+          <div class="form-group">
+            <label for="edit-yoast-desc">Yoast Meta Description</label>
+            <input type="text" id="edit-yoast-desc" class="form-input" maxlength="170">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-post-date">Scheduled Date & Time (YYYY-MM-DD HH:MM:SS)</label>
+            <input type="datetime-local" id="edit-post-date" class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="edit-post-featured-image">Featured Cover Image</label>
+            <select id="edit-post-featured-image" class="form-select">
+              <option value="">-- Auto-Match Best Image from Pool --</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="edit-post-content">Post Content HTML (Supports <code>{{IMAGE:keyword}}</code> tags)</label>
+          <textarea id="edit-post-content" class="code-textarea" rows="10"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-close-modal">Cancel</button>
+        <button class="btn btn-primary" id="btn-save-edit-post"><i data-lucide="check"></i> Save Post Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: Add Image Asset -->
+  <div id="modal-add-image" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i data-lucide="image-plus"></i> Add Image Asset</h3>
+        <button class="btn-close-modal"><i data-lucide="x"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="image-filename">Filename / Custom Name <span class="required">*</span></label>
+          <input type="text" id="image-filename" class="form-input" placeholder="e.g. STIHL-Garden-Machinery.jpg">
+          <span class="help-text">Auto-generates WP URL: <code>domain/wp-content/uploads/year/month/filename</code></span>
+        </div>
+        <div class="form-group">
+          <label for="image-url">Image URL (or paste external link) <span class="required">*</span></label>
+          <input type="url" id="image-url" class="form-input" placeholder="https://..." required>
+        </div>
+        <div class="form-group">
+          <label for="image-title">Image Title / Alt Text</label>
+          <input type="text" id="image-title" class="form-input" placeholder="e.g. STIHL Garden Machinery Range">
+        </div>
+        <div class="form-group">
+          <label for="image-tags">Matching Keywords / Tags (Comma separated) <span class="required">*</span></label>
+          <input type="text" id="image-tags" class="form-input" placeholder="e.g. stihl, machinery, lawnmower, garden" required>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-close-modal">Cancel</button>
+        <button class="btn btn-success" id="btn-save-new-image"><i data-lucide="plus-circle"></i> Save Image</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3B: Edit / Rename Image Asset -->
+  <div id="modal-edit-image" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i data-lucide="edit-3"></i> Edit / Rename Image Asset</h3>
+        <button class="btn-close-modal"><i data-lucide="x"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="edit-image-id">
+        <div class="form-group">
+          <label for="edit-image-title">Image Title / Alt Text</label>
+          <input type="text" id="edit-image-title" class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="edit-image-filename">Filename (Slugified for WP URL)</label>
+          <input type="text" id="edit-image-filename" class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="edit-image-tags">Keyword Tags (Comma separated for auto-matching)</label>
+          <input type="text" id="edit-image-tags" class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="edit-image-url">Image URL</label>
+          <input type="text" id="edit-image-url" class="form-input">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-close-modal">Cancel</button>
+        <button class="btn btn-primary" id="btn-save-edit-image"><i data-lucide="check"></i> Save Image Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: Site & Links Bank Settings -->
+  <div id="modal-settings" class="modal-overlay hidden">
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h3><i data-lucide="settings"></i> Site Domain & Internal Links Bank Configuration</h3>
+        <button class="btn-close-modal"><i data-lucide="x"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <h4 style="font-family: var(--font-cinzel); margin-bottom: 12px;"><i data-lucide="globe"></i> WordPress Domain & Upload Paths</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="setting-domain">Site Base Domain</label>
+            <input type="text" id="setting-domain" class="form-input" value="https://briantsofrisborough.co.uk">
+          </div>
+          <div class="form-group">
+            <label for="setting-blog-path">Blog Subpath</label>
+            <input type="text" id="setting-blog-path" class="form-input" value="/blog/">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="setting-upload-year">WP Upload Year</label>
+            <input type="text" id="setting-upload-year" class="form-input" value="2026">
+          </div>
+          <div class="form-group">
+            <label for="setting-upload-month">WP Upload Month</label>
+            <input type="text" id="setting-upload-month" class="form-input" value="06">
+          </div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--border-gold-subtle); margin: 20px 0;">
+
+        <h4 style="font-family: var(--font-cinzel); margin-bottom: 8px;"><i data-lucide="key"></i> WordPress Direct REST API Sync (Optional)</h4>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">Enter your WP Username & 24-character Application Password (from WP Admin &rarr; Users &rarr; Profile) to upload media directly into WordPress!</p>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="setting-wp-username">WP Username</label>
+            <input type="text" id="setting-wp-username" class="form-input" placeholder="e.g. admin">
+          </div>
+          <div class="form-group">
+            <label for="setting-wp-app-pass">WP Application Password</label>
+            <input type="password" id="setting-wp-app-pass" class="form-input" placeholder="e.g. abcd efgh ijkl mnop qrst uvwx">
+          </div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--border-gold-subtle); margin: 20px 0;">
+
+        <h4 style="font-family: var(--font-cinzel); margin-bottom: 8px;"><i data-lucide="link"></i> Master Internal Links Bank</h4>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">Store your site's cornerstone categories, services, and key pages. These links are automatically injected into the AI prompt generator so posts include relevant internal links.</p>
+
+        <div class="form-group">
+          <label for="setting-links-bank">Internal Links List (One per line: URL | Anchor Keyword / Description)</label>
+          <textarea id="setting-links-bank" class="code-textarea" rows="8" placeholder="https://briantsofrisborough.co.uk/product-category/garden-machinery/ | Garden Machinery Range
+https://briantsofrisborough.co.uk/product-category/garden-machinery/lawn-mowers/ | Lawnmowers Range"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-close-modal">Cancel</button>
+        <button class="btn btn-primary" id="btn-save-settings"><i data-lucide="check"></i> Save Settings & Bank</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 5: System Diagnostics & Performance Debug Drawer -->
+  <div id="modal-debug" class="modal-overlay hidden">
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h3><i data-lucide="bug"></i> System Performance & Diagnostic Console</h3>
+        <button class="btn-close-modal"><i data-lucide="x"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <p style="font-size:12px; color:var(--text-muted); margin:0;">
+            Live network resource performance timings, memory usage, and runtime error logs.
+          </p>
+          <button class="btn btn-primary btn-sm" id="btn-copy-debug-report">
+            <i data-lucide="copy"></i> Copy Full Diagnostic Report
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label style="font-family: var(--font-cinzel); font-size:12px; color:var(--accent-gold-dark);">System Status & Memory Usage</label>
+          <div id="debug-summary-box" style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; border: 1px solid var(--border-gold-subtle); font-family: var(--font-mono); font-size: 11px; margin-bottom: 16px;">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label style="font-family: var(--font-cinzel); font-size:12px; color:var(--accent-gold-dark);">Media Assets & Image Previews Inspector</label>
+          <div id="debug-images-box" style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; border: 1px solid var(--border-gold-subtle); font-family: var(--font-mono); font-size: 11px; max-height: 180px; overflow-y: auto; margin-bottom: 16px;">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label style="font-family: var(--font-cinzel); font-size:12px; color:var(--accent-gold-dark);">Slow or Pending Network Resources (Load Spinner Causes)</label>
+          <div id="debug-slow-resources-box" style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; border: 1px solid var(--border-gold-subtle); font-family: var(--font-mono); font-size: 11px; max-height: 180px; overflow-y: auto; margin-bottom: 16px;">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+            <label style="font-family: var(--font-cinzel); font-size:12px; color:var(--accent-gold-dark);">WordPress Direct REST API Live Diagnostic Test</label>
+            <button class="btn btn-success btn-sm" id="btn-test-wp-api" type="button">
+              <i data-lucide="zap"></i> Test WordPress API Connection Now
+            </button>
+          </div>
+          <div id="debug-wp-test-result" style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 6px; border: 1px dashed var(--border-gold-subtle); font-family: var(--font-mono); font-size: 11px; margin-bottom: 16px; min-height: 38px;">
+            <span style="color: var(--text-muted);">Click button above to test your WordPress Username, Application Password, and CORS uploading headers live.</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label style="font-family: var(--font-cinzel); font-size:12px; color:var(--accent-gold-dark);">Runtime Log & Error Console</label>
+          <textarea id="debug-log-output" class="code-textarea" rows="8" readonly style="font-size:11px;"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-close-modal">Close</button>
+        <button class="btn btn-primary" id="btn-copy-debug-report"><i data-lucide="copy"></i> 📋 Copy Full Diagnostic Report</button>
+        <button class="btn btn-secondary" id="btn-refresh-debug"><i data-lucide="refresh-cw"></i> Refresh Diagnostics</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Dynamic CDN Loader: waits for window 'load' event so browser tab spinner stops first -->
+  <script>
+    function loadScript(src) {
+      return new Promise(function(resolve) {
+        var s = document.createElement('script');
+        s.src = src;
+        s.async = true;
+        s.onload = resolve;
+        s.onerror = function() {
+          console.warn('CDN load failed for ' + src);
+          resolve(); 
+        };
+        document.body.appendChild(s);
+      });
+    }
+
+    // Wait for the browser 'load' event — this is when the tab spinner STOPS.
+    // Only THEN start downloading CDN scripts so they don't extend the spinner.
+    window.addEventListener('load', function() {
+      // Extra requestAnimationFrame ensures the browser has fully painted and stopped the spinner
+      requestAnimationFrame(function() {
+        Promise.all([
+          loadScript('https://cdn.jsdelivr.net/npm/lucide@0.378.0/dist/umd/lucide.min.js'),
+          loadScript('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js')
+        ]).then(function() {
+          if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+          }
+          window.dispatchEvent(new CustomEvent('libs-ready'));
+        });
+      });
+    });
+  </script>
+
+  <!-- Application Logic Modules -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

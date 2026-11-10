@@ -3,737 +3,459 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Magento Content Engine — Lawsons Group Multi-Brand Studio</title>
-  <meta name="description" content="Multi-Brand Content Engine for Lawsons, AVS Fencing, Oxford Fencing Supplies, Witham Timber, and The Landscape Centre on Magento 2 (Amasty Blog Pro).">
+  <title>Content Engine Portal — Choose Platform</title>
+  <meta name="description" content="Select your target publishing engine: Magento (Lawsons Group) or WordPress (Briants of Risborough).">
 
-  <!-- Inline Liquid Glass SVG Favicon -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23008a2e'/><text x='16' y='22' font-family='sans-serif' font-size='18' font-weight='800' fill='%23ffdd00' text-anchor='middle'>M</text></svg>" type="image/svg+xml">
+  <!-- Inline Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230f172a'/><text x='16' y='22' font-family='sans-serif' font-size='18' font-weight='800' fill='%23ffffff' text-anchor='middle'>CE</text></svg>" type="image/svg+xml">
 
-  <!-- Fonts: Plus Jakarta Sans, Inter & JetBrains Mono -->
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- Stylesheet -->
-  <link rel="stylesheet" href="styles.css">
+  <style>
+    :root {
+      --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --bg: #ffffff;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --border-hover: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-subtle: #94a3b8;
+      --magento-green: #008a2e;
+      --magento-gold: #ffdd00;
+      --wp-gold: #c9a84c;
+      --wp-dark: #1a1a1a;
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05);
+      --shadow-lg: 0 20px 45px -12px rgba(15, 23, 42, 0.09), 0 4px 16px -2px rgba(15, 23, 42, 0.04);
+      --radius-card: 24px;
+      --radius-pill: 9999px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: var(--font-sans);
+      background-color: var(--bg);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+      -webkit-font-smoothing: antialiased;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Ambient minimal top subtle glow */
+    body::before {
+      content: "";
+      position: fixed;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 400px;
+      background: radial-gradient(ellipse at center, rgba(0, 138, 46, 0.04) 0%, rgba(201, 168, 76, 0.04) 50%, transparent 80%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .portal-container {
+      width: 100%;
+      max-width: 980px;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Minimalist Header */
+    .portal-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .portal-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+      margin-bottom: 16px;
+    }
+
+    .portal-badge .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+    }
+
+    .portal-header h1 {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      color: var(--text-main);
+      line-height: 1.15;
+      margin-bottom: 12px;
+    }
+
+    .portal-header p {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    /* Two Big Choice Cards */
+    .choices-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+    }
+
+    @media (max-width: 768px) {
+      .choices-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      .portal-header h1 {
+        font-size: 30px;
+      }
+    }
+
+    .choice-card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 36px 32px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 380px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .choice-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius-card);
+      border: 2px solid transparent;
+      transition: border-color 0.28s ease;
+      pointer-events: none;
+    }
+
+    .choice-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg);
+      border-color: transparent;
+    }
+
+    /* Magento Card Theming */
+    .choice-card.magento:hover::before {
+      border-color: var(--magento-green);
+    }
+
+    .choice-card.magento:hover .card-cta-btn {
+      background: var(--magento-green);
+      color: #ffffff;
+      border-color: var(--magento-green);
+      box-shadow: 0 6px 18px rgba(0, 138, 46, 0.25);
+    }
+
+    /* WordPress Card Theming */
+    .choice-card.wordpress:hover::before {
+      border-color: var(--wp-gold);
+    }
+
+    .choice-card.wordpress:hover .card-cta-btn {
+      background: var(--wp-dark);
+      color: #ffffff;
+      border-color: var(--wp-dark);
+      box-shadow: 0 6px 18px rgba(26, 26, 26, 0.25);
+    }
+
+    /* Top Icon Badge */
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .brand-icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.28s ease;
+    }
+
+    .choice-card:hover .brand-icon {
+      transform: scale(1.06);
+    }
+
+    .brand-icon.magento {
+      background: linear-gradient(135deg, #008a2e 0%, #006822 100%);
+      color: #ffffff;
+      box-shadow: 0 8px 20px rgba(0, 138, 46, 0.22);
+    }
+
+    .brand-icon.wordpress {
+      background: linear-gradient(135deg, #262626 0%, #111111 100%);
+      color: #c9a84c;
+      box-shadow: 0 8px 20px rgba(26, 26, 26, 0.2);
+    }
+
+    .brand-icon svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    .scope-tag {
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .scope-tag.magento {
+      background: rgba(0, 138, 46, 0.08);
+      color: #008a2e;
+      border: 1px solid rgba(0, 138, 46, 0.2);
+    }
+
+    .scope-tag.wordpress {
+      background: rgba(201, 168, 76, 0.12);
+      color: #926f1f;
+      border: 1px solid rgba(201, 168, 76, 0.3);
+    }
+
+    /* Content Area */
+    .card-title-group {
+      margin-bottom: 16px;
+    }
+
+    .card-platform-title {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text-main);
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      line-height: 1.1;
+    }
+
+    .card-brand-sub {
+      font-size: 19px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: -0.01em;
+    }
+
+    .card-description {
+      font-size: 14.5px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    /* Feature Pills */
+    .card-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+
+    .feature-pill {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 11px;
+      border-radius: var(--radius-pill);
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #475569;
+    }
+
+    /* Bottom Action Button */
+    .card-cta-btn {
+      width: 100%;
+      padding: 13px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #ffffff;
+      color: var(--text-main);
+      border: 1.5px solid var(--border);
+      transition: all 0.24s ease;
+    }
+
+    .card-cta-btn svg {
+      width: 16px;
+      height: 16px;
+      transition: transform 0.2s ease;
+    }
+
+    .choice-card:hover .card-cta-btn svg {
+      transform: translateX(4px);
+    }
+
+    /* Footer text */
+    .portal-footer {
+      margin-top: 48px;
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--text-subtle);
+    }
+  </style>
 </head>
 <body>
 
-  <!-- ======================================================================
-       STRUCTURED FULL-WIDTH TOP HEADER (APPLE STYLE)
-       ====================================================================== -->
-  <header class="site-header">
-    <div class="site-header-inner">
-      <div class="header-left">
-        <div class="brand-logo">
-          <div class="logo-icon" id="header-logo-badge">
-            <i data-lucide="layers"></i>
+  <main class="portal-container">
+    <!-- Minimal Header -->
+    <header class="portal-header">
+      <div class="portal-badge">
+        <span class="dot"></span>
+        <span>Content Engine Workspace</span>
+      </div>
+      <h1>Choose Platform</h1>
+      <p>Select your publishing system below to launch the dedicated studio.</p>
+    </header>
+
+    <!-- Two Direct Choices -->
+    <section class="choices-grid" aria-label="Publishing Platform Options">
+
+      <!-- CHOICE 1: MAGENTO (LAWSONS) -->
+      <a href="magento.html" class="choice-card magento" id="btn-choice-magento">
+        <div>
+          <div class="card-top">
+            <div class="brand-icon magento">
+              <i data-lucide="layers"></i>
+            </div>
+            <span class="scope-tag magento">5 Store Views</span>
           </div>
-          <div class="brand-text">
-            <h1>Magento Content Engine</h1>
-            <span class="version-badge" id="app-version-tag">
-              Lawsons Group • 5-Brand Amasty Studio v1.1.0
-            </span>
+
+          <div class="card-title-group">
+            <div class="card-platform-title">
+              Magento
+              <span class="card-brand-sub">(Lawsons)</span>
+            </div>
+          </div>
+
+          <p class="card-description">
+            Multi-Brand Amasty Blog Studio with AI Brand Multiplier, PageBuilder-safe scoped HTML, unified simple URLs, and live storefront previews.
+          </p>
+
+          <div class="card-features">
+            <span class="feature-pill">Lawsons</span>
+            <span class="feature-pill">AVS Fencing</span>
+            <span class="feature-pill">Oxford Fencing</span>
+            <span class="feature-pill">Witham Timber</span>
+            <span class="feature-pill">The Landscape Centre</span>
           </div>
         </div>
-      </div>
 
-      <div class="header-stats">
-        <div class="stat-pill">
-          <i data-lucide="file-text"></i>
-          <span>Master Posts:</span>
-          <span class="stat-value" id="count-total">0</span>
+        <div class="card-cta-btn">
+          <span>Open Magento Engine</span>
+          <i data-lucide="arrow-right"></i>
         </div>
-        <div class="stat-pill">
-          <i data-lucide="git-branch"></i>
-          <span>Store Variations (x5):</span>
-          <span class="stat-value" id="count-variations">0</span>
+      </a>
+
+      <!-- CHOICE 2: WORDPRESS (BRIANTS) -->
+      <a href="wordpress/index.html" class="choice-card wordpress" id="btn-choice-wordpress">
+        <div>
+          <div class="card-top">
+            <div class="brand-icon wordpress">
+              <i data-lucide="scroll"></i>
+            </div>
+            <span class="scope-tag wordpress">WordPress WXR</span>
+          </div>
+
+          <div class="card-title-group">
+            <div class="card-platform-title">
+              WordPress
+              <span class="card-brand-sub">(Briants)</span>
+            </div>
+          </div>
+
+          <p class="card-description">
+            Briants of Risborough Content Engine with Yoast SEO metadata, WXR 1.2 XML bulk export, WordPress Media Library relay, and category link banks.
+          </p>
+
+          <div class="card-features">
+            <span class="feature-pill">Briants of Risborough</span>
+            <span class="feature-pill">WXR 1.2 XML</span>
+            <span class="feature-pill">Yoast SEO</span>
+            <span class="feature-pill">WP REST API</span>
+            <span class="feature-pill">STIHL & Tools</span>
+          </div>
         </div>
-        <div class="stat-pill">
-          <i data-lucide="image"></i>
-          <span>Media Pool:</span>
-          <span class="stat-value" id="count-media">0</span>
+
+        <div class="card-cta-btn">
+          <span>Open WordPress Engine</span>
+          <i data-lucide="arrow-right"></i>
         </div>
-        <div class="stat-pill">
-          <i data-lucide="check-circle-2"></i>
-          <span>Active Scope:</span>
-          <span class="stat-value" id="active-scope-stat">All Store Views</span>
-        </div>
-      </div>
+      </a>
 
-      <div class="header-actions">
-        <button class="btn btn-outline btn-sm" id="btn-open-debug">
-          <i data-lucide="activity"></i> Diagnostics
-        </button>
-        <button class="btn btn-outline btn-sm" id="btn-open-settings">
-          <i data-lucide="sliders-horizontal"></i> Links & API Settings
-        </button>
-        <button class="btn btn-secondary btn-sm" id="btn-load-sample">
-          <i data-lucide="sparkles"></i> Load 5-Brand Sample
-        </button>
-        <button class="btn btn-primary btn-sm" id="btn-quick-export-csv">
-          <i data-lucide="download"></i> Export Amasty CSV
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <!-- ======================================================================
-       MAIN APPLICATION WORKSPACE
-       ====================================================================== -->
-  <div id="app">
-
-    <!-- Global Store View Scope Switcher Bar (Including "All Store Views" Master Scope) -->
-    <section class="brand-switcher-bar" aria-label="Magento Store View Scope Switcher">
-      <div class="brand-switcher-label">
-        <i data-lucide="store"></i>
-        <span>Active Store View Scope:</span>
-      </div>
-
-      <div class="brand-pills-group" id="global-brand-switcher">
-        <button type="button" class="brand-scope-pill active" data-brand="all" title="Master Global Scope: Define generic title, author, categories, tags">
-          <span class="brand-dot" style="background: #0f172a; border: 2px solid #38bdf8;"></span>
-          <span>🌐 All Store Views (Global)</span>
-          <span class="brand-store-code-tag">default</span>
-        </button>
-        <button type="button" class="brand-scope-pill" data-brand="lawsons">
-          <span class="brand-dot" style="background: #008a2e; border: 2px solid #ffdd00;"></span>
-          <span>Lawsons</span>
-          <span class="brand-store-code-tag">lawsons_en</span>
-        </button>
-        <button type="button" class="brand-scope-pill" data-brand="avs">
-          <span class="brand-dot" style="background: #3e5b82; border: 2px solid #7a6248;"></span>
-          <span>AVS Fencing</span>
-          <span class="brand-store-code-tag">avs_en</span>
-        </button>
-        <button type="button" class="brand-scope-pill" data-brand="oxford">
-          <span class="brand-dot" style="background: #0f3b68; border: 2px solid #4cc3ff;"></span>
-          <span>Oxford Fencing</span>
-          <span class="brand-store-code-tag">oxford_en</span>
-        </button>
-        <button type="button" class="brand-scope-pill" data-brand="witham">
-          <span class="brand-dot" style="background: #19325c; border: 2px solid #0076a8;"></span>
-          <span>Witham Timber</span>
-          <span class="brand-store-code-tag">witham_en</span>
-        </button>
-        <button type="button" class="brand-scope-pill" data-brand="landscape">
-          <span class="brand-dot" style="background: #2d6a4f; border: 2px solid #b5835a;"></span>
-          <span>The Landscape Centre</span>
-          <span class="brand-store-code-tag">landscape_en</span>
-        </button>
-      </div>
-
-      <div style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
-        <i data-lucide="shield-check" style="width: 14px; height: 14px; color: var(--brand-primary);"></i>
-        <span id="active-brand-domain-indicator">Global Master Configuration Scope</span>
-      </div>
     </section>
 
-    <!-- Main Navigation Tabs -->
-    <nav class="nav-tabs-container">
-      <div class="nav-tabs">
-        <button class="tab-btn active" data-tab="tab-prompt">
-          <i data-lucide="wand-2"></i>
-          <span>1. AI Brand Multiplier</span>
-        </button>
-        <button class="tab-btn" data-tab="tab-ingest">
-          <i data-lucide="braces"></i>
-          <span>2. JSON Ingestion</span>
-          <span class="badge-count" id="badge-ingest-count">0</span>
-        </button>
-        <button class="tab-btn" data-tab="tab-media">
-          <i data-lucide="images"></i>
-          <span>3. /pub/media/ Studio</span>
-          <span class="badge-count" id="badge-media-count">0</span>
-        </button>
-        <button class="tab-btn" data-tab="tab-queue">
-          <i data-lucide="layout-template"></i>
-          <span>4. Store View Queue & Preview</span>
-          <span class="badge-count" id="badge-queue-count">0</span>
-        </button>
-        <button class="tab-btn" data-tab="tab-export">
-          <i data-lucide="share-2"></i>
-          <span>5. Amasty Export & Pixel Hub</span>
-        </button>
-      </div>
-    </nav>
+    <!-- Subtle Footer Note -->
+    <footer class="portal-footer">
+      <span>Tip: You can easily switch between platforms anytime using the "Switch Platform" button in each app's header.</span>
+    </footer>
+  </main>
 
-    <!-- MAIN CONTENT PANELS -->
-    <main class="main-content">
+  <script>
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
 
-      <!-- ====================================================================
-           TAB 1: AI BRAND MULTIPLIER & PROMPT STUDIO
-           ==================================================================== -->
-      <section id="tab-prompt" class="tab-panel active">
-        <div class="panel-header">
-          <div>
-            <h2><i data-lucide="sparkles"></i> AI 5-Brand Multiplier & Prompt Studio</h2>
-            <p class="panel-subtitle">Generate 1 master concept that branches into 5 SEO-safe brand variations with PageBuilder-safe HTML and custom link banks.</p>
-          </div>
-          <div style="display: flex; gap: 10px;">
-            <button class="btn btn-outline btn-sm" id="btn-reset-prompt">
-              <i data-lucide="rotate-ccw"></i> Reset Brief
-            </button>
-          </div>
-        </div>
-
-        <div class="split-grid">
-          <!-- Left: Brief Controls -->
-          <div class="card">
-            <div class="card-title">
-              <i data-lucide="sliders"></i>
-              <span>Article Brief & Multi-Store Settings</span>
-            </div>
-
-            <div class="form-group">
-              <label>Prompt Generation Strategy</label>
-              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <button type="button" class="btn btn-primary btn-sm" id="btn-mode-multiplier">
-                  <i data-lucide="git-fork"></i> 5-Brand Multiplier (Recommended)
-                </button>
-                <button type="button" class="btn btn-outline btn-sm" id="btn-mode-single">
-                  <i data-lucide="file-text"></i> Single Store Focus
-                </button>
-              </div>
-              <p class="label-hint" style="margin-top: 6px;" id="prompt-mode-hint">
-                Instructs the AI to write 5 distinct store view versions in one JSON payload so Google never flags duplicate content across your 5 domains.
-              </p>
-            </div>
-
-            <div class="form-group">
-              <label for="prompt-topic">Master Generic Title / Topic (All Store Views)</label>
-              <input type="text" id="prompt-topic" value="Concrete vs Timber Fence Posts Guide" placeholder="e.g. Railway Sleepers Landscaping Guide">
-              <p class="label-hint" style="margin-top: 4px;">Keep this generic and brand-neutral. All 5 brand variations will automatically share the exact same simple URL key for email marketing.</p>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="prompt-author">Default Author Name</label>
-                <input type="text" id="prompt-author" value="Lawsons Editorial Team">
-              </div>
-              <div class="form-group">
-                <label for="prompt-categories">Master Categories <span class="label-hint">(Comma separated)</span></label>
-                <input type="text" id="prompt-categories" value="Fencing Guides, Garden Advice">
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="prompt-keywords">Target SEO Keywords <span class="label-hint">(Comma separated)</span></label>
-              <input type="text" id="prompt-keywords" value="concrete vs timber fence posts, slotted concrete posts, UC4 treated fence posts, gravel boards">
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="prompt-word-count">Target Word Count per Variation</label>
-                <select id="prompt-word-count">
-                  <option value="700-950 words">700–950 words (Standard Trade Guide)</option>
-                  <option value="900-1300 words" selected>900–1,300 words (Deep Authority Guide)</option>
-                  <option value="1300-1800 words">1,300–1,800 words (Pillar Guide)</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="prompt-image-count">Body Image Placeholders</label>
-                <select id="prompt-image-count">
-                  <option value="0">0 Body Images (Text & Widgets Only)</option>
-                  <option value="1">1 Image Placeholder ({{IMAGE:...}})</option>
-                  <option value="2" selected>2 Image Placeholders ({{IMAGE:...}})</option>
-                  <option value="3">3 Image Placeholders ({{IMAGE:...}})</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>PageBuilder-Safe Custom HTML Elements to Include</label>
-              <div class="checkbox-grid">
-                <label class="checkbox-card">
-                  <input type="checkbox" id="widget-spotlight" checked>
-                  <div class="checkbox-card-text">
-                    <strong>Brand Spotlight CTA Banner</strong>
-                    <span>Dual-button CTA styled per brand</span>
-                  </div>
-                </label>
-                <label class="checkbox-card">
-                  <input type="checkbox" id="widget-product-cards" checked>
-                  <div class="checkbox-card-text">
-                    <strong>HTML Product Showcase Cards</strong>
-                    <span>Replaces broken Magento product widgets</span>
-                  </div>
-                </label>
-                <label class="checkbox-card">
-                  <input type="checkbox" id="widget-table" checked>
-                  <div class="checkbox-card-text">
-                    <strong>Technical Spec Table</strong>
-                    <span>Responsive comparison table</span>
-                  </div>
-                </label>
-                <label class="checkbox-card">
-                  <input type="checkbox" id="widget-callout" checked>
-                  <div class="checkbox-card-text">
-                    <strong>Recommended Reading Box</strong>
-                    <span>Internal link authority box</span>
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px;">
-              <button type="button" class="btn btn-primary" id="btn-copy-prompt">
-                <i data-lucide="copy"></i> Copy AI Prompt to Clipboard
-              </button>
-              <button type="button" class="btn btn-accent-ai" id="btn-generate-gemini-direct" title="Generate & ingest directly using your Gemini API key">
-                <i data-lucide="zap"></i> 1-Click Generate in App (Gemini AI)
-              </button>
-            </div>
-          </div>
-
-          <!-- Right: Live System Prompt Preview -->
-          <div class="card" style="display: flex; flex-direction: column;">
-            <div class="card-title" style="justify-content: space-between;">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="terminal"></i>
-                <span>Live System Prompt Output</span>
-              </div>
-              <span class="brand-store-code-tag" id="prompt-char-counter">Ready</span>
-            </div>
-            <textarea id="generated-prompt-output" class="code-textarea" style="flex: 1; min-height: 430px;" readonly></textarea>
-          </div>
-        </div>
-      </section>
-
-      <!-- ====================================================================
-           TAB 2: JSON INGESTION & 5-BRAND VALIDATOR
-           ==================================================================== -->
-      <section id="tab-ingest" class="tab-panel">
-        <div class="panel-header">
-          <div>
-            <h2><i data-lucide="braces"></i> Multi-Brand JSON Ingestion & Auto-Multiplier</h2>
-            <p class="panel-subtitle">Paste JSON from your AI assistant. Auto-populates all 5 Store Views with PageBuilder-safe HTML.</p>
-          </div>
-          <div style="display: flex; gap: 10px;">
-            <button class="btn btn-outline btn-sm" id="btn-clear-json">
-              <i data-lucide="trash-2"></i> Clear
-            </button>
-            <button class="btn btn-primary btn-sm" id="btn-parse-json">
-              <i data-lucide="check-check"></i> Validate & Ingest to Queue
-            </button>
-          </div>
-        </div>
-
-        <div class="split-grid">
-          <div class="card">
-            <div class="card-title">
-              <i data-lucide="code"></i>
-              <span>Paste Raw AI JSON Output</span>
-            </div>
-            <textarea id="raw-json-input" class="code-textarea" rows="18" placeholder='Paste your ```json { "title": "...", "content_html": "...", "variations": { ... } } ``` output here...'></textarea>
-            <div id="json-validation-feedback" style="margin-top: 14px; font-size: 13px; color: var(--text-secondary);"></div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">
-              <i data-lucide="shield-check"></i>
-              <span>How the Multi-Store Workflow Operates</span>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 14px; font-size: 13.5px; color: var(--text-secondary); line-height: 1.6;">
-              <div style="padding: 14px; border-radius: 12px; background: rgba(15, 23, 42, 0.04); border: 1px solid rgba(15, 23, 42, 0.08);">
-                <strong style="color: var(--text-primary); display: block; margin-bottom: 4px;">Step 1: All Store Views (Global Setup)</strong>
-                Set up the post in Magento under <em>All Store Views</em>: Paste Master Title, Author, Categories, Tags, and Featured Image.
-              </div>
-              <div style="padding: 14px; border-radius: 12px; background: rgba(0, 138, 46, 0.06); border: 1px solid rgba(0, 138, 46, 0.16);">
-                <strong style="color: var(--text-primary); display: block; margin-bottom: 4px;">Step 2: Store View Specific Overrides</strong>
-                Switch Magento's top-left scope to <strong>Lawsons</strong>, <strong>AVS</strong>, <strong>Oxford</strong>, <strong>Witham</strong>, or <strong>The Landscape Centre</strong>, uncheck "Use Default", and paste each brand's unique Title, URL Key, Meta, and Custom HTML.
-              </div>
-              <div style="padding: 14px; border-radius: 12px; background: rgba(0, 133, 202, 0.06); border: 1px solid rgba(0, 133, 202, 0.16);">
-                <strong style="color: var(--text-primary); display: block; margin-bottom: 4px;">Step 3: In-Preview Live Editing & Image Swaps</strong>
-                Need to tweak wording or swap an image? Open the Live Preview, click on any text to edit in place, or click any image to pick a replacement from your pool!
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ====================================================================
-           TAB 3: /pub/media/ STUDIO
-           ==================================================================== -->
-      <section id="tab-media" class="tab-panel">
-        <div class="panel-header">
-          <div>
-            <h2><i data-lucide="images"></i> Magento <code>/pub/media/</code> Studio</h2>
-            <p class="panel-subtitle">Manage media pool, upload local photos (auto-compressed), and copy single-image anti-duplicate HTML snippets.</p>
-          </div>
-          <div style="display: flex; gap: 10px;">
-            <button class="btn btn-secondary btn-sm" id="btn-rematch-all-media">
-              <i data-lucide="wand"></i> Auto-Match Images to Posts
-            </button>
-          </div>
-        </div>
-
-        <div class="split-grid" style="margin-bottom: 22px;">
-          <div class="card">
-            <div class="card-title">
-              <i data-lucide="upload-cloud"></i>
-              <span>Add Image via File Upload or Magento Media Path</span>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="media-title-input">Image Title / Alt Text</label>
-                <input type="text" id="media-title-input" placeholder="e.g., Slotted Concrete Fence Post & Gravel Board">
-              </div>
-              <div class="form-group">
-                <label for="media-tags-input">Matching Keywords <span class="label-hint">(Comma separated)</span></label>
-                <input type="text" id="media-tags-input" placeholder="e.g., concrete fence, post, gravel board">
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="media-url-input">Magento Media Path or Live Image URL</label>
-                <input type="text" id="media-url-input" placeholder="/media/wysiwyg/blog/concrete-post.jpg or https://...">
-              </div>
-              <div class="form-group">
-                <label for="media-file-input">Or Select Local Photo File(s)</label>
-                <input type="file" id="media-file-input" accept="image/*" multiple>
-              </div>
-            </div>
-            <button type="button" class="btn btn-primary btn-sm" id="btn-add-media-item">
-              <i data-lucide="plus-circle"></i> Add to Media Pool & Auto-Match
-            </button>
-          </div>
-
-          <div class="card">
-            <div class="card-title">
-              <i data-lucide="code-2"></i>
-              <span>Single-Image HTML Generator (No PageBuilder Image Doubling)</span>
-            </div>
-            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
-              Copy any image's <strong>Single-Image HTML</strong> button to drop a clean responsive image into Magento without PageBuilder rendering both mobile & desktop photos simultaneously.
-            </p>
-            <div class="form-group">
-              <label for="magento-media-folder-input">Default Magento Media Folder Prefix</label>
-              <input type="text" id="magento-media-folder-input" value="/media/wysiwyg/blog/">
-            </div>
-          </div>
-        </div>
-
-        <div id="media-pool-grid" class="media-grid"></div>
-      </section>
-
-      <!-- ====================================================================
-           TAB 4: MULTI-STORE POST QUEUE, SCOPE COPIER & LIVE PREVIEW
-           ==================================================================== -->
-      <section id="tab-queue" class="tab-panel">
-        <div class="panel-header">
-          <div>
-            <h2><i data-lucide="layout-template"></i> Multi-Store Post Queue & Scope Copier</h2>
-            <p class="panel-subtitle">Copy global setup fields first under All Store Views, then switch store views to copy each brand's tailored content and preview live styling.</p>
-          </div>
-          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-            <label style="display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: 12.5px; cursor: pointer;">
-              <input type="checkbox" id="toggle-include-scoped-css" checked style="width: 15px; height: 15px; accent-color: var(--brand-primary);">
-              <span>Include Top <code>&lt;style&gt;</code> Block When Copying HTML</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Batch Scheduler Bar -->
-        <div class="card" style="margin-bottom: 20px; padding: 16px 22px;">
-          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <i data-lucide="calendar-clock" style="color: var(--brand-primary);"></i>
-              <strong style="font-size: 14px;">Batch Publish Date Scheduler:</strong>
-            </div>
-            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-              <input type="date" id="sched-start-date" style="width: 155px;">
-              <input type="time" id="sched-start-time" value="09:00" style="width: 115px;">
-              <span style="font-size: 12.5px; color: var(--text-secondary);">Every</span>
-              <input type="number" id="sched-interval-num" value="3" min="1" max="60" style="width: 70px;">
-              <select id="sched-interval-unit" style="width: 110px;">
-                <option value="days" selected>Days</option>
-                <option value="weeks">Weeks</option>
-                <option value="hours">Hours</option>
-              </select>
-              <button type="button" class="btn btn-secondary btn-sm" id="btn-apply-schedule">
-                <i data-lucide="calendar-check"></i> Apply Schedule
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Post Queue Container -->
-        <div id="post-queue-container" class="queue-list"></div>
-      </section>
-
-      <!-- ====================================================================
-           TAB 5: AMASTY EXPORT & PIXEL AGENCY HUB
-           ==================================================================== -->
-      <section id="tab-export" class="tab-panel">
-        <div class="panel-header">
-          <div>
-            <h2><i data-lucide="share-2"></i> Amasty Export & Pixel Agency Hub</h2>
-            <p class="panel-subtitle">Download multi-store CSVs, REST API JSON bundles, or copy the technical briefing for Pixel.</p>
-          </div>
-        </div>
-
-        <div class="split-grid" style="margin-bottom: 24px;">
-          <div class="card">
-            <div class="card-title">
-              <i data-lucide="package-check"></i>
-              <span>Multi-Store Export Options</span>
-            </div>
-
-            <div class="form-group">
-              <label for="export-scope-select">Store View Export Scope</label>
-              <select id="export-scope-select">
-                <option value="all_brands" selected>All 5 Brand Store Views (Lawsons, AVS, Oxford, Witham, Landscape)</option>
-                <option value="lawsons">Lawsons Only (lawsons_en)</option>
-                <option value="avs">AVS Fencing Only (avs_en)</option>
-                <option value="oxford">Oxford Fencing Only (oxford_en)</option>
-                <option value="witham">Witham Timber Only (witham_en)</option>
-                <option value="landscape">The Landscape Centre Only (landscape_en)</option>
-              </select>
-            </div>
-
-            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 18px;">
-              <button type="button" class="btn btn-primary" id="btn-download-amasty-csv">
-                <i data-lucide="file-spreadsheet"></i> Download Amasty Blog Pro CSV (.csv)
-              </button>
-              <button type="button" class="btn btn-secondary" id="btn-download-api-json">
-                <i data-lucide="file-json"></i> Download Magento 2 REST API Payload (.json)
-              </button>
-              <button type="button" class="btn btn-accent-ai" id="btn-push-all-magento-api">
-                <i data-lucide="send"></i> Push Queued Posts via Magento 2 REST API
-              </button>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title" style="justify-content: space-between;">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="briefcase"></i>
-                <span>Ready-to-Send Briefing for Pixel</span>
-              </div>
-              <button type="button" class="btn btn-outline btn-sm" id="btn-copy-pixel-brief">
-                <i data-lucide="copy"></i> Copy Briefing
-              </button>
-            </div>
-            <textarea id="pixel-briefing-text" class="code-textarea" rows="12" readonly>Hi Pixel team,
-
-We have built a dedicated Lawsons Group Multi-Brand Content Engine to streamline how we produce and format blog articles across our 5 Magento Store Views (Lawsons, AVS Fencing, Oxford Fencing Supplies, Witham Timber, and The Landscape Centre) for Amasty Blog Pro.
-
-To avoid PageBuilder layout issues (such as duplicate mobile/desktop images and product widget alignment issues), our engine outputs clean, self-contained HTML with scoped CSS per brand.
-
-We have 3 ways we can get these posts into Magento and wanted to see which option works best for your team:
-
-Option 1: Manual Store-View Scope Paste (Zero Dev Time from Pixel)
-- Cameron uses our engine's 1-click Store View copier and pastes the scoped HTML & metadata directly into the Amasty Blog admin using the top-left Store View switcher.
-
-Option 2: Fix Server CLI Path & Use Amasty CSV Import
-- Note: Right now in Magento Admin, export throws: "The export process failed to launch. Please, check your PHP executable path" and import hangs buffering because the PHP CLI path is unconfigured in Magento cron settings. If your team sets the PHP executable path (in Stores > Config > Advanced > System > Cron) and verifies queue consumers, we can import via CSV.
-
-Option 3: Automated Magento 2 REST API Push (Preferred — Bypasses Server CLI Issues Completely)
-- Our engine includes a serverless relay ready to push draft/scheduled posts directly to Amasty's REST endpoint (/rest/{store_code}/V1/amasty_blog/posts). REST API bypasses the CLI PHP path bug completely because it runs via web requests.
-- To enable this, we only need:
-  1. A Magento Integration Bearer Token (System > Integrations) with API permissions for Amasty Blog & WYSIWYG Media.
-  2. Confirmation of the 5 exact store_view_code strings (e.g. lawsons_en, avs_en, oxford_en, witham_en, landscape_en).
-
-Let us know which route you recommend!</textarea>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title" style="justify-content: space-between;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <i data-lucide="code"></i>
-              <span>Live Multi-Store CSV Payload Preview</span>
-            </div>
-            <button type="button" class="btn btn-outline btn-sm" id="btn-refresh-export-preview">
-              <i data-lucide="refresh-cw"></i> Refresh Preview
-            </button>
-          </div>
-          <textarea id="export-live-preview" class="code-textarea" rows="12" readonly></textarea>
-        </div>
-      </section>
-
-    </main>
-  </div>
-
-  <!-- ======================================================================
-       MODAL 1: LIVE BRAND STOREFRONT PREVIEW & IN-PLACE LIVE EDITOR
-       ====================================================================== -->
-  <div class="modal-overlay" id="modal-preview">
-    <div class="modal-content" style="max-width: 1140px; padding: 0; overflow: hidden; position: relative;">
-      <!-- Top Control Bar -->
-      <div style="padding: 14px 24px; background: rgba(255,255,255,0.94); border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-          <i data-lucide="eye" style="color: var(--brand-primary);"></i>
-          <strong style="font-size: 14.5px;">Store View:</strong>
-          <div id="modal-brand-pills" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-          <!-- In-Place Editing Mode Toggle -->
-          <button type="button" class="btn btn-outline btn-sm" id="btn-toggle-live-edit">
-            <i data-lucide="pencil"></i> <span id="live-edit-btn-label">In-Place Edit: ON</span>
-          </button>
-          <button type="button" class="btn btn-secondary btn-sm" id="btn-save-live-edits">
-            <i data-lucide="check"></i> Save In-Place Edits
-          </button>
-          <button type="button" class="btn btn-primary btn-sm" id="btn-modal-copy-html">
-            <i data-lucide="copy"></i> Copy Custom HTML
-          </button>
-          <button type="button" class="btn btn-outline btn-sm" id="btn-close-preview-modal">
-            <i data-lucide="x"></i> Close
-          </button>
-        </div>
-      </div>
-
-      <!-- In-Place Edit Notice Banner -->
-      <div id="live-edit-indicator-bar" style="background: #eff6ff; border-bottom: 1px solid #bfdbfe; padding: 8px 24px; font-size: 12px; color: #1e40af; display: flex; align-items: center; justify-content: space-between;">
-        <span>✏️ <strong>Interactive In-Place Edit Mode:</strong> Click any text heading, paragraph, table cell, or button to edit. Click on any image to replace it from your media pool!</span>
-        <span style="font-weight: 700; color: #2563eb;">Live Edits Sync Directly to This Store View</span>
-      </div>
-
-      <!-- Simulated Live Brand Website Chrome -->
-      <div style="max-height: 75vh; overflow-y: auto; background: #f8fafc; padding: 20px;" id="preview-scroll-viewport">
-        <div class="storefront-preview-shell">
-          <div class="storefront-browser-bar">
-            <div class="browser-dots">
-              <span style="background: #ef4444;"></span>
-              <span style="background: #f59e0b;"></span>
-              <span style="background: #10b981;"></span>
-            </div>
-            <div class="browser-url-pill" id="preview-browser-url">https://www.lawsons.co.uk/blog/article</div>
-            <span id="preview-store-code-badge" class="brand-store-code-tag">store_view: lawsons_en</span>
-          </div>
-
-          <!-- Dynamic Brand Website Header Mockup -->
-          <div id="preview-storefront-header" class="storefront-brand-header"></div>
-
-          <!-- Blog Article Stage -->
-          <div class="storefront-article-Stage">
-            <div id="preview-article-meta-bar" style="margin-bottom: 14px;"></div>
-            <h1 id="preview-article-title" contenteditable="true" style="font-size: 30px; font-weight: 800; line-height: 1.25; margin-bottom: 16px; color: #111827;"></h1>
-            
-            <!-- Hero Cover Image Wrapper (Click to Replace) -->
-            <div id="preview-article-hero-img" class="live-preview-img-wrapper" style="margin-bottom: 26px;" title="Click to Replace Featured Hero Image"></div>
-            
-            <!-- Editable Article Body -->
-            <div id="preview-article-body" contenteditable="true"></div>
-          </div>
-
-          <!-- Dynamic Brand Website Footer Mockup -->
-          <div id="preview-storefront-footer"></div>
-        </div>
-      </div>
-
-      <!-- Click-to-Replace Image Picker Drawer -->
-      <div class="image-selector-drawer" id="image-picker-drawer">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-          <div>
-            <strong style="font-size: 14px; color: var(--text-primary);">📷 Select Replacement Image</strong>
-            <span style="font-size: 12px; color: var(--text-muted); margin-left: 8px;">Click any photo below to instantly replace this slot</span>
-          </div>
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <label class="btn btn-secondary btn-sm" style="margin: 0; cursor: pointer;">
-              <i data-lucide="upload"></i> Upload & Replace
-              <input type="file" id="drawer-instant-upload" accept="image/*" style="display: none;">
-            </label>
-            <button type="button" class="btn btn-outline btn-sm" id="btn-close-img-drawer">✕ Close</button>
-          </div>
-        </div>
-        <div class="image-picker-scroll" id="drawer-image-list"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ======================================================================
-       MODAL 2: STORE LINKS BANK & API SETTINGS
-       ====================================================================== -->
-  <div class="modal-overlay" id="modal-settings">
-    <div class="modal-content" style="max-width: 780px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3 style="display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 800;">
-          <i data-lucide="sliders-horizontal" style="color: var(--brand-primary);"></i>
-          <span>Multi-Store Links Bank, Gemini AI & Magento API Settings</span>
-        </h3>
-        <button type="button" class="btn btn-outline btn-sm" id="btn-close-settings">
-          <i data-lucide="x"></i> Close
-        </button>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="setting-gemini-key">Google Gemini API Key <span class="label-hint">(Optional — for 1-Click In-App AI Generation)</span></label>
-          <input type="password" id="setting-gemini-key" placeholder="AIzaSy...">
-        </div>
-        <div class="form-group">
-          <label for="setting-magento-token">Magento 2 Integration Bearer Token <span class="label-hint">(Optional — from Pixel)</span></label>
-          <input type="password" id="setting-magento-token" placeholder="Bearer token from System > Integrations">
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="setting-magento-url">Primary Magento Admin / API Base Domain</label>
-          <input type="url" id="setting-magento-url" value="https://www.lawsons.co.uk">
-        </div>
-        <div class="form-group" style="display: flex; align-items: flex-end;">
-          <button type="button" class="btn btn-secondary btn-sm" id="btn-test-magento-api" style="width: 100%; height: 40px;">
-            <i data-lucide="plug"></i> Test Magento 2 REST API Connection
-          </button>
-        </div>
-      </div>
-
-      <div class="form-group" style="margin-top: 10px;">
-        <label for="setting-brand-links-select">Edit Verified Internal Links Bank for Brand:</label>
-        <select id="setting-brand-links-select" style="margin-bottom: 10px;">
-          <option value="lawsons">Lawsons (lawsons.co.uk)</option>
-          <option value="avs">AVS Fencing (avsfencing.co.uk)</option>
-          <option value="oxford">Oxford Fencing Supplies (oxfordfencing.co.uk)</option>
-          <option value="witham">Witham Timber (withamtimber.co.uk)</option>
-          <option value="landscape">The Landscape Centre (the-landscape-centre.co.uk)</option>
-        </select>
-        <textarea id="setting-brand-links-textarea" class="code-textarea" rows="8" placeholder="https://www.lawsons.co.uk/fencing-supplies | Fencing Supplies"></textarea>
-        <span class="label-hint">Format: One link per line as <code>URL | Anchor Label</code></span>
-      </div>
-
-      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
-        <button type="button" class="btn btn-primary" id="btn-save-settings">
-          <i data-lucide="save"></i> Save All Settings
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ======================================================================
-       MODAL 3: SYSTEM DIAGNOSTICS
-       ====================================================================== -->
-  <div class="modal-overlay" id="modal-debug">
-    <div class="modal-content" style="max-width: 760px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h3 style="display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 800;">
-          <i data-lucide="activity" style="color: var(--brand-primary);"></i>
-          <span>System Diagnostics & Multi-Store Inspector</span>
-        </h3>
-        <div style="display: flex; gap: 8px;">
-          <button type="button" class="btn btn-secondary btn-sm" id="btn-copy-debug">
-            <i data-lucide="copy"></i> Copy Report
-          </button>
-          <button type="button" class="btn btn-outline btn-sm" id="btn-close-debug">
-            <i data-lucide="x"></i> Close
-          </button>
-        </div>
-      </div>
-      <textarea id="debug-report-output" class="code-textarea" rows="16" readonly></textarea>
-    </div>
-  </div>
-
-  <!-- Toast Notification Container -->
-  <div class="toast-container" id="toast-container"></div>
-
-  <!-- Application Script -->
-  <script type="module" src="js/app.js"></script>
+    // Optional quick keyboard shortcut: Press 1 for Magento, 2 for WordPress
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "1") {
+        window.location.href = "magento.html";
+      } else if (e.key === "2") {
+        window.location.href = "wordpress/index.html";
+      }
+    });
+  </script>
 </body>
 </html>
