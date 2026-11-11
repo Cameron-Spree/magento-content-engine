@@ -387,13 +387,13 @@
           <div class="card">
             <div class="card-title">
               <i data-lucide="code-2"></i>
-              <span>Single-Image HTML Generator (No PageBuilder Image Doubling)</span>
+              <span>Single Image HTML Generator</span>
             </div>
             <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
               Copy any image's <strong>Single-Image HTML</strong> button to drop a clean responsive image into Magento without PageBuilder rendering both mobile & desktop photos simultaneously.
             </p>
             <div class="form-group">
-              <label for="magento-media-folder-input">Default Magento Media Folder Prefix</label>
+              <label for="magento-media-folder-input">Image URL</label>
               <input type="text" id="magento-media-folder-input" value="/media/wysiwyg/blog/">
             </div>
           </div>
@@ -448,79 +448,44 @@
       </section>
 
       <!-- ====================================================================
-           TAB 5: AMASTY EXPORT & PIXEL AGENCY HUB
+           TAB 5: AMASTY EXPORT
            ==================================================================== -->
       <section id="tab-export" class="tab-panel">
         <div class="panel-header">
           <div>
-            <h2><i data-lucide="share-2"></i> Amasty Export & Pixel Agency Hub</h2>
-            <p class="panel-subtitle">Download multi-store CSVs, REST API JSON bundles, or copy the technical briefing for Pixel.</p>
+            <h2><i data-lucide="share-2"></i> Amasty Export</h2>
+            <p class="panel-subtitle">CSV for import (un-tested)</p>
           </div>
         </div>
 
-        <div class="split-grid" style="margin-bottom: 24px;">
-          <div class="card">
-            <div class="card-title">
-              <i data-lucide="package-check"></i>
-              <span>Multi-Store Export Options</span>
-            </div>
-
-            <div class="form-group">
-              <label for="export-scope-select">Store View Export Scope</label>
-              <select id="export-scope-select">
-                <option value="all_brands" selected>All 5 Brand Store Views (Lawsons, AVS, Oxford, Witham, Landscape)</option>
-                <option value="lawsons">Lawsons Only (lawsons_en)</option>
-                <option value="avs">AVS Fencing Only (avs_en)</option>
-                <option value="oxford">Oxford Fencing Only (oxford_en)</option>
-                <option value="witham">Witham Timber Only (witham_en)</option>
-                <option value="landscape">The Landscape Centre Only (landscape_en)</option>
-              </select>
-            </div>
-
-            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 18px;">
-              <button type="button" class="btn btn-primary" id="btn-download-amasty-csv">
-                <i data-lucide="file-spreadsheet"></i> Download Amasty Blog Pro CSV (.csv)
-              </button>
-              <button type="button" class="btn btn-secondary" id="btn-download-api-json">
-                <i data-lucide="file-json"></i> Download Magento 2 REST API Payload (.json)
-              </button>
-              <button type="button" class="btn btn-accent-ai" id="btn-push-all-magento-api">
-                <i data-lucide="send"></i> Push Queued Posts via Magento 2 REST API
-              </button>
-            </div>
+        <div class="card" style="margin-bottom: 24px;">
+          <div class="card-title">
+            <i data-lucide="package-check"></i>
+            <span>Multi-Store Export Options</span>
           </div>
 
-          <div class="card">
-            <div class="card-title" style="justify-content: space-between;">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="briefcase"></i>
-                <span>Ready-to-Send Briefing for Pixel</span>
-              </div>
-              <button type="button" class="btn btn-outline btn-sm" id="btn-copy-pixel-brief">
-                <i data-lucide="copy"></i> Copy Briefing
-              </button>
-            </div>
-            <textarea id="pixel-briefing-text" class="code-textarea" rows="12" readonly>Hi Pixel team,
+          <div class="form-group">
+            <label for="export-scope-select">Store View Export Scope</label>
+            <select id="export-scope-select">
+              <option value="all_brands" selected>All 5 Brand Store Views (Lawsons, AVS, Oxford, Witham, Landscape)</option>
+              <option value="lawsons">Lawsons Only (lawsons_en)</option>
+              <option value="avs">AVS Fencing Only (avs_en)</option>
+              <option value="oxford">Oxford Fencing Only (oxford_en)</option>
+              <option value="witham">Witham Timber Only (witham_en)</option>
+              <option value="landscape">The Landscape Centre Only (landscape_en)</option>
+            </select>
+          </div>
 
-We have built a dedicated Lawsons Group Multi-Brand Content Engine to streamline how we produce and format blog articles across our 5 Magento Store Views (Lawsons, AVS Fencing, Oxford Fencing Supplies, Witham Timber, and The Landscape Centre) for Amasty Blog Pro.
-
-To avoid PageBuilder layout issues (such as duplicate mobile/desktop images and product widget alignment issues), our engine outputs clean, self-contained HTML with scoped CSS per brand.
-
-We have 3 ways we can get these posts into Magento and wanted to see which option works best for your team:
-
-Option 1: Manual Store-View Scope Paste (Zero Dev Time from Pixel)
-- Cameron uses our engine's 1-click Store View copier and pastes the scoped HTML & metadata directly into the Amasty Blog admin using the top-left Store View switcher.
-
-Option 2: Fix Server CLI Path & Use Amasty CSV Import
-- Note: Right now in Magento Admin, export throws: "The export process failed to launch. Please, check your PHP executable path" and import hangs buffering because the PHP CLI path is unconfigured in Magento cron settings. If your team sets the PHP executable path (in Stores > Config > Advanced > System > Cron) and verifies queue consumers, we can import via CSV.
-
-Option 3: Automated Magento 2 REST API Push (Preferred — Bypasses Server CLI Issues Completely)
-- Our engine includes a serverless relay ready to push draft/scheduled posts directly to Amasty's REST endpoint (/rest/{store_code}/V1/amasty_blog/posts). REST API bypasses the CLI PHP path bug completely because it runs via web requests.
-- To enable this, we only need:
-  1. A Magento Integration Bearer Token (System > Integrations) with API permissions for Amasty Blog & WYSIWYG Media.
-  2. Confirmation of the 5 exact store_view_code strings (e.g. lawsons_en, avs_en, oxford_en, witham_en, landscape_en).
-
-Let us know which route you recommend!</textarea>
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 18px;">
+            <button type="button" class="btn btn-primary" id="btn-download-amasty-csv">
+              <i data-lucide="file-spreadsheet"></i> Download Amasty Blog Pro CSV (.csv)
+            </button>
+            <button type="button" class="btn btn-secondary" id="btn-download-api-json">
+              <i data-lucide="file-json"></i> Download Magento 2 REST API Payload (.json)
+            </button>
+            <button type="button" class="btn btn-accent-ai" id="btn-push-all-magento-api">
+              <i data-lucide="send"></i> Push Queued Posts via Magento 2 REST API
+            </button>
           </div>
         </div>
 
