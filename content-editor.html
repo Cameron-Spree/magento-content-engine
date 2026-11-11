@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Content Engine — Visual Copy & Wording Editor</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --border-hover: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --magento-green: #008a2e;
+      --magento-gold: #ffdd00;
+      --wp-gold: #c9a84c;
+      --wp-dark: #1a1a1a;
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05);
+      --shadow-lg: 0 20px 45px -12px rgba(15, 23, 42, 0.09), 0 4px 16px -2px rgba(15, 23, 42, 0.04);
+      --radius-card: 24px;
+      --radius-pill: 9999px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: var(--font-sans);
+      background-color: #f8fafc;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 0 60px 0;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Ambient mesh */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: -10%;
+      z-index: -1;
+      background:
+        radial-gradient(circle at 15% 18%, rgba(0, 138, 46, 0.07) 0%, transparent 40%),
+        radial-gradient(circle at 85% 15%, rgba(201, 168, 76, 0.08) 0%, transparent 42%),
+        radial-gradient(circle at 75% 85%, rgba(0, 122, 255, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 20% 80%, rgba(9, 95, 54, 0.06) 0%, transparent 44%),
+        linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%);
+      pointer-events: none;
+    }
+
+    /* Floating Top Action Toolbar */
+    .editor-top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04);
+      padding: 12px 24px;
+    }
+
+    .editor-top-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .editor-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #065f46;
+    }
+
+    .editor-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.9); }
+    }
+
+    .btn-submit {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #ffffff;
+      font-size: 13.5px;
+      font-weight: 700;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.2);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.28);
+      background: #000000;
+    }
+
+    .btn-reset {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: 12px;
+      background: #ffffff;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+
+    .btn-reset:hover {
+      background: #f1f5f9;
+      color: var(--text-main);
+    }
+
+    .portal-container {
+      width: 100%;
+      max-width: 980px;
+      padding: 32px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Editable styling */
+    [contenteditable="true"] {
+      outline: 1.5px dashed rgba(0, 122, 255, 0.35);
+      outline-offset: 4px;
+      border-radius: 6px;
+      transition: all 0.18s ease;
+      position: relative;
+    }
+
+    [contenteditable="true"]:hover {
+      outline: 2px dashed rgba(0, 122, 255, 0.7);
+      background: rgba(0, 122, 255, 0.04);
+      cursor: text;
+    }
+
+    [contenteditable="true"]:focus {
+      outline: 2px solid #007aff !important;
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
+    }
+
+    /* Minimalist Header */
+    .portal-header {
+      text-align: center;
+      margin-bottom: 40px;
+      width: 100%;
+    }
+
+    .portal-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      background: #ffffff;
+      border: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .portal-badge .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+    }
+
+    .portal-header h1 {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      color: var(--text-main);
+      line-height: 1.15;
+      margin-bottom: 12px;
+    }
+
+    .portal-header p {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    /* Two Big Choice Cards */
+    .choices-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+    }
+
+    @media (max-width: 768px) {
+      .choices-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      .portal-header h1 {
+        font-size: 30px;
+      }
+    }
+
+    .choice-card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 36px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 420px;
+      box-shadow: 0 10px 30px -6px rgba(15, 23, 42, 0.06);
+      position: relative;
+      transition: all 0.24s ease;
+    }
+
+    .choice-card:hover {
+      border-color: #cbd5e1;
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* Top Icon Badge */
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .brand-icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-icon.magento {
+      background: linear-gradient(135deg, #008a2e 0%, #006822 100%);
+      color: #ffffff;
+      box-shadow: 0 8px 20px rgba(0, 138, 46, 0.22);
+    }
+
+    .brand-icon.wordpress {
+      background: linear-gradient(135deg, #095f36 0%, #064e2b 100%);
+      color: #ffffff;
+      box-shadow: 0 8px 20px rgba(9, 95, 54, 0.22);
+    }
+
+    .brand-icon svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    .scope-tag {
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .scope-tag.magento {
+      background: rgba(0, 138, 46, 0.08);
+      color: #008a2e;
+      border: 1px solid rgba(0, 138, 46, 0.2);
+    }
+
+    .scope-tag.wordpress {
+      background: rgba(9, 95, 54, 0.08);
+      color: #095f36;
+      border: 1px solid rgba(9, 95, 54, 0.2);
+    }
+
+    /* Content Area */
+    .card-title-group {
+      margin-bottom: 16px;
+    }
+
+    .card-platform-title {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text-main);
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      line-height: 1.1;
+      flex-wrap: wrap;
+    }
+
+    .card-brand-sub {
+      font-size: 19px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: -0.01em;
+    }
+
+    .card-description {
+      font-size: 14.5px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    /* Feature Pills */
+    .card-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+
+    .feature-pill {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #475569;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-add-pill {
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: transparent;
+      border: 1px dashed #cbd5e1;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-add-pill:hover {
+      background: #ffffff;
+      border-color: #007aff;
+      color: #007aff;
+    }
+
+    /* Bottom Action Button */
+    .card-cta-btn {
+      width: 100%;
+      padding: 13px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #ffffff;
+      color: var(--text-main);
+      border: 1.5px solid var(--border);
+      pointer-events: none;
+    }
+
+    /* Footer text */
+    .portal-footer {
+      margin-top: 48px;
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--text-muted);
+      max-width: 600px;
+    }
+
+    /* Modal for copied output */
+    .copy-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(12px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .copy-modal-overlay.active {
+      display: flex;
+    }
+
+    .copy-modal-box {
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
+      width: 100%;
+      max-width: 620px;
+      padding: 28px;
+      animation: popIn 0.22s ease-out;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Top Action Bar -->
+  <header class="editor-top-bar">
+    <div class="editor-top-inner">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="editor-status-pill">
+          <span class="editor-status-dot"></span>
+          <span>Live Visual Copy Editor</span>
+        </div>
+        <span style="font-size: 12px; color: var(--text-muted);">
+          Click directly on any text below to edit
+        </span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <button type="button" class="btn-reset" id="btn-reset-wording">
+          ↺ Reset to Defaults
+        </button>
+        <button type="button" class="btn-submit" id="btn-copy-updates">
+          <span>📋 Copy Updates for Chat</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Interactive Visual Portal Page -->
+  <main class="portal-container">
+
+    <!-- Minimal Header -->
+    <header class="portal-header">
+      <div class="portal-badge">
+        <span class="dot"></span>
+        <span id="txt-badge" contenteditable="true" spellcheck="false">Content Engine Workspace</span>
+      </div>
+      <h1 id="txt-headline" contenteditable="true" spellcheck="false">Choose Platform</h1>
+      <p id="txt-subheadline" contenteditable="true" spellcheck="false">Select your publishing system below to launch the dedicated studio.</p>
+    </header>
+
+    <!-- Two Direct Choices Grid -->
+    <section class="choices-grid">
+
+      <!-- CHOICE 1: MAGENTO (LAWSONS) -->
+      <div class="choice-card magento" id="card-magento">
+        <div>
+          <div class="card-top">
+            <div class="brand-icon magento">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+              </svg>
+            </div>
+            <span class="scope-tag magento" id="magento-scope-tag" contenteditable="true" spellcheck="false">5 Store Views</span>
+          </div>
+
+          <div class="card-title-group">
+            <div class="card-platform-title">
+              <span id="magento-title" contenteditable="true" spellcheck="false">Magento</span>
+              <span class="card-brand-sub" id="magento-brand-sub" contenteditable="true" spellcheck="false">(Lawsons)</span>
+            </div>
+          </div>
+
+          <p class="card-description" id="magento-desc" contenteditable="true" spellcheck="false">
+            Multi-Brand Amasty Blog Studio with AI Brand Multiplier, PageBuilder-safe scoped HTML, unified simple URLs, and live storefront previews.
+          </p>
+
+          <div class="card-features" id="magento-features-container">
+            <span class="feature-pill" contenteditable="true" spellcheck="false">Lawsons</span>
+            <span class="feature-pill" contenteditable="true" spellcheck="false">AVS Fencing</span>
+            <span class="feature-pill" contenteditable="true" spellcheck="false">Oxford Fencing</span>
+            <span class="feature-pill" contenteditable="true" spellcheck="false">Witham Timber</span>
+            <span class="feature-pill" contenteditable="true" spellcheck="false">The Landscape Centre</span>
+            <button type="button" class="btn-add-pill" onclick="addPill('magento-features-container')">+ Add Tag</button>
+          </div>
+        </div>
+
+        <div class="card-cta-btn">
+          <span id="magento-btn-text" contenteditable="true" spellcheck="false">Open Magento Engine</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </div>
+      </div>
+
+      <!-- CHOICE 2: WORDPRESS (BRIANTS) -->
+      <div class="choice-card wordpress" id="card-wordpress">
+        <div>
+          <div class="card-top">
+            <div class="brand-icon wordpress">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+            </div>
+            <span class="scope-tag wordpress" id="wp-scope-tag" contenteditable="true" spellcheck="false">WordPress WXR</span>
+          </div>
+
+          <div class="card-title-group">
+            <div class="card-platform-title">
+              <span id="wp-title" contenteditable="true" spellcheck="false">WordPress</span>
+              <span class="card-brand-sub" id="wp-brand-sub" contenteditable="true" spellcheck="false">(Briants)</span>
+            </div>
+          </div>
+
+          <p class="card-description" id="wp-desc" contenteditable="true" spellcheck="false">
+            Briants of Risborough Content Engine with Yoast SEO metadata, WXR 1.2 XML bulk export, WordPress Media Library relay, and category link banks.
+          </p>
+
+          <div class="card-features" id="wp-features-container">
+            <span class="feature-pill" contenteditable="true" spellcheck="false">Briants of Risborough</span>
+            <span class="feature-pill" contenteditable="true" spellcheck="false">WXR 1.2 XML</span>
+            <span class="feature-pill" contenteditable="true" spellcheck="false">Yoast SEO</span>
+            <span class="feature-pill" contenteditable="true" spellcheck="false">WP REST API</span>
+            <span class="feature-pill" contenteditable="true" spellcheck="false">STIHL & Tools</span>
+            <button type="button" class="btn-add-pill" onclick="addPill('wp-features-container')">+ Add Tag</button>
+          </div>
+        </div>
+
+        <div class="card-cta-btn">
+          <span id="wp-btn-text" contenteditable="true" spellcheck="false">Open WordPress Engine</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Footer Note -->
+    <footer class="portal-footer">
+      <span id="txt-footer" contenteditable="true" spellcheck="false">Tip: You can easily switch between platforms anytime using the "Switch Platform" button in each app's header.</span>
+    </footer>
+
+  </main>
+
+  <!-- Output Copy Modal -->
+  <div class="copy-modal-overlay" id="copy-modal">
+    <div class="copy-modal-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 22px;">📋</span>
+          <h3 style="font-size: 18px; font-weight: 800; color: #0f172a;">Content Updates Ready!</h3>
+        </div>
+        <button type="button" onclick="closeModal()" style="border: none; background: #f1f5f9; width: 32px; height: 32px; border-radius: 50%; font-weight: bold; cursor: pointer;">✕</button>
+      </div>
+
+      <p style="font-size: 13.5px; color: #475569; margin-bottom: 14px;">
+        Your wording updates have been copied to your clipboard! Paste this directly into our chat so I can apply the live changes across the app.
+      </p>
+
+      <textarea id="output-copy-box" readonly style="width: 100%; height: 220px; font-family: monospace; font-size: 12px; padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1; background: #f8fafc; color: #1e293b; margin-bottom: 16px;"></textarea>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn-reset" onclick="closeModal()">Close</button>
+        <button type="button" class="btn-submit" onclick="copyAgain()">
+          <span>Copy to Clipboard Again</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function addPill(containerId) {
+      const container = document.getElementById(containerId);
+      const btn = container.querySelector(".btn-add-pill");
+      const newPill = document.createElement("span");
+      newPill.className = "feature-pill";
+      newPill.contentEditable = "true";
+      newPill.spellcheck = false;
+      newPill.innerText = "New Feature";
+      container.insertBefore(newPill, btn);
+      newPill.focus();
+    }
+
+    function collectUpdates() {
+      const getPills = (containerId) => {
+        const pills = document.querySelectorAll(`#${containerId} .feature-pill`);
+        return Array.from(pills).map(p => p.innerText.trim()).filter(Boolean);
+      };
+
+      const data = {
+        headerBadge: document.getElementById("txt-badge").innerText.trim(),
+        headline: document.getElementById("txt-headline").innerText.trim(),
+        subheadline: document.getElementById("txt-subheadline").innerText.trim(),
+        magentoCard: {
+          scopeTag: document.getElementById("magento-scope-tag").innerText.trim(),
+          title: document.getElementById("magento-title").innerText.trim(),
+          brandSub: document.getElementById("magento-brand-sub").innerText.trim(),
+          description: document.getElementById("magento-desc").innerText.trim(),
+          features: getPills("magento-features-container"),
+          buttonText: document.getElementById("magento-btn-text").innerText.trim()
+        },
+        wordpressCard: {
+          scopeTag: document.getElementById("wp-scope-tag").innerText.trim(),
+          title: document.getElementById("wp-title").innerText.trim(),
+          brandSub: document.getElementById("wp-brand-sub").innerText.trim(),
+          description: document.getElementById("wp-desc").innerText.trim(),
+          features: getPills("wp-features-container"),
+          buttonText: document.getElementById("wp-btn-text").innerText.trim()
+        },
+        footerTip: document.getElementById("txt-footer").innerText.trim()
+      };
+
+      return `Here are my wording updates for the Content Engine:\n\n` +
+        `**Header Badge:** ${data.headerBadge}\n` +
+        `**Headline:** ${data.headline}\n` +
+        `**Subheadline:** ${data.subheadline}\n\n` +
+        `### Magento (Lawsons) Card:\n` +
+        `- **Title:** ${data.magentoCard.title} ${data.magentoCard.brandSub}\n` +
+        `- **Scope Badge:** ${data.magentoCard.scopeTag}\n` +
+        `- **Description:** ${data.magentoCard.description}\n` +
+        `- **Features / Brands:** ${data.magentoCard.features.join(", ")}\n` +
+        `- **Button Text:** ${data.magentoCard.buttonText}\n\n` +
+        `### WordPress (Briants) Card:\n` +
+        `- **Title:** ${data.wordpressCard.title} ${data.wordpressCard.brandSub}\n` +
+        `- **Scope Badge:** ${data.wordpressCard.scopeTag}\n` +
+        `- **Description:** ${data.wordpressCard.description}\n` +
+        `- **Features / Brands:** ${data.wordpressCard.features.join(", ")}\n` +
+        `- **Button Text:** ${data.wordpressCard.buttonText}\n\n` +
+        `**Footer Tip:** ${data.footerTip}`;
+    }
+
+    document.getElementById("btn-copy-updates").onclick = () => {
+      const summary = collectUpdates();
+      navigator.clipboard.writeText(summary).then(() => {
+        document.getElementById("output-copy-box").value = summary;
+        document.getElementById("copy-modal").classList.add("active");
+      }).catch(err => {
+        document.getElementById("output-copy-box").value = summary;
+        document.getElementById("copy-modal").classList.add("active");
+      });
+    };
+
+    function copyAgain() {
+      const summary = document.getElementById("output-copy-box").value;
+      navigator.clipboard.writeText(summary);
+      alert("Copied to clipboard!");
+    }
+
+    function closeModal() {
+      document.getElementById("copy-modal").classList.remove("active");
+    }
+
+    document.getElementById("btn-reset-wording").onclick = () => {
+      if (confirm("Reset all text to default wording?")) {
+        window.location.reload();
+      }
+    };
+  </script>
+</body>
+</html>
