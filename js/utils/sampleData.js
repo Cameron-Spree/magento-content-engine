@@ -264,52 +264,6 @@ export const SAMPLE_POST_PAYLOADS = [
   </ul>
 </div>`
       },
-      <td>Up to 15 Years (UC4 ground-contact rated)</td>
-    </tr>
-    <tr>
-      <td><strong>Visual Style</strong></td>
-      <td>Structured frame with concrete gravel board</td>
-      <td>Warm natural timber ideal for slatted panels</td>
-    </tr>
-    <tr>
-      <td><strong>Installation</strong></td>
-      <td>Two-person lift; panels slot straight in</td>
-      <td>Lightweight; easy to fix gates & trellis</td>
-    </tr>
-  </tbody>
-</table>
-<div class="mce-product-grid">
-  <div class="mce-product-card">
-    <div>
-      <h5>Contemporary & Traditional Fence Panels</h5>
-      <p>Double slatted panels, closeboard, and decorative fencing crafted for modern gardens.</p>
-    </div>
-    <a href="https://www.avsfencing.co.uk/fencing/fence-panels" class="mce-btn-primary">Shop Fence Panels &rarr;</a>
-  </div>
-  <div class="mce-product-card">
-    <div>
-      <h5>Fencing Tools, Postcrete & Fixings</h5>
-      <p>Fast-setting post mix, gravel board clips, and heavy-duty galvanized gate ironmongery.</p>
-    </div>
-    <a href="https://www.avsfencing.co.uk/garden-tools" class="mce-btn-secondary">View Tools & Fixings</a>
-  </div>
-</div>
-<div class="category-spotlight-box">
-  <h3>Transform Your Garden with AVS Fencing & Landscaping</h3>
-  <p>From contemporary slatted fence panels and railway sleepers to premium decking and paving — available for nationwide & local delivery.</p>
-  <div class="mce-btn-row">
-    <a href="https://www.avsfencing.co.uk/fencing" class="mce-btn-primary">Shop AVS Fencing &rarr;</a>
-    <a href="https://www.avsfencing.co.uk/landscaping/sleepers" class="mce-btn-secondary">Explore Railway Sleepers</a>
-  </div>
-</div>
-<div class="callout-box want-to-know-more">
-  <h4>💡 Want to Know More? AVS Landscaping Guides</h4>
-  <ul>
-    <li><a href="https://www.avsfencing.co.uk/fencing">AVS Fencing Panels & Posts</a></li>
-    <li><a href="https://www.avsfencing.co.uk/landscaping/decking">Timber & Composite Garden Decking</a></li>
-  </ul>
-</div>`
-      },
       oxford: {
         store_code: "oxford_en",
         title: "Choosing Between Timber & Concrete Fence Posts: The Oxford Fencing Supplies Guide",
