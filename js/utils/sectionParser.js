@@ -2,6 +2,7 @@
  * Section & Element Parser for Magento 2 PageBuilder Workflow
  *
  * Breaks down a complete blog article into modular, bite-sized blocks:
+ * - Brand Scoped CSS <style> Block (for top of PageBuilder)
  * - Individual Headings (H2, H3)
  * - Section Paragraphs (Plain Text for WYSIWYG, or Clean HTML)
  * - Self-Contained Custom HTML Elements (Tables, Callouts, Product Cards, CTAs)
@@ -12,6 +13,17 @@
 
 import { generateBrandScopedCSS } from "./htmlStyler.js";
 import { getBrandById } from "./brandsConfig.js";
+
+/**
+ * Safely extracts text content from both attached and detached DOM elements.
+ * Critical: In detached DOM trees created via DOMParser, element.innerText
+ * returns an empty string in Chromium/WebKit engines because there is no rendered
+ * layout tree. element.textContent is standard and always reliably populated.
+ */
+function getNodeText(el) {
+  if (!el) return "";
+  return (el.textContent || el.innerText || "").trim();
+}
 
 export function parseArticleIntoSections(htmlContent, brandId = "lawsons", includeCss = true) {
   if (!htmlContent || typeof htmlContent !== "string") return [];
@@ -61,6 +73,20 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
     container = container.firstElementChild;
   }
 
+  // Normalize top-level loose text nodes (e.g. {{IMAGE:keyword}} or unwrapped lines) into <p>
+  if (container && container.childNodes) {
+    Array.from(container.childNodes).forEach(node => {
+      if (node.nodeType === 3) {
+        const text = (node.textContent || "").trim();
+        if (text) {
+          const p = doc.createElement("p");
+          p.textContent = text;
+          container.replaceChild(p, node);
+        }
+      }
+    });
+  }
+
   let pendingHeading = null;
   let currentSection = null;
   let sectionIndex = 1;
@@ -68,13 +94,15 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
   function flushCurrentSection() {
     if (currentSection) {
       const plainText = currentSection.elements
-        .map(el => (el.innerText || "").trim())
+        .map(el => getNodeText(el))
         .filter(Boolean)
         .join("\n\n");
 
-      const hasVisibleMedia = currentSection.elements.some(el => el.querySelector && el.querySelector("img, svg, figure, a, iframe, table"));
+      const hasVisibleMedia = currentSection.elements.some(el =>
+        el.querySelector && el.querySelector("img, svg, figure, a, iframe, table")
+      );
 
-      // NEVER push an empty section!
+      // Only push non-empty sections (with actual text or embedded media)
       if (currentSection.elements.length > 0 && (plainText.length > 0 || hasVisibleMedia)) {
         const elementsHtml = currentSection.elements.map(el => el.outerHTML).join("\n");
         const fullSectionHtml = currentSection.headingHtml
@@ -98,7 +126,7 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
     }
   }
 
-  // Iterate over top-level child nodes
+  // Iterate over top-level child elements
   const children = container ? Array.from(container.children) : [];
 
   for (let i = 0; i < children.length; i++) {
@@ -106,7 +134,7 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
     const tagName = el.tagName ? el.tagName.toLowerCase() : "";
 
     // Skip empty spacer elements (<p></p>, <p>&nbsp;</p>, whitespace)
-    const rawText = (el.innerText || "").replace(/[\s\u00a0]+/g, " ").trim();
+    const rawText = getNodeText(el).replace(/[\s\u00a0]+/g, " ");
     const hasMedia = Boolean(el.querySelector && el.querySelector("img, svg, figure, iframe, video, table, a"));
     if (!rawText && !hasMedia && tagName !== "table" && !el.classList.contains("mce-table-wrap")) {
       continue;
@@ -131,7 +159,7 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
         title: headingText || "Technical Comparison Table",
         html: fullHtml,
         tableHtml: wrapHtml,
-        plainText: (tableEl.innerText || "").trim(),
+        plainText: getNodeText(tableEl),
         badge: "TABLE"
       });
       continue;
@@ -152,7 +180,7 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
         headingHtml: headingHtml,
         title: headingText || "PageBuilder Product Showcase Grid",
         html: fullHtml,
-        plainText: (el.innerText || "").trim(),
+        plainText: getNodeText(el),
         badge: "PRODUCTS"
       });
       continue;
@@ -173,7 +201,7 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
         headingHtml: headingHtml,
         title: headingText || "Brand Spotlight & CTA Banner",
         html: fullHtml,
-        plainText: (el.innerText || "").trim(),
+        plainText: getNodeText(el),
         badge: "CTA BANNER"
       });
       continue;
@@ -186,7 +214,7 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
       pendingHeading = null;
       flushCurrentSection();
 
-      const calloutTitle = (el.querySelector && el.querySelector("h4, .heading, h3")?.innerText.trim()) || "Expert Pro-Tip / Callout Box";
+      const calloutTitle = getNodeText(el.querySelector && el.querySelector("h4, .heading, h3")) || "Expert Pro-Tip / Callout Box";
       const fullHtml = headingHtml ? `${headingHtml}\n${el.outerHTML}` : el.outerHTML;
       blocks.push({
         id: `callout_${blocks.length + 1}`,
@@ -195,7 +223,7 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
         headingHtml: headingHtml,
         title: headingText || calloutTitle,
         html: fullHtml,
-        plainText: (el.innerText || "").trim(),
+        plainText: getNodeText(el),
         badge: "CALLOUT"
       });
       continue;
@@ -205,7 +233,7 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
     if (tagName === "h2") {
       flushCurrentSection();
       pendingHeading = {
-        text: (el.innerText || "").trim(),
+        text: getNodeText(el),
         tag: "h2",
         html: el.outerHTML
       };
@@ -268,5 +296,5 @@ export function stripHtmlToText(html) {
   if (!html) return "";
   const tmp = document.createElement("div");
   tmp.innerHTML = html;
-  return tmp.innerText.trim();
+  return (tmp.textContent || tmp.innerText || "").trim();
 }
