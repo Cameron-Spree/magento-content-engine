@@ -51,6 +51,8 @@ export function generateAmastyCSV(posts, imagePool = [], options = {}) {
     const amastyStatus = post.status === "scheduled" || post.status === "future" ? "2" : "1"; // Amasty: 1=Enabled, 2=Scheduled, 0=Disabled
 
     targetBrands.forEach(brand => {
+      // If the post has scoped variations and this brand is not included, skip it
+      if (post.variations && !post.variations[brand.id]) return;
       const v = (post.variations && post.variations[brand.id]) ? post.variations[brand.id] : {};
       const title = v.title || post.title;
       const urlKey = v.url_key || post.slug;
@@ -93,6 +95,8 @@ export function generateMagentoApiPayload(posts, imagePool = [], includeScopedCs
   const payload = posts.map(post => {
     const storeScopes = {};
     BRAND_LIST.forEach(brand => {
+      // If the post has scoped variations and this brand is not included, skip it
+      if (post.variations && !post.variations[brand.id]) return;
       const v = (post.variations && post.variations[brand.id]) ? post.variations[brand.id] : {};
       storeScopes[brand.storeCode] = {
         store_id: brand.storeId,

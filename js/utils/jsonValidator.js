@@ -6,7 +6,7 @@
 
 import { BRANDS, BRAND_LIST } from "./brandsConfig.js";
 
-export function parseAndValidateJSON(rawInput) {
+export function parseAndValidateJSON(rawInput, defaultTargetBrands = null) {
   if (!rawInput || !rawInput.trim()) {
     return { valid: false, error: "Input is empty. Paste the JSON block from your AI assistant." };
   }
@@ -56,8 +56,11 @@ export function parseAndValidateJSON(rawInput) {
       return { valid: false, error: `${postIndexLabel}Missing or invalid 'title' string.` };
     }
 
-    // Support content_html either at root or inside variations.lawsons
-    const baseHtmlRaw = p.content_html || (p.variations && p.variations.lawsons && p.variations.lawsons.content_html) || "";
+    // Support content_html either at root or inside any store variation
+    const firstVarHtml = p.variations && typeof p.variations === "object"
+      ? Object.values(p.variations).find(v => v && typeof v.content_html === "string" && v.content_html.trim())?.content_html
+      : "";
+    const baseHtmlRaw = p.content_html || firstVarHtml || "";
     if (!baseHtmlRaw || typeof baseHtmlRaw !== "string") {
       return { valid: false, error: `${postIndexLabel}Missing or invalid 'content_html' string.` };
     }
@@ -76,13 +79,41 @@ export function parseAndValidateJSON(rawInput) {
       ? [...new Set([...p.image_placeholders.map(k => String(k).trim().toLowerCase()), ...extractedPlaceholders])]
       : extractedPlaceholders;
 
-    // Build or enrich the 5 Magento Store View variations with UNIFIED simple URL key
-    const variations = buildFiveBrandVariations(p, cleanContentHtml, unifiedSlug, shortContent, metaTitle, metaDesc);
+    // Determine target brands for this post:
+    let targetBrandIds = null;
+    if (Array.isArray(p.target_brands) && p.target_brands.length > 0) {
+      const parsedBrands = p.target_brands
+        .map(b => String(b).trim().toLowerCase())
+        .filter(b => BRAND_LIST.some(item => item.id === b));
+      if (parsedBrands.length > 0) targetBrandIds = parsedBrands;
+    }
+
+    if (!targetBrandIds && p.variations && typeof p.variations === "object") {
+      const varKeys = Object.keys(p.variations)
+        .map(k => k.trim().toLowerCase())
+        .filter(k => BRAND_LIST.some(item => item.id === k));
+      if (varKeys.length > 0) targetBrandIds = varKeys;
+    }
+
+    if (!targetBrandIds && Array.isArray(defaultTargetBrands) && defaultTargetBrands.length > 0) {
+      const defBrands = defaultTargetBrands
+        .map(b => String(b).trim().toLowerCase())
+        .filter(b => BRAND_LIST.some(item => item.id === b));
+      if (defBrands.length > 0) targetBrandIds = defBrands;
+    }
+
+    if (!targetBrandIds || targetBrandIds.length === 0) {
+      targetBrandIds = BRAND_LIST.map(b => b.id);
+    }
+
+    // Build Store View variations ONLY for the targeted brands
+    const variations = buildBrandVariations(p, cleanContentHtml, unifiedSlug, shortContent, metaTitle, metaDesc, targetBrandIds);
 
     validatedPosts.push({
       id: "mce_post_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
       title: genericMasterTitle,
       slug: unifiedSlug,
+      target_brands: targetBrandIds,
       categories: categories.map(c => String(c).trim()),
       tags: tags.map(t => String(t).trim()),
       short_content: shortContent.trim(),
@@ -107,14 +138,17 @@ export function parseAndValidateJSON(rawInput) {
 }
 
 /**
- * Ensures all 5 Store Views (Lawsons, AVS, Oxford, Witham, Landscape Centre) have complete,
- * brand-adapted HTML, internal links, titles, and SEO metadata.
+ * Builds Store View variations strictly for targeted brand IDs.
  */
-export function buildFiveBrandVariations(rawPost, baseHtml, slug, baseShortContent, baseMetaTitle, baseMetaDesc) {
+export function buildBrandVariations(rawPost, baseHtml, slug, baseShortContent, baseMetaTitle, baseMetaDesc, targetBrandIds = null) {
   const inputVars = (rawPost && typeof rawPost.variations === "object" && rawPost.variations) ? rawPost.variations : {};
   const result = {};
 
-  BRAND_LIST.forEach((brand) => {
+  const targetList = (Array.isArray(targetBrandIds) && targetBrandIds.length > 0)
+    ? BRAND_LIST.filter(b => targetBrandIds.includes(b.id))
+    : BRAND_LIST;
+
+  targetList.forEach((brand) => {
     const existing = inputVars[brand.id] || {};
     const rawTitle = existing.title || adaptTitleToBrand(rawPost.title, brand);
     const rawShort = existing.short_content || adaptTextToBrand(baseShortContent, brand);
@@ -140,6 +174,8 @@ export function buildFiveBrandVariations(rawPost, baseHtml, slug, baseShortConte
 
   return result;
 }
+
+export const buildFiveBrandVariations = buildBrandVariations;
 
 /**
  * When a single master post is provided, intelligently adapts internal links, brand names,

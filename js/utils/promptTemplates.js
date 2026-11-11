@@ -12,6 +12,7 @@ export function generateAIPrompt(params) {
   const {
     mode = "multiplier", // "multiplier" | "single" | "bulk"
     activeBrandId = "lawsons",
+    selectedBrandIds = ["lawsons", "avs", "oxford", "witham", "landscape"],
     topic = "How to Choose Between Timber & Concrete Fence Posts for Long-Lasting Garden Boundaries",
     keywords = "concrete vs timber fence posts, garden fencing installation, pressure treated fence posts, gravel boards",
     wordCount = "900-1300 words",
@@ -81,9 +82,17 @@ export function generateAIPrompt(params) {
     widgetRules.push(`- TECHNICAL COMPARISON TABLE: Include at least one structured HTML <table> with <thead>, <tr>, <th> headers, and <tbody> rows comparing dimensions, timber treatment grades (e.g. UC3 vs UC4), lifespans, or installation specs.`);
   }
 
-  // MODE 1: 5-BRAND MULTIPLIER PROMPT
+  // MODE 1: MULTI-BRAND MULTIPLIER PROMPT (Dynamically scoped to selected brands)
   if (mode === "multiplier") {
-    const brandSections = BRAND_LIST.map(b => {
+    const targetBrands = (Array.isArray(selectedBrandIds) && selectedBrandIds.length > 0)
+      ? BRAND_LIST.filter(b => selectedBrandIds.includes(b.id))
+      : BRAND_LIST;
+    const effectiveBrands = targetBrands.length > 0 ? targetBrands : BRAND_LIST;
+    const brandCount = effectiveBrands.length;
+    const brandNamesStr = effectiveBrands.map(b => b.name).join(", ");
+    const brandIdsArrayStr = effectiveBrands.map(b => `"${b.id}"`).join(", ");
+
+    const brandSections = effectiveBrands.map(b => {
       const bank = (customBrandLinks[b.id] && customBrandLinks[b.id].length > 0)
         ? customBrandLinks[b.id]
         : b.linksBank;
@@ -94,24 +103,37 @@ export function generateAIPrompt(params) {
 ${linksFormatted}`;
     }).join("\n\n");
 
+    const schemaVariations = effectiveBrands.map(b => {
+      return `    "${b.id}": {
+      "store_code": "${b.storeCode}",
+      "title": "Unique Title Tailored for ${b.name}",
+      "url_key": "simple-keyword-slug",
+      "short_content": "${b.name}-specific 2-sentence summary for the blog index page.",
+      "meta_title": "SEO Title | ${b.name}",
+      "meta_description": "Unique 155-char meta description for ${b.name}.",
+      "content_html": "<p>Full HTML article written in ${b.name} tone with ${b.domain}/... internal links, tables, and CTA widgets...</p>"
+    }`;
+    }).join(",\n");
+
     return `You are an elite eCommerce SEO Director & Technical Copywriter for the Lawsons Group Magento 2 Multi-Store ecosystem (Amasty Blog Pro).
 
-Your task is to take ONE core blog topic and generate a **Multi-Brand Store View JSON Payload** containing **5 uniquely written, SEO-distinct variations** across our 5 Magento Store Views so that each brand ranks independently on Google with ZERO duplicate content penalties.
+Your task is to take ONE core blog topic and generate a **Multi-Brand Store View JSON Payload** containing **${brandCount} uniquely written, SEO-distinct variations** across our ${brandCount} selected Magento Store Views (${brandNamesStr}) so that each brand ranks independently on Google with ZERO duplicate content penalties.
 
 ## Core Topic & Target SEO Brief
 - **Master Topic / Generic Title:** ${topic} (Keep this title broad, generic, and brand-neutral for the All Store Views master scope)
 - **Target Keywords:** ${keywords}
 - **Target Depth per Variation:** ${wordCount}
-- **Unified Simple URL Key Rule:** Choose a clean, concise, 2-to-4 word hyphenated slug (e.g., "concrete-vs-timber-fence-posts"). MANDATORY: Every variation inside "variations" MUST share the EXACT SAME "url_key" as the master "slug" so email marketing links are uniform across all 5 websites!
+- **Target Brands Count:** ${brandCount} Store Views (${brandNamesStr})
+- **Unified Simple URL Key Rule:** Choose a clean, concise, 2-to-4 word hyphenated slug (e.g., "concrete-vs-timber-fence-posts"). MANDATORY: Every variation inside "variations" MUST share the EXACT SAME "url_key" as the master "slug" so email marketing links are uniform across all websites!
 
-## The 5 Magento Store Views & Their Internal Link Banks
+## The ${brandCount} Selected Magento Store Views & Internal Link Banks
 ${brandSections}
 
 ## Mandatory HTML & Amasty PageBuilder-Safe Rules
 1. Use clean semantic HTML tags (\`<h2>\`, \`<h3>\`, \`<p>\`, \`<ul>\`, \`<li>\`, \`<strong>\`, \`<table>\`).
 2. **MANDATORY SINGLE QUOTES IN HTML ATTRIBUTES:** Inside JSON strings, always use single quotes for HTML attributes (e.g., \`<a href='https://...'>\`) so you never break JSON syntax.
-3. **MANDATORY UNIFIED URL KEY:** The "slug" at root AND the "url_key" in EVERY variation (lawsons, avs, oxford, witham, landscape) MUST BE 100% IDENTICAL and as simple as possible (e.g., "concrete-vs-timber-fence-posts").
-4. **UNIQUE COPY PER BRAND:** Each brand inside \`"variations"\` MUST have its own rewritten \`title\`, \`short_content\` (1-2 sentence Amasty summary), \`meta_title\`, \`meta_description\`, and \`content_html\` tailored to that brand's audience and linking ONLY to that brand's domain URLs!
+3. **MANDATORY UNIFIED URL KEY:** The "slug" at root AND the "url_key" in EVERY variation MUST BE 100% IDENTICAL and as simple as possible (e.g., "concrete-vs-timber-fence-posts").
+4. **UNIQUE COPY PER BRAND:** Each of the ${brandCount} selected brands inside \`"variations"\` (${effectiveBrands.map(b => b.id).join(", ")}) MUST have its own rewritten \`title\`, \`short_content\` (1-2 sentence Amasty summary), \`meta_title\`, \`meta_description\`, and \`content_html\` tailored to that brand's audience and linking ONLY to that brand's domain URLs!
 ${imageInstruction}
 ${widgetRules.join("\n")}
 
@@ -122,6 +144,7 @@ Respond ONLY with a valid \`\`\`json code block matching this exact structure:
 {
   "title": "Clean Generic Master Title for All Store Views",
   "slug": "simple-keyword-slug",
+  "target_brands": [${brandIdsArrayStr}],
   "categories": ["Fencing", "Landscaping Advice"],
   "tags": ["fencing", "timber", "installation-guide"],
   "short_content": "Concise 2-sentence executive summary for the Amasty blog listing grid.",
@@ -130,57 +153,13 @@ Respond ONLY with a valid \`\`\`json code block matching this exact structure:
   "image_placeholders": ${imgPlaceholderNum > 0 ? '["fence post", "gravel board"]' : '[]'},
   "content_html": "<p>Default fallback store view HTML content...</p>",
   "variations": {
-    "lawsons": {
-      "store_code": "lawsons_en",
-      "title": "Unique Title Tailored for Lawsons Timber & Building Materials",
-      "url_key": "simple-keyword-slug",
-      "short_content": "Lawsons-specific 2-sentence summary for the blog index page.",
-      "meta_title": "SEO Title | Lawsons",
-      "meta_description": "Unique 155-char meta description for Lawsons.",
-      "content_html": "<p>Full HTML article written in Lawsons tone with https://www.lawsons.co.uk/... internal links, tables, and CTA widgets...</p>"
-    },
-    "avs": {
-      "store_code": "avs_en",
-      "title": "Unique Title Tailored for AVS Fencing & Landscaping",
-      "url_key": "simple-keyword-slug",
-      "short_content": "AVS-specific 2-sentence summary.",
-      "meta_title": "SEO Title | AVS Fencing",
-      "meta_description": "Unique 155-char meta description for AVS Fencing.",
-      "content_html": "<p>Full HTML article written in AVS tone with https://www.avsfencing.co.uk/... internal links...</p>"
-    },
-    "oxford": {
-      "store_code": "oxford_en",
-      "title": "Unique Title Tailored for Oxford Fencing Supplies",
-      "url_key": "simple-keyword-slug",
-      "short_content": "Oxford Fencing-specific 2-sentence summary.",
-      "meta_title": "SEO Title | Oxford Fencing Supplies",
-      "meta_description": "Unique 155-char meta description for Oxford Fencing.",
-      "content_html": "<p>Full HTML article written in Oxford Fencing tone with https://www.oxfordfencing.co.uk/... internal links...</p>"
-    },
-    "witham": {
-      "store_code": "witham_en",
-      "title": "Unique Title Tailored for Witham Timber",
-      "url_key": "simple-keyword-slug",
-      "short_content": "Witham Timber-specific 2-sentence summary.",
-      "meta_title": "SEO Title | Witham Timber",
-      "meta_description": "Unique 155-char meta description for Witham Timber.",
-      "content_html": "<p>Full HTML article written in Witham Timber tone with https://www.withamtimber.co.uk/... internal links...</p>"
-    },
-    "landscape": {
-      "store_code": "landscape_en",
-      "title": "Unique Title Tailored for The Landscape Centre",
-      "url_key": "simple-keyword-slug",
-      "short_content": "The Landscape Centre-specific 2-sentence summary.",
-      "meta_title": "SEO Title | The Landscape Centre",
-      "meta_description": "Unique 155-char meta description for The Landscape Centre.",
-      "content_html": "<p>Full HTML article written in The Landscape Centre tone with https://the-landscape-centre.co.uk/... internal links...</p>"
-    }
+${schemaVariations}
   }
 }
 \`\`\``;
   }
 
-  // MODE 2: SINGLE BRAND / MASTER FOCUS
+  // MODE 2: SINGLE BRAND / STORE VIEW FOCUS
   const brand = getBrandById(activeBrandId);
   const bank = (customBrandLinks[brand.id] && customBrandLinks[brand.id].length > 0)
     ? customBrandLinks[brand.id]
@@ -194,6 +173,7 @@ Respond ONLY with a valid \`\`\`json code block matching this exact structure:
 - **Target Keywords:** ${keywords}
 - **Brand Voice:** ${brand.tone}
 - **Target Length:** ${wordCount}
+- **Target Store View:** ${brand.name} (\`${brand.id}\` | Store Code: \`${brand.storeCode}\`)
 
 ## Verified Internal Links Bank (${brand.name})
 Seamlessly weave 3 to 5 of these exact internal URLs into natural anchor phrases in your article. Use single quotes for HTML attributes (\`href='...'\`):
@@ -204,18 +184,30 @@ ${imageInstruction}
 ${widgetRules.join("\n")}
 
 ## Required JSON Output
-Return ONLY a valid \`\`\`json code block:
+Return ONLY a valid \`\`\`json code block scoped strictly for **${brand.name}**:
 \`\`\`json
 {
   "title": "${topic}",
   "slug": "seo-friendly-url-key",
+  "target_brands": ["${brand.id}"],
   "categories": ["Fencing", "Timber Guides"],
   "tags": ["fencing", "timber", "landscaping"],
   "short_content": "2-sentence summary for the Amasty blog grid card.",
   "meta_title": "${topic} | ${brand.name}",
   "meta_description": "Compelling 155-character meta description.",
   "image_placeholders": ${imgPlaceholderNum > 0 ? '["timber fencing", "railway sleepers"]' : '[]'},
-  "content_html": "<p>Full HTML article content...</p>"
+  "content_html": "<p>Full HTML article content...</p>",
+  "variations": {
+    "${brand.id}": {
+      "store_code": "${brand.storeCode}",
+      "title": "${topic}",
+      "url_key": "seo-friendly-url-key",
+      "short_content": "2-sentence summary for the Amasty blog grid card.",
+      "meta_title": "${topic} | ${brand.name}",
+      "meta_description": "Compelling 155-character meta description.",
+      "content_html": "<p>Full HTML article content tailored for ${brand.name} with ${brand.domain}/... links...</p>"
+    }
+  }
 }
 \`\`\``;
 }

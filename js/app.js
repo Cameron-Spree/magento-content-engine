@@ -24,6 +24,8 @@ const STORAGE_KEY = "mce_lawsons_state_v1";
 const state = {
   activeBrandId: "all", // "all" (Global Scope) or "lawsons" | "avs" | "oxford" | "witham" | "landscape"
   promptMode: "multiplier", // "multiplier" | "single"
+  selectedMultiplierBrands: ["lawsons", "avs", "oxford", "witham", "landscape"],
+  selectedSingleBrand: "lawsons",
   posts: [],
   imagePool: [],
   settings: JSON.parse(JSON.stringify(DEFAULT_SITE_SETTINGS)),
@@ -48,6 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
   applyBrandTheme(state.activeBrandId);
   bindAllEvents();
   initLiveCopyEditor("Magento Content Engine");
+  renderBriefBrandSelector();
   refreshPromptOutput();
   renderMediaPool();
   renderPostQueue();
@@ -71,11 +74,17 @@ function loadStateFromStorage() {
       state.activeBrandId = parsed.activeBrandId;
     }
     if (Array.isArray(parsed.posts)) {
-      state.posts = parsed.posts.map(p => ({
-        ...p,
-        author: p.author || "Lawsons Editorial Team",
-        uploadProgress: p.uploadProgress || { all: false, lawsons: false, avs: false, oxford: false, witham: false, landscape: false }
-      }));
+      state.posts = parsed.posts.map(p => {
+        const postBrands = (Array.isArray(p.target_brands) && p.target_brands.length > 0)
+          ? p.target_brands
+          : Object.keys(p.variations || {});
+        return {
+          ...p,
+          target_brands: postBrands.length > 0 ? postBrands : ["lawsons", "avs", "oxford", "witham", "landscape"],
+          author: p.author || "Lawsons Editorial Team",
+          uploadProgress: p.uploadProgress || { all: false }
+        };
+      });
     }
     if (Array.isArray(parsed.imagePool)) state.imagePool = parsed.imagePool;
     if (parsed.settings) {
@@ -109,7 +118,7 @@ function saveStateToStorage() {
 
 function updateHeaderStats() {
   const totalPosts = state.posts.length;
-  const totalVars = totalPosts * 5;
+  const totalVars = state.posts.reduce((acc, p) => acc + Object.keys(p.variations || {}).length, 0);
   const totalMedia = state.imagePool.length;
   const activeBrand = getBrandById(state.activeBrandId);
 
@@ -206,7 +215,8 @@ function bindAllEvents() {
     state.promptMode = "multiplier";
     document.getElementById("btn-mode-multiplier").className = "btn btn-primary btn-sm";
     document.getElementById("btn-mode-single").className = "btn btn-outline btn-sm";
-    setText("prompt-mode-hint", "Instructs the AI to write 5 distinct store view versions in one JSON payload so Google never flags duplicate content across your 5 domains.");
+    setText("prompt-mode-hint", "Instructs the AI to write distinct store view versions in one JSON payload so Google never flags duplicate content across your selected domains.");
+    renderBriefBrandSelector();
     refreshPromptOutput();
   });
 
@@ -214,8 +224,19 @@ function bindAllEvents() {
     state.promptMode = "single";
     document.getElementById("btn-mode-single").className = "btn btn-primary btn-sm";
     document.getElementById("btn-mode-multiplier").className = "btn btn-outline btn-sm";
-    const brandName = state.activeBrandId === "all" ? "Lawsons" : getBrandById(state.activeBrandId).name;
-    setText("prompt-mode-hint", `Generates an article focused on ${brandName}. Our ingestion engine will still automatically adapt it for the other 4 brands.`);
+    const brandName = getBrandById(state.selectedSingleBrand).name;
+    setText("prompt-mode-hint", `Generates an article focused strictly on ${brandName}. Only ${brandName} and All Store Views setup will be scoped for this article.`);
+    renderBriefBrandSelector();
+    refreshPromptOutput();
+  });
+
+  onClick("btn-toggle-all-brief-brands", () => {
+    if (state.selectedMultiplierBrands.length === BRAND_LIST.length) {
+      state.selectedMultiplierBrands = ["lawsons"];
+    } else {
+      state.selectedMultiplierBrands = BRAND_LIST.map(b => b.id);
+    }
+    renderBriefBrandSelector();
     refreshPromptOutput();
   });
 
@@ -343,8 +364,99 @@ function switchTab(tabId) {
 }
 
 // ============================================================================
-// TAB 1: PROMPT GENERATOR
+// TAB 1: PROMPT GENERATOR & DYNAMIC STORE VIEW BRIEF
 // ============================================================================
+function renderBriefBrandSelector() {
+  const multiContainer = document.getElementById("brief-multibrand-pills");
+  const singleContainer = document.getElementById("brief-singlebrand-pills");
+  const badgeEl = document.getElementById("brief-brand-count-badge");
+  const labelEl = document.getElementById("brief-brand-selector-label");
+  const toggleAllBtn = document.getElementById("btn-toggle-all-brief-brands");
+
+  if (!multiContainer || !singleContainer) return;
+
+  if (state.promptMode === "multiplier") {
+    multiContainer.style.display = "flex";
+    singleContainer.style.display = "none";
+    if (toggleAllBtn) {
+      toggleAllBtn.style.display = "inline-block";
+      const allSelected = state.selectedMultiplierBrands.length === BRAND_LIST.length;
+      toggleAllBtn.textContent = allSelected ? "Reset to Lawsons Only" : "Select All 5 Brands";
+    }
+    if (labelEl) {
+      labelEl.innerHTML = `<i data-lucide="check-square" style="width: 15px; height: 15px; color: var(--brand-primary);"></i> Select Target Brands to Include in Prompt:`;
+    }
+    if (badgeEl) {
+      badgeEl.textContent = `${state.selectedMultiplierBrands.length} Brand${state.selectedMultiplierBrands.length === 1 ? "" : "s"} Selected`;
+      badgeEl.style.background = "rgba(16, 185, 129, 0.12)";
+      badgeEl.style.color = "#047857";
+    }
+
+    multiContainer.innerHTML = BRAND_LIST.map(b => {
+      const isSelected = state.selectedMultiplierBrands.includes(b.id);
+      return `
+        <button type="button" class="brief-brand-pill ${isSelected ? "selected" : ""}" data-toggle-brief-brand="${b.id}" style="${isSelected ? `border-color: ${b.palette.primary};` : ""}">
+          <span class="check-icon">${isSelected ? "✓" : "○"}</span>
+          <span class="brand-dot" style="background: ${b.palette.primary}; border: 1.5px solid ${b.palette.secondary};"></span>
+          <span>${b.name}</span>
+        </button>
+      `;
+    }).join("");
+
+    multiContainer.querySelectorAll("[data-toggle-brief-brand]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const bId = btn.dataset.toggleBriefBrand;
+        if (state.selectedMultiplierBrands.includes(bId)) {
+          if (state.selectedMultiplierBrands.length <= 1) {
+            showToast("At least 1 brand must remain selected.");
+            return;
+          }
+          state.selectedMultiplierBrands = state.selectedMultiplierBrands.filter(id => id !== bId);
+        } else {
+          state.selectedMultiplierBrands.push(bId);
+        }
+        renderBriefBrandSelector();
+        refreshPromptOutput();
+      });
+    });
+  } else {
+    // Single Store Focus Mode
+    multiContainer.style.display = "none";
+    singleContainer.style.display = "flex";
+    if (toggleAllBtn) toggleAllBtn.style.display = "none";
+    if (labelEl) {
+      labelEl.innerHTML = `<i data-lucide="target" style="width: 15px; height: 15px; color: var(--brand-primary);"></i> Select Target Store View to Write For:`;
+    }
+    if (badgeEl) {
+      const activeObj = getBrandById(state.selectedSingleBrand);
+      badgeEl.textContent = `1 Store View (${activeObj.name})`;
+      badgeEl.style.background = "rgba(245, 158, 11, 0.12)";
+      badgeEl.style.color = "#b45309";
+    }
+
+    singleContainer.innerHTML = BRAND_LIST.map(b => {
+      const isSelected = b.id === state.selectedSingleBrand;
+      return `
+        <button type="button" class="brief-brand-pill ${isSelected ? "selected" : ""}" data-select-single-brand="${b.id}" style="${isSelected ? `border-color: ${b.palette.primary};` : ""}">
+          <span class="check-icon">${isSelected ? "●" : "○"}</span>
+          <span class="brand-dot" style="background: ${b.palette.primary}; border: 1.5px solid ${b.palette.secondary};"></span>
+          <span>${b.name}</span>
+        </button>
+      `;
+    }).join("");
+
+    singleContainer.querySelectorAll("[data-select-single-brand]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        state.selectedSingleBrand = btn.dataset.selectSingleBrand;
+        renderBriefBrandSelector();
+        refreshPromptOutput();
+      });
+    });
+  }
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
 function refreshPromptOutput() {
   const topic = document.getElementById("prompt-topic")?.value || "";
   const keywords = document.getElementById("prompt-keywords")?.value || "";
@@ -358,11 +470,10 @@ function refreshPromptOutput() {
     wantToKnowMore: document.getElementById("widget-callout")?.checked ?? true
   };
 
-  const targetBrandId = state.activeBrandId === "all" ? "lawsons" : state.activeBrandId;
-
   const promptText = generateAIPrompt({
     mode: state.promptMode,
-    activeBrandId: targetBrandId,
+    activeBrandId: state.selectedSingleBrand,
+    selectedBrandIds: state.selectedMultiplierBrands,
     topic,
     keywords,
     wordCount,
@@ -375,7 +486,11 @@ function refreshPromptOutput() {
   if (outEl) {
     outEl.value = promptText;
   }
-  setText("prompt-char-counter", `${promptText.length.toLocaleString()} chars • 5 Store Views`);
+
+  const countLabel = state.promptMode === "single"
+    ? `1 Store View (${getBrandById(state.selectedSingleBrand).name})`
+    : `${state.selectedMultiplierBrands.length} Store Views`;
+  setText("prompt-char-counter", `${promptText.length.toLocaleString()} chars • ${countLabel}`);
 }
 
 async function handleDirectGeminiGeneration() {
@@ -389,7 +504,10 @@ async function handleDirectGeminiGeneration() {
   const btn = document.getElementById("btn-generate-gemini-direct");
   const origHtml = btn.innerHTML;
   btn.disabled = true;
-  btn.innerHTML = `<span>Generating 5 Brand Variations...</span>`;
+  const countLabel = state.promptMode === "single"
+    ? `1 Brand Variation (${getBrandById(state.selectedSingleBrand).name})`
+    : `${state.selectedMultiplierBrands.length} Brand Variations`;
+  btn.innerHTML = `<span>Generating ${countLabel}...</span>`;
 
   const promptText = document.getElementById("generated-prompt-output").value;
   const result = await generateContentWithGemini(promptText, apiKey);
@@ -414,7 +532,11 @@ function handleJsonIngestion() {
   const rawInput = document.getElementById("raw-json-input").value;
   const feedbackEl = document.getElementById("json-validation-feedback");
 
-  const validation = parseAndValidateJSON(rawInput);
+  const defaultBrands = state.promptMode === "single"
+    ? [state.selectedSingleBrand]
+    : state.selectedMultiplierBrands;
+
+  const validation = parseAndValidateJSON(rawInput, defaultBrands);
   if (!validation.valid) {
     feedbackEl.innerHTML = `<div style="padding:12px; border-radius:10px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#b91c1c; font-weight:600;">❌ ${validation.error}</div>`;
     showToast("JSON Validation Error — check feedback box.");
@@ -423,10 +545,16 @@ function handleJsonIngestion() {
 
   const authorVal = document.getElementById("prompt-author")?.value || "Lawsons Editorial Team";
   const matchedPosts = validation.posts.map(p => {
+    const pBrands = (Array.isArray(p.target_brands) && p.target_brands.length > 0)
+      ? p.target_brands
+      : Object.keys(p.variations || {});
+    const initialProgress = { all: false };
+    pBrands.forEach(bId => { initialProgress[bId] = false; });
+
     const postWithMeta = {
       ...p,
       author: p.author || authorVal,
-      uploadProgress: { all: false, lawsons: false, avs: false, oxford: false, witham: false, landscape: false }
+      uploadProgress: initialProgress
     };
     return autoMatchPostMedia(postWithMeta, state.imagePool, state.settings);
   });
@@ -436,8 +564,9 @@ function handleJsonIngestion() {
   renderPostQueue();
   refreshExportPreview();
 
-  feedbackEl.innerHTML = `<div style="padding:12px; border-radius:10px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); color:#047857; font-weight:600;">✅ Ingested ${matchedPosts.length} Master Post(s) & generated ${matchedPosts.length * 5} Store View Variations!</div>`;
-  showToast(`Ingested ${matchedPosts.length} post(s) across all 5 Store Views!`);
+  const totalVariationsCount = matchedPosts.reduce((acc, p) => acc + Object.keys(p.variations || {}).length, 0);
+  feedbackEl.innerHTML = `<div style="padding:12px; border-radius:10px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); color:#047857; font-weight:600;">✅ Ingested ${matchedPosts.length} Master Post(s) scoped for ${totalVariationsCount} Store View Variation(s)!</div>`;
+  showToast(`Ingested ${matchedPosts.length} post(s) with ${totalVariationsCount} scoped variation(s)!`);
   switchTab("tab-queue");
 }
 
@@ -447,10 +576,16 @@ function loadSampleData(silent = false) {
   const validation = parseAndValidateJSON(rawSamples);
   if (validation.valid) {
     state.posts = validation.posts.map(p => {
+      const pBrands = (Array.isArray(p.target_brands) && p.target_brands.length > 0)
+        ? p.target_brands
+        : Object.keys(p.variations || {});
+      const initialProgress = { all: true };
+      pBrands.forEach(bId => { initialProgress[bId] = false; });
+
       const postWithMeta = {
         ...p,
         author: "Lawsons Editorial Team",
-        uploadProgress: { all: true, lawsons: false, avs: false, oxford: false, witham: false, landscape: false }
+        uploadProgress: initialProgress
       };
       return autoMatchPostMedia(postWithMeta, state.imagePool, state.settings);
     });
@@ -649,13 +784,22 @@ function renderPostQueue() {
 
   container.innerHTML = state.posts.map((post) => {
     const thumbUrl = post.featured_image ? (post.featured_image.previewUrl || post.featured_image.url) : "";
-    const progress = post.uploadProgress || { all: false, lawsons: false, avs: false, oxford: false, witham: false, landscape: false };
-    const completedCount = Object.values(progress).filter(Boolean).length;
+    
+    // Effective target brands for this specific article:
+    const postBrands = (Array.isArray(post.target_brands) && post.target_brands.length > 0)
+      ? post.target_brands
+      : Object.keys(post.variations || {});
+    const effectivePostBrands = postBrands.length > 0
+      ? postBrands
+      : ["lawsons", "avs", "oxford", "witham", "landscape"];
 
-    // Scope pills on card
-    const scopePills = ALL_SCOPES_LIST.map(scope => {
+    const progress = post.uploadProgress || {};
+
+    // Scope pills on card: ONLY show "All Store Views" + the brands this article was actually created for!
+    const scopedList = ALL_SCOPES_LIST.filter(scope => scope.id === "all" || effectivePostBrands.includes(scope.id));
+    const scopePills = scopedList.map(scope => {
       const isAct = scope.id === state.activeBrandId;
-      const isDone = progress[scope.id];
+      const isDone = Boolean(progress[scope.id]);
       return `
         <button type="button" class="brand-scope-pill ${isAct ? "active" : ""}" style="padding: 5px 11px; font-size: 12px;" data-card-scope="${scope.id}">
           <span class="brand-dot" style="background: ${scope.palette.primary}; border: 2px solid ${scope.palette.secondary};"></span>
@@ -665,16 +809,17 @@ function renderPostQueue() {
       `;
     }).join("");
 
-    // Step tracker pills
-    const trackerPills = [
-      { id: "all", label: "0. All Store Views" },
-      { id: "lawsons", label: "1. Lawsons" },
-      { id: "avs", label: "2. AVS" },
-      { id: "oxford", label: "3. Oxford" },
-      { id: "witham", label: "4. Witham" },
-      { id: "landscape", label: "5. Landscape" }
-    ].map(step => {
-      const isChecked = progress[step.id];
+    // Step tracker pills: ONLY include "0. All Store Views" + the brands this article was created for!
+    const trackerSteps = [{ id: "all", label: "0. All Store Views" }];
+    effectivePostBrands.forEach((bId, idx) => {
+      const bObj = getBrandById(bId);
+      trackerSteps.push({ id: bId, label: `${idx + 1}. ${bObj.name}` });
+    });
+    const totalSteps = trackerSteps.length;
+    const completedCount = trackerSteps.filter(s => progress[s.id]).length;
+
+    const trackerPills = trackerSteps.map(step => {
+      const isChecked = Boolean(progress[step.id]);
       return `
         <button type="button" class="step-pill ${isChecked ? "completed" : ""}" data-toggle-step="${step.id}" data-post="${post.id}" title="Click to toggle uploaded status">
           <span>${isChecked ? "✓" : "○"}</span>
@@ -682,6 +827,17 @@ function renderPostQueue() {
         </button>
       `;
     }).join("");
+
+    // Scope badge in header
+    let scopeBadgeHtml = "";
+    if (effectivePostBrands.length === 1) {
+      const singleB = getBrandById(effectivePostBrands[0]);
+      scopeBadgeHtml = `<span class="brand-store-code-tag" style="background: rgba(245, 158, 11, 0.12); color: #b45309; font-weight: 700; border: 1px solid rgba(245, 158, 11, 0.25);">🎯 Single Store: ${singleB.name}</span>`;
+    } else if (effectivePostBrands.length < 5) {
+      scopeBadgeHtml = `<span class="brand-store-code-tag" style="background: rgba(99, 102, 241, 0.12); color: #4338ca; font-weight: 700; border: 1px solid rgba(99, 102, 241, 0.25);">⚡ Scoped for ${effectivePostBrands.length} Brands (${effectivePostBrands.map(id => getBrandById(id).name).join(", ")})</span>`;
+    } else {
+      scopeBadgeHtml = `<span class="brand-store-code-tag" style="background: rgba(16, 185, 129, 0.12); color: #047857; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.25);">🌐 5-Brand Multiplier</span>`;
+    }
 
     // CONTENT FOR "ALL STORE VIEWS" GLOBAL SCOPE
     if (isGlobalScope) {
@@ -699,6 +855,7 @@ function renderPostQueue() {
                   <span class="brand-store-code-tag" style="background: rgba(15, 23, 42, 0.08); color: #0f172a; font-weight: 800;">
                     🌐 Master Scope: All Store Views (Default)
                   </span>
+                  ${scopeBadgeHtml}
                   <span class="brand-store-code-tag">📅 ${escapeHtml(post.post_date)}</span>
                   <span class="brand-store-code-tag">Author: ${escapeHtml(authorStr)}</span>
                 </div>
@@ -729,7 +886,7 @@ function renderPostQueue() {
           <div class="upload-tracker-strip">
             <div style="display: flex; align-items: center; gap: 8px;">
               <span style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Manual Upload Progress:</span>
-              <span class="brand-store-code-tag" style="background:#f0fdf4; color:#15803d; font-weight:700;">${completedCount}/6 Scopes Uploaded</span>
+              <span class="brand-store-code-tag" style="background:#f0fdf4; color:#15803d; font-weight:700;">${completedCount}/${totalSteps} Scopes Uploaded</span>
             </div>
             <div class="step-checklist">${trackerPills}</div>
           </div>
@@ -771,7 +928,7 @@ function renderPostQueue() {
                 <input type="text" id="edit-gtitle-${post.id}" value="${escapeHtml(post.title)}">
               </div>
               <div class="form-group">
-                <label>Unified Simple URL Key (Synced Across All 5 Brands)</label>
+                <label>Unified Simple URL Key (Synced Across All Brands)</label>
                 <input type="text" id="edit-gslug-${post.id}" value="${escapeHtml(post.slug)}">
               </div>
             </div>
@@ -797,7 +954,70 @@ function renderPostQueue() {
       `;
     }
 
-    // CONTENT FOR SPECIFIC BRAND SCOPE (Lawsons, AVS, Oxford, Witham, Landscape)
+    // CONTENT FOR SPECIFIC BRAND SCOPE
+    // If the article does not target the currently active brand:
+    if (!effectivePostBrands.includes(activeBrand.id)) {
+      return `
+        <article class="queue-card" data-post-id="${post.id}" style="border-left: 4px solid #f59e0b;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; flex-wrap: wrap;">
+            <div style="display: flex; gap: 16px; flex: 1; min-width: 280px;">
+              ${thumbUrl ? `<img src="${escapeHtml(thumbUrl)}" alt="${escapeHtml(post.title)}" style="width: 120px; height: 90px; object-fit: cover; border-radius: 12px; flex-shrink: 0; border: 1px solid rgba(15,23,42,0.1); opacity: 0.65;">` : ""}
+              <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
+                  <span class="brand-store-code-tag" style="background: rgba(245, 158, 11, 0.15); color: #b45309; font-weight: 800;">
+                    ⚠️ Not Scoped for ${activeBrand.name}
+                  </span>
+                  ${scopeBadgeHtml}
+                  <span class="brand-store-code-tag">📅 ${escapeHtml(post.post_date)}</span>
+                </div>
+                <h3 style="font-size: 17.5px; font-weight: 800; color: var(--text-primary); line-height: 1.3; margin-bottom: 6px;">
+                  ${escapeHtml(post.title)}
+                </h3>
+                <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 10px;">
+                  This article was not created for the <strong>${activeBrand.name}</strong> Store View. It was scoped specifically for: <strong>${effectivePostBrands.map(id => getBrandById(id).name).join(", ")}</strong>.
+                </p>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  <button type="button" class="btn btn-secondary btn-sm" data-card-scope="${effectivePostBrands[0]}">
+                    Switch to ${getBrandById(effectivePostBrands[0]).name}
+                  </button>
+                  <button type="button" class="btn btn-outline btn-sm" data-card-scope="all">
+                    Switch to All Store Views
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="btn btn-primary btn-sm" data-open-preview="${post.id}">
+                <i data-lucide="monitor"></i> Live Preview (${getBrandById(effectivePostBrands[0]).name})
+              </button>
+              <button type="button" class="btn btn-outline btn-sm" data-delete-post="${post.id}" title="Remove Post">
+                ✕
+              </button>
+            </div>
+          </div>
+
+          <!-- Step Progress Tracker Strip -->
+          <div class="upload-tracker-strip">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Manual Upload Progress:</span>
+              <span class="brand-store-code-tag" style="background:#f0fdf4; color:#15803d; font-weight:700;">${completedCount}/${totalSteps} Scopes Uploaded</span>
+            </div>
+            <div class="step-checklist">${trackerPills}</div>
+          </div>
+
+          <!-- Scope Switcher Strip -->
+          <div class="scope-copy-strip">
+            <div style="display: flex; align-items: center; gap: 6px; margin-right: 8px; flex-wrap: wrap;">
+              <span style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Scope:</span>
+              ${scopePills}
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    // Active Brand Scope is included
     const variation = (post.variations && post.variations[activeBrand.id]) ? post.variations[activeBrand.id] : {};
     const displayTitle = variation.title || post.title;
     const displayUrlKey = variation.url_key || post.slug;
@@ -815,6 +1035,7 @@ function renderPostQueue() {
                 <span class="brand-store-code-tag" style="background: var(--brand-tint); color: var(--brand-primary); font-weight: 800;">
                   Store View: ${activeBrand.name} (${activeBrand.storeCode})
                 </span>
+                ${scopeBadgeHtml}
                 <span class="brand-store-code-tag">📅 ${escapeHtml(post.post_date)}</span>
                 <span class="brand-store-code-tag">/${escapeHtml(displayUrlKey)}</span>
               </div>
@@ -844,7 +1065,7 @@ function renderPostQueue() {
         <div class="upload-tracker-strip">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Manual Upload Progress:</span>
-            <span class="brand-store-code-tag" style="background:#f0fdf4; color:#15803d; font-weight:700;">${completedCount}/6 Scopes Uploaded</span>
+            <span class="brand-store-code-tag" style="background:#f0fdf4; color:#15803d; font-weight:700;">${completedCount}/${totalSteps} Scopes Uploaded</span>
           </div>
           <div class="step-checklist">${trackerPills}</div>
         </div>
@@ -1020,8 +1241,15 @@ function renderPostQueue() {
   // Bind Live Website Preview Modal
   container.querySelectorAll("[data-open-preview]").forEach(btn => {
     btn.addEventListener("click", () => {
-      const targetBrand = state.activeBrandId === "all" ? "lawsons" : state.activeBrandId;
-      openStorefrontPreviewModal(btn.dataset.openPreview, targetBrand);
+      const postId = btn.dataset.openPreview;
+      const post = state.posts.find(p => p.id === postId);
+      const postBrands = (post && Array.isArray(post.target_brands) && post.target_brands.length > 0)
+        ? post.target_brands
+        : (post && post.variations ? Object.keys(post.variations) : ["lawsons"]);
+      const targetBrand = (state.activeBrandId !== "all" && postBrands.includes(state.activeBrandId))
+        ? state.activeBrandId
+        : postBrands[0];
+      openStorefrontPreviewModal(postId, targetBrand);
     });
   });
 
@@ -1037,7 +1265,12 @@ function renderPostQueue() {
       const isHidden = drawer.style.display === "none";
       drawer.style.display = isHidden ? "block" : "none";
       if (isHidden) {
-        const bId = state.activeBrandId === "all" ? "lawsons" : state.activeBrandId;
+        const postBrands = (Array.isArray(post.target_brands) && post.target_brands.length > 0)
+          ? post.target_brands
+          : Object.keys(post.variations || {});
+        const bId = (state.activeBrandId !== "all" && postBrands.includes(state.activeBrandId))
+          ? state.activeBrandId
+          : (postBrands[0] || "lawsons");
         const listEl = document.getElementById(`block-list-${postId}`);
         if (listEl) renderSectionsListHTML(post, bId, listEl);
       }
@@ -1232,7 +1465,19 @@ function renderSectionsListHTML(post, brandId, containerEl) {
 // ============================================================================
 function openStorefrontPreviewModal(postId, brandId) {
   state.previewModalPostId = postId;
-  const actualBrandId = brandId === "all" ? "lawsons" : brandId;
+  const post = state.posts.find(p => p.id === postId);
+  const postBrands = (post && Array.isArray(post.target_brands) && post.target_brands.length > 0)
+    ? post.target_brands
+    : (post && post.variations ? Object.keys(post.variations) : ["lawsons"]);
+  const effectivePostBrands = postBrands.length > 0
+    ? postBrands
+    : ["lawsons", "avs", "oxford", "witham", "landscape"];
+
+  let actualBrandId = brandId === "all" ? effectivePostBrands[0] : brandId;
+  if (!effectivePostBrands.includes(actualBrandId)) {
+    actualBrandId = effectivePostBrands[0];
+  }
+
   state.previewModalBrandId = actualBrandId;
   state.modalViewMode = "full";
   renderStorefrontModalContent(postId, actualBrandId);
@@ -1243,17 +1488,29 @@ function renderStorefrontModalContent(postId, brandId) {
   const post = state.posts.find(p => p.id === postId);
   if (!post) return;
 
-  const actualBrandId = brandId === "all" ? "lawsons" : brandId;
+  const postBrands = (Array.isArray(post.target_brands) && post.target_brands.length > 0)
+    ? post.target_brands
+    : Object.keys(post.variations || {});
+  const effectivePostBrands = postBrands.length > 0
+    ? postBrands
+    : ["lawsons", "avs", "oxford", "witham", "landscape"];
+
+  let actualBrandId = brandId === "all" ? effectivePostBrands[0] : brandId;
+  if (!effectivePostBrands.includes(actualBrandId)) {
+    actualBrandId = effectivePostBrands[0];
+  }
+
   state.previewModalBrandId = actualBrandId;
   const brand = getBrandById(actualBrandId);
   const v = (post.variations && post.variations[brand.id]) ? post.variations[brand.id] : {};
   const title = v.title || post.title;
   const urlKey = v.url_key || post.slug;
 
-  // Render modal brand switcher pills
+  // Render modal brand switcher pills: ONLY for this post's targeted brands!
   const pillsContainer = document.getElementById("modal-brand-pills");
   if (pillsContainer) {
-    pillsContainer.innerHTML = BRAND_LIST.map(b => `
+    const availableBrands = BRAND_LIST.filter(b => effectivePostBrands.includes(b.id));
+    pillsContainer.innerHTML = availableBrands.map(b => `
       <button type="button" class="brand-scope-pill ${b.id === brand.id ? "active" : ""}" style="padding: 5px 12px; font-size: 12px;" data-modal-brand="${b.id}">
         <span class="brand-dot" style="background: ${b.palette.primary}; border: 2px solid ${b.palette.secondary};"></span>
         <span>${b.name}</span>

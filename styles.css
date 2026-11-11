@@ -305,6 +305,55 @@ body::before {
   color: var(--text-muted);
 }
 
+/* Article Brief Interactive Brand Pills */
+.brief-brand-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.brief-brand-pill:hover {
+  border-color: rgba(15, 23, 42, 0.28);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.brief-brand-pill.selected {
+  background: #ffffff;
+  color: var(--text-primary);
+  border-color: var(--brand-primary);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+  font-weight: 700;
+}
+
+.brief-brand-pill .check-icon {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--brand-primary);
+  transition: transform 0.15s ease;
+}
+
+.brief-brand-pill:not(.selected) {
+  opacity: 0.55;
+  background: rgba(255, 255, 255, 0.45);
+  border-style: dashed;
+}
+
+.brief-brand-pill:not(.selected) .check-icon {
+  opacity: 0.3;
+}
+
 /* ==========================================================================
    NAVIGATION TABS (SEGMENTED LIQUID GLASS PILLS)
    ========================================================================== */
