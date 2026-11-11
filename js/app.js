@@ -17,6 +17,7 @@ import { getDiagnosticReport } from "./utils/debugLogger.js";
 import { generateContentWithGemini, testMagentoApiConnection, pushPostToMagentoApi } from "./utils/magentoApiSync.js";
 import { DEFAULT_SITE_SETTINGS, SAMPLE_IMAGE_POOL, SAMPLE_POST_PAYLOADS } from "./utils/sampleData.js";
 import { initLiveCopyEditor } from "./live-copy-editor.js";
+import { parseArticleIntoSections, stripHtmlToText } from "./utils/sectionParser.js";
 
 const STORAGE_KEY = "mce_lawsons_state_v1";
 
@@ -27,6 +28,8 @@ const state = {
   imagePool: [],
   settings: JSON.parse(JSON.stringify(DEFAULT_SITE_SETTINGS)),
   previewModalPostId: null,
+  previewModalBrandId: "lawsons",
+  modalViewMode: "full", // "full" | "sections"
   liveEditMode: true,
   imagePickerTarget: null // { type: "hero" | "body", el: HTMLElement, oldSrc: string }
 };
@@ -855,10 +858,25 @@ function renderPostQueue() {
             <button type="button" class="btn btn-secondary btn-sm" data-copy-field="meta_desc" data-post="${post.id}">
               Copy Meta Desc
             </button>
+            <button type="button" class="btn btn-outline btn-sm" data-toggle-block-drawer="${post.id}" title="Copy individual headings, paragraphs, tables, and CTA boxes for PageBuilder">
+              🧩 Section Breakdown
+            </button>
             <button type="button" class="btn btn-primary btn-sm" data-copy-field="scoped_html" data-post="${post.id}">
               Copy ${activeBrand.name} Custom HTML + CSS
             </button>
           </div>
+        </div>
+
+        <!-- Collapsible Section Breakdown Drawer for Active Brand Scope -->
+        <div id="block-drawer-${post.id}" style="display: none; margin-top: 16px; padding: 18px; background: rgba(248,250,252,0.95); border: 1px solid #e2e8f0; border-radius: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <strong style="font-size: 14px; color: #0f172a;">🧩 ${activeBrand.name} Section & Element Breakdown</strong>
+              <div style="font-size: 12px; color: #64748b;">Copy individual headings, plain text, and custom styled HTML elements (tables, callouts, cards) to build blog posts block-by-block in PageBuilder.</div>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" data-close-block-drawer="${post.id}">✕ Close Breakdown</button>
+          </div>
+          <div id="block-list-${post.id}" style="display: flex; flex-direction: column; gap: 12px;"></div>
         </div>
 
         <!-- Collapsible Inline Editor for Active Brand Scope -->
@@ -993,6 +1011,33 @@ function renderPostQueue() {
     });
   });
 
+  // Bind Section Breakdown Drawer on Post Card
+  container.querySelectorAll("[data-toggle-block-drawer]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const postId = btn.dataset.toggleBlockDrawer;
+      const post = state.posts.find(p => p.id === postId);
+      if (!post) return;
+      const drawer = document.getElementById(`block-drawer-${postId}`);
+      if (!drawer) return;
+
+      const isHidden = drawer.style.display === "none";
+      drawer.style.display = isHidden ? "block" : "none";
+      if (isHidden) {
+        const bId = state.activeBrandId === "all" ? "lawsons" : state.activeBrandId;
+        const listEl = document.getElementById(`block-list-${postId}`);
+        if (listEl) renderSectionsListHTML(post, bId, listEl);
+      }
+    });
+  });
+
+  container.querySelectorAll("[data-close-block-drawer]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const postId = btn.dataset.closeBlockDrawer;
+      const drawer = document.getElementById(`block-drawer-${postId}`);
+      if (drawer) drawer.style.display = "none";
+    });
+  });
+
   // Bind Global Edit Drawer
   container.querySelectorAll("[data-toggle-global-edit]").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -1079,11 +1124,104 @@ function renderPostQueue() {
 }
 
 // ============================================================================
+// PAGEBUILDER MODULAR SECTION & ELEMENT RENDERER
+// ============================================================================
+function renderSectionsListHTML(post, brandId, containerEl) {
+  if (!containerEl) return;
+  const brand = getBrandById(brandId);
+  const v = (post.variations && post.variations[brand.id]) ? post.variations[brand.id] : {};
+  const rawHtml = v.content_html || post.content_html || "";
+  const blocks = parseArticleIntoSections(rawHtml, brand.id);
+
+  if (!blocks || blocks.length === 0) {
+    containerEl.innerHTML = `<div style="padding: 16px; text-align: center; color: #64748b; font-size: 13px;">No sections or elements found for ${brand.name}.</div>`;
+    return;
+  }
+
+  containerEl.innerHTML = blocks.map((b, idx) => {
+    let badgeClass = "badge-section";
+    let badgeLabel = b.headingTag ? b.headingTag.toUpperCase() : "SECTION";
+    if (b.type === "table") { badgeClass = "badge-table"; badgeLabel = "TABLE"; }
+    else if (b.type === "product-grid") { badgeClass = "badge-products"; badgeLabel = "PRODUCT CARDS"; }
+    else if (b.type === "callout") { badgeClass = "badge-callout"; badgeLabel = "CALLOUT / PRO-TIP"; }
+    else if (b.type === "spotlight") { badgeClass = "badge-spotlight"; badgeLabel = "CTA BANNER"; }
+
+    const displayHeading = b.heading || b.title || `Block #${idx + 1}`;
+    const previewText = b.plainText
+      ? (b.plainText.substring(0, 150) + (b.plainText.length > 150 ? "..." : ""))
+      : (b.html.substring(0, 150) + "...");
+
+    let actionButtons = "";
+    if (b.type === "section") {
+      actionButtons = `
+        <button type="button" class="btn btn-secondary btn-sm" data-block-copy="heading" data-block-idx="${idx}">
+          📋 Copy Heading
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm" data-block-copy="text" data-block-idx="${idx}">
+          📝 Copy Plain Text (WYSIWYG)
+        </button>
+        <button type="button" class="btn btn-primary btn-sm" data-block-copy="html" data-block-idx="${idx}">
+          📋 Copy Section HTML
+        </button>
+      `;
+    } else {
+      actionButtons = `
+        <button type="button" class="btn btn-secondary btn-sm" data-block-copy="text" data-block-idx="${idx}">
+          📝 Copy Text
+        </button>
+        <button type="button" class="btn btn-primary btn-sm" data-block-copy="html" data-block-idx="${idx}">
+          📋 Copy ${badgeLabel} HTML
+        </button>
+      `;
+    }
+
+    return `
+      <div class="section-block-card">
+        <div class="section-block-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="section-block-badge ${badgeClass}">${badgeLabel}</span>
+            <strong style="font-size: 14px; color: #0f172a;">${escapeHtml(displayHeading)}</strong>
+          </div>
+          <span style="font-size: 11.5px; color: #94a3b8; font-weight: 600;">#${idx + 1}</span>
+        </div>
+        <div class="section-block-preview">
+          ${escapeHtml(previewText)}
+        </div>
+        <div class="section-block-actions">
+          ${actionButtons}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  // Bind click handlers for block copy buttons
+  containerEl.querySelectorAll("[data-block-copy]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = parseInt(btn.dataset.blockIdx, 10);
+      const b = blocks[idx];
+      if (!b) return;
+
+      const act = btn.dataset.blockCopy;
+      if (act === "heading") {
+        copyToClipboard(b.heading, `Copied Heading: "${b.heading}"`);
+      } else if (act === "text") {
+        copyToClipboard(b.plainText, `Copied plain text for "${b.heading || b.title}"!`);
+      } else if (act === "html") {
+        copyToClipboard(b.html, `Copied HTML for "${b.heading || b.title}"!`);
+      }
+    });
+  });
+}
+
+// ============================================================================
 // AUTHENTIC STOREFRONT PREVIEW & INTERACTIVE IN-PLACE LIVE EDITING
 // ============================================================================
 function openStorefrontPreviewModal(postId, brandId) {
   state.previewModalPostId = postId;
-  renderStorefrontModalContent(postId, brandId);
+  const actualBrandId = brandId === "all" ? "lawsons" : brandId;
+  state.previewModalBrandId = actualBrandId;
+  state.modalViewMode = "full";
+  renderStorefrontModalContent(postId, actualBrandId);
   document.getElementById("modal-preview").classList.add("active");
 }
 
@@ -1092,6 +1230,7 @@ function renderStorefrontModalContent(postId, brandId) {
   if (!post) return;
 
   const actualBrandId = brandId === "all" ? "lawsons" : brandId;
+  state.previewModalBrandId = actualBrandId;
   const brand = getBrandById(actualBrandId);
   const v = (post.variations && post.variations[brand.id]) ? post.variations[brand.id] : {};
   const title = v.title || post.title;
@@ -1178,6 +1317,43 @@ function renderStorefrontModalContent(postId, brandId) {
   // Footer chrome
   document.getElementById("preview-storefront-footer").innerHTML = buildAuthenticBrandFooterHTML(brand);
 
+  // Render Section Breakdown List in Modal
+  const sectionsListEl = document.getElementById("preview-sections-list");
+  if (sectionsListEl) {
+    renderSectionsListHTML(post, brand.id, sectionsListEl);
+  }
+  const badgeEl = document.getElementById("sections-brand-badge");
+  if (badgeEl) {
+    badgeEl.textContent = `${brand.name} (${brand.storeCode})`;
+    badgeEl.style.background = brand.palette.surfaceTint;
+    badgeEl.style.color = brand.palette.primary;
+  }
+
+  // Setup View Switcher in Modal
+  const btnFull = document.getElementById("btn-modal-view-full");
+  const btnSections = document.getElementById("btn-modal-view-sections");
+  const fullViewport = document.getElementById("preview-scroll-viewport");
+  const sectionsViewport = document.getElementById("preview-sections-viewport");
+
+  function setModalView(mode) {
+    state.modalViewMode = mode;
+    if (mode === "full") {
+      if (fullViewport) fullViewport.style.display = "block";
+      if (sectionsViewport) sectionsViewport.style.display = "none";
+      if (btnFull) btnFull.className = "btn btn-sm btn-primary";
+      if (btnSections) btnSections.className = "btn btn-sm btn-outline";
+    } else {
+      if (fullViewport) fullViewport.style.display = "none";
+      if (sectionsViewport) sectionsViewport.style.display = "block";
+      if (btnFull) btnFull.className = "btn btn-sm btn-outline";
+      if (btnSections) btnSections.className = "btn btn-sm btn-primary";
+    }
+  }
+
+  if (btnFull) btnFull.onclick = () => setModalView("full");
+  if (btnSections) btnSections.onclick = () => setModalView("sections");
+  setModalView(state.modalViewMode || "full");
+
   updateLiveEditVisualClasses();
 }
 
@@ -1209,7 +1385,7 @@ function saveCurrentModalInPlaceEdits(showUserToast = true) {
   const post = state.posts.find(p => p.id === state.previewModalPostId);
   if (!post) return;
 
-  const activeBId = state.activeBrandId === "all" ? "lawsons" : state.activeBrandId;
+  const activeBId = state.previewModalBrandId || (state.activeBrandId === "all" ? "lawsons" : state.activeBrandId);
   const editedTitle = document.getElementById("preview-article-title")?.innerText.trim() || post.title;
   const editedHtml = document.getElementById("preview-article-body")?.innerHTML.trim() || post.content_html;
 

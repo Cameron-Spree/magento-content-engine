@@ -1008,3 +1008,65 @@ textarea:focus {
   gap: 10px;
   animation: fadeSlideUp 0.2s ease;
 }
+
+/* ==========================================================================
+   PAGEBUILDER MODULAR SECTION BREAKDOWN & ELEMENT COPIER
+   ========================================================================== */
+.section-block-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  transition: all 0.2s ease;
+}
+.section-block-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+}
+.section-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.section-block-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background: #f1f5f9;
+  color: #475569;
+}
+.section-block-badge.badge-section { background: #dbeafe; color: #1e40af; }
+.section-block-badge.badge-table { background: #fef3c7; color: #92400e; }
+.section-block-badge.badge-products { background: #dcfce7; color: #166534; }
+.section-block-badge.badge-callout { background: #f3e8ff; color: #6b21a8; }
+.section-block-badge.badge-spotlight { background: #ffedd5; color: #9a3412; }
+
+.section-block-preview {
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.6;
+  max-height: 140px;
+  overflow-y: auto;
+  background: #f8fafc;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid #f1f5f9;
+  margin-bottom: 14px;
+}
+.section-block-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+

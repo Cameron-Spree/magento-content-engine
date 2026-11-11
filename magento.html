@@ -513,10 +513,22 @@
     <div class="modal-content" style="max-width: 1140px; padding: 0; overflow: hidden; position: relative;">
       <!-- Top Control Bar -->
       <div style="padding: 14px 24px; background: rgba(255,255,255,0.94); border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-          <i data-lucide="eye" style="color: var(--brand-primary);"></i>
-          <strong style="font-size: 14.5px;">Store View:</strong>
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="eye" style="color: var(--brand-primary);"></i>
+            <strong style="font-size: 14px;">Store View:</strong>
+          </div>
           <div id="modal-brand-pills" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+        </div>
+
+        <!-- View Mode Switcher: Full Article vs Section Breakdown -->
+        <div style="display: flex; gap: 4px; background: rgba(15,23,42,0.06); padding: 3px; border-radius: 8px;">
+          <button type="button" class="btn btn-sm btn-primary" id="btn-modal-view-full" style="padding: 5px 12px; font-size: 12px;">
+            <i data-lucide="eye"></i> Full Article Preview
+          </button>
+          <button type="button" class="btn btn-sm btn-outline" id="btn-modal-view-sections" style="padding: 5px 12px; font-size: 12px;">
+            <i data-lucide="layout-grid"></i> 🧩 Section & Element Breakdown
+          </button>
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
@@ -542,7 +554,7 @@
         <span style="font-weight: 700; color: #2563eb;">Live Edits Sync Directly to This Store View</span>
       </div>
 
-      <!-- Simulated Live Brand Website Chrome -->
+      <!-- Simulated Live Brand Website Chrome (Full Article View) -->
       <div style="max-height: 75vh; overflow-y: auto; background: #f8fafc; padding: 20px;" id="preview-scroll-viewport">
         <div class="storefront-preview-shell">
           <div class="storefront-browser-bar">
@@ -559,7 +571,7 @@
           <div id="preview-storefront-header" class="storefront-brand-header"></div>
 
           <!-- Blog Article Stage -->
-          <div class="storefront-article-Stage">
+          <div class="storefront-article-stage">
             <div id="preview-article-meta-bar" style="margin-bottom: 14px;"></div>
             <h1 id="preview-article-title" contenteditable="true" style="font-size: 30px; font-weight: 800; line-height: 1.25; margin-bottom: 16px; color: #111827;"></h1>
             
@@ -572,6 +584,21 @@
 
           <!-- Dynamic Brand Website Footer Mockup -->
           <div id="preview-storefront-footer"></div>
+        </div>
+      </div>
+
+      <!-- Section & Element Breakdown View (PageBuilder Modular Blocks) -->
+      <div id="preview-sections-viewport" style="display: none; max-height: 75vh; overflow-y: auto; background: #f8fafc; padding: 24px;">
+        <div style="max-width: 960px; margin: 0 auto;">
+          <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h4 style="font-size: 15px; font-weight: 800; color: #0f172a; margin: 0 0 4px 0;">🧩 PageBuilder Block-by-Block Copier</h4>
+              <p style="font-size: 12.5px; color: #64748b; margin: 0;">Copy individual headings, plain text, and custom styled HTML elements (tables, callouts, cards) to assemble articles section by section in Magento PageBuilder.</p>
+            </div>
+            <span class="brand-store-code-tag" id="sections-brand-badge" style="font-weight: 700;">Lawsons</span>
+          </div>
+
+          <div id="preview-sections-list" style="display: flex; flex-direction: column; gap: 16px;"></div>
         </div>
       </div>
 

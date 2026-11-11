@@ -38,14 +38,14 @@ export const ALL_STORE_SCOPE = {
     heading: "Explore Quality Timber, Fencing & Landscaping Across Lawsons Group",
     subtext: "Browse our extensive trade & retail inventory across our branch network in London and the South East.",
     primaryBtnText: "Explore Range",
-    primaryBtnUrl: "https://www.lawsons.co.uk/fencing-supplies",
+    primaryBtnUrl: "https://www.lawsons.co.uk/fencing-supplies/",
     secondaryBtnText: "Find a Branch",
-    secondaryBtnUrl: "https://www.lawsons.co.uk/branch-locator"
+    secondaryBtnUrl: "https://www.lawsons.co.uk/store-locator"
   },
   linksBank: [
-    { url: "https://www.lawsons.co.uk/fencing-supplies", label: "Fencing Supplies" },
-    { url: "https://www.lawsons.co.uk/landscaping-supplies", label: "Landscaping Supplies" },
-    { url: "https://www.lawsons.co.uk/timber-and-sheet-materials", label: "Timber & Sheet Materials" }
+    { url: "https://www.lawsons.co.uk/fencing-supplies/", label: "Fencing Supplies" },
+    { url: "https://www.lawsons.co.uk/landscaping-supplies/", label: "Landscaping Supplies" },
+    { url: "https://www.lawsons.co.uk/timber/", label: "Timber & Sheet Materials" }
   ]
 };
 
@@ -62,38 +62,42 @@ export const BRANDS = {
     tagline: "The largest independent Timber, Building Materials & Fencing merchants in London and the South East.",
     tone: "Authoritative, trade-friendly & homeowner-accessible merchant expertise across London & the South East",
     palette: {
-      primary: "#008a2e",        // Authentic Lawsons Kelly Green
-      primaryDark: "#006822",
+      primary: "#009640",        // Official Lawsons Theme Kelly Green (#009640)
+      primaryDark: "#247D32",    // Lawsons Theme Accent Dark Green (#247D32)
       secondary: "#ffdd00",      // Authentic Lawsons Vivid Yellow
       secondaryText: "#111827",
-      headerBg: "#008a2e",
+      headerBg: "#009640",
       headerTopStrip: "#ffdd00",
       footerBg: "#2d3134",
       surfaceTint: "#f0fdf4",
       borderTint: "#bbf7d0",
       badgeBg: "#dc2626",        // Price Drop Red
-      textMain: "#1f2937"
+      textMain: "#33312F"        // Authentic Lawsons Charcoal Body Text
     },
     ctaDefaults: {
       heading: "Shop Quality Timber, Fencing & Building Materials at Lawsons",
       subtext: "Order online for fast delivery across London and the South East, or click & collect from your local Lawsons branch.",
       primaryBtnText: "Explore Fencing & Timber",
-      primaryBtnUrl: "https://www.lawsons.co.uk/fencing-supplies",
+      primaryBtnUrl: "https://www.lawsons.co.uk/fencing-supplies/",
       secondaryBtnText: "Find Your Nearest Branch",
-      secondaryBtnUrl: "https://www.lawsons.co.uk/branch-locator"
+      secondaryBtnUrl: "https://www.lawsons.co.uk/store-locator"
     },
     linksBank: [
-      { url: "https://www.lawsons.co.uk/fencing-supplies", label: "Fencing Supplies & Fence Panels" },
-      { url: "https://www.lawsons.co.uk/fencing-supplies/fence-panels", label: "Timber Fence Panels" },
-      { url: "https://www.lawsons.co.uk/fencing-supplies/concrete-fencing", label: "Concrete Fence Posts & Gravel Boards" },
-      { url: "https://www.lawsons.co.uk/landscaping-supplies", label: "Landscaping Supplies" },
-      { url: "https://www.lawsons.co.uk/landscaping-supplies/railway-sleepers", label: "Softwood & Oak Railway Sleepers" },
-      { url: "https://www.lawsons.co.uk/landscaping-supplies/decking", label: "Timber & Composite Decking" },
-      { url: "https://www.lawsons.co.uk/landscaping-supplies/paving-and-patio", label: "Natural Stone & Porcelain Paving" },
-      { url: "https://www.lawsons.co.uk/garden-buildings", label: "Sheds & Garden Buildings" },
-      { url: "https://www.lawsons.co.uk/timber-and-sheet-materials", label: "Timber & Sheet Materials" },
-      { url: "https://www.lawsons.co.uk/building-roofing-and-drainage", label: "Building, Roofing & Drainage" },
-      { url: "https://www.lawsons.co.uk/insulation-and-drylining", label: "Insulation & Drylining" }
+      { url: "https://www.lawsons.co.uk/fencing-supplies/", label: "Fencing Supplies & Fence Panels" },
+      { url: "https://www.lawsons.co.uk/fencing-supplies/fence-panels/", label: "Timber Fence Panels" },
+      { url: "https://www.lawsons.co.uk/fencing-supplies/fence-posts/", label: "Fence Posts & Gravel Boards" },
+      { url: "https://www.lawsons.co.uk/fencing-supplies/fence-posts/concrete-fence-posts/", label: "Slotted Concrete Fence Posts" },
+      { url: "https://www.lawsons.co.uk/fencing-supplies/fence-posts/timber-posts/", label: "UC4 Treated Timber Posts" },
+      { url: "https://www.lawsons.co.uk/fencing-supplies/gates/", label: "Garden & Field Gates" },
+      { url: "https://www.lawsons.co.uk/landscaping-supplies/", label: "Landscaping Supplies" },
+      { url: "https://www.lawsons.co.uk/landscaping-supplies/railway-sleepers/", label: "Softwood & Oak Railway Sleepers" },
+      { url: "https://www.lawsons.co.uk/landscaping-supplies/decking-supplies/", label: "Timber & Composite Decking" },
+      { url: "https://www.lawsons.co.uk/landscaping-supplies/paving/", label: "Natural Stone & Porcelain Paving" },
+      { url: "https://www.lawsons.co.uk/timber/", label: "Timber & Sheet Materials" },
+      { url: "https://www.lawsons.co.uk/building-materials/", label: "Building Materials" },
+      { url: "https://www.lawsons.co.uk/insulation-drylining/", label: "Insulation & Drylining" },
+      { url: "https://www.lawsons.co.uk/garden-buildings/", label: "Sheds & Garden Buildings" },
+      { url: "https://www.lawsons.co.uk/store-locator", label: "Find Your Nearest Branch" }
     ]
   },
 
@@ -109,35 +113,38 @@ export const BRANDS = {
     tagline: "Specialist Fencing, Railway Sleepers & Landscaping Supplies for Trade and DIY.",
     tone: "Specialist outdoor landscaping & fencing authority, practical, design-conscious and durable",
     palette: {
-      primary: "#3e5b82",        // Authentic AVS Slate Indigo Blue
+      primary: "#3C5484",        // Official AVS Slate Blue (#3C5484)
       primaryDark: "#2c4363",
       secondary: "#7a6248",      // Authentic AVS Earthy Timber Brown
       secondaryText: "#ffffff",
       headerBg: "#333333",       // Authentic AVS Charcoal Header
-      headerTopStrip: "#3e5b82",
-      footerBg: "#3e5b82",
+      headerTopStrip: "#3C5484",
+      footerBg: "#3C5484",
       surfaceTint: "#f5f3ef",    // Warm Timber Cream Tint
       borderTint: "#d6cec2",
-      badgeBg: "#3e5b82",
-      textMain: "#262626"
+      badgeBg: "#3C5484",
+      textMain: "#454241"        // Official AVS Body Text (#454241)
     },
     ctaDefaults: {
       heading: "Transform Your Garden with AVS Fencing & Landscaping",
-      subtext: "From contemporary slatted fence panels and railway sleepers to premium decking and paving — available for nationwide & local delivery.",
+      subtext: "From contemporary slatted fence panels and railway sleepers to premium decking and paving — available for delivery or click & collect.",
       primaryBtnText: "Shop Fencing & Sleepers",
-      primaryBtnUrl: "https://www.avsfencing.co.uk/fencing",
+      primaryBtnUrl: "https://www.avsfencing.co.uk/fencing/",
       secondaryBtnText: "View Landscaping Range",
-      secondaryBtnUrl: "https://www.avsfencing.co.uk/landscaping"
+      secondaryBtnUrl: "https://www.avsfencing.co.uk/landscaping-supplies/"
     },
     linksBank: [
-      { url: "https://www.avsfencing.co.uk/fencing", label: "AVS Fencing Panels & Posts" },
-      { url: "https://www.avsfencing.co.uk/fencing/fence-panels", label: "Contemporary & Traditional Fence Panels" },
-      { url: "https://www.avsfencing.co.uk/landscaping/sleepers", label: "Green & Brown Treated Railway Sleepers" },
-      { url: "https://www.avsfencing.co.uk/landscaping/decking", label: "Timber & Composite Garden Decking" },
-      { url: "https://www.avsfencing.co.uk/landscaping/paving", label: "Garden Paving & Patio Slabs" },
-      { url: "https://www.avsfencing.co.uk/fencing/gates", label: "Wooden Garden & Driveway Gates" },
-      { url: "https://www.avsfencing.co.uk/garden/garden-buildings", label: "Garden Sheds & Outdoor Structures" },
-      { url: "https://www.avsfencing.co.uk/garden-tools", label: "Fencing Tools, Postcrete & Fixings" }
+      { url: "https://www.avsfencing.co.uk/fencing/", label: "AVS Fencing Panels & Posts" },
+      { url: "https://www.avsfencing.co.uk/fencing/fence-panels/", label: "Contemporary & Traditional Fence Panels" },
+      { url: "https://www.avsfencing.co.uk/fencing/fence-posts/", label: "Timber & Concrete Fence Posts" },
+      { url: "https://www.avsfencing.co.uk/fencing/fencing-componentry/gravel-boards/", label: "Gravel Boards & Accessories" },
+      { url: "https://www.avsfencing.co.uk/fencing/gates/", label: "Wooden Garden & Driveway Gates" },
+      { url: "https://www.avsfencing.co.uk/landscaping-supplies/", label: "Landscaping Supplies" },
+      { url: "https://www.avsfencing.co.uk/landscaping-supplies/railway-sleepers/", label: "Green & Brown Treated Railway Sleepers" },
+      { url: "https://www.avsfencing.co.uk/landscaping-supplies/decking/", label: "Timber & Composite Garden Decking" },
+      { url: "https://www.avsfencing.co.uk/landscaping-supplies/paving/", label: "Garden Paving & Patio Slabs" },
+      { url: "https://www.avsfencing.co.uk/garden/sheds-and-storage/", label: "Garden Sheds & Outdoor Storage" },
+      { url: "https://www.avsfencing.co.uk/fencing/fencing-equipment/tools-and-equipment/", label: "Fencing Tools, Postcrete & Fixings" }
     ]
   },
 
@@ -169,19 +176,19 @@ export const BRANDS = {
       heading: "Built for Oxfordshire Gardens — Explore Oxford Fencing Supplies",
       subtext: "Pressure-treated lap panels, closeboard fencing, heavy-duty posts, and railway sleepers delivered straight to your door.",
       primaryBtnText: "Browse Lap & Closeboard Panels",
-      primaryBtnUrl: "https://www.oxfordfencing.co.uk/fence-panels",
+      primaryBtnUrl: "https://www.oxfordfencing.co.uk/fence-panels/",
       secondaryBtnText: "Shop Fence Posts & Fixings",
-      secondaryBtnUrl: "https://www.oxfordfencing.co.uk/fence-posts"
+      secondaryBtnUrl: "https://www.oxfordfencing.co.uk/fence-posts/"
     },
     linksBank: [
-      { url: "https://www.oxfordfencing.co.uk/fence-panels", label: "Pressure Treated Fence Panels" },
-      { url: "https://www.oxfordfencing.co.uk/closeboard-fencing", label: "Closeboard Fencing & Feather Edge" },
-      { url: "https://www.oxfordfencing.co.uk/fence-posts", label: "Timber & Concrete Fence Posts" },
-      { url: "https://www.oxfordfencing.co.uk/gates", label: "Timber Garden & Side Gates" },
-      { url: "https://www.oxfordfencing.co.uk/specialist-fencing", label: "Trellis, Picket & Specialist Fencing" },
-      { url: "https://www.oxfordfencing.co.uk/landscaping-supplies", label: "Railway Sleepers & Landscaping" },
-      { url: "https://www.oxfordfencing.co.uk/timber-decking", label: "Pressure Treated Timber Decking" },
-      { url: "https://www.oxfordfencing.co.uk/tools-and-fixings", label: "Post Mix, Brackets & Fencing Fixings" }
+      { url: "https://www.oxfordfencing.co.uk/fence-panels/", label: "Pressure Treated Fence Panels" },
+      { url: "https://www.oxfordfencing.co.uk/closeboard-fencing/", label: "Closeboard Fencing & Feather Edge" },
+      { url: "https://www.oxfordfencing.co.uk/fence-posts/", label: "Timber & Concrete Fence Posts" },
+      { url: "https://www.oxfordfencing.co.uk/gates/", label: "Timber Garden & Side Gates" },
+      { url: "https://www.oxfordfencing.co.uk/specialist-fencing/", label: "Trellis, Picket & Specialist Fencing" },
+      { url: "https://www.oxfordfencing.co.uk/landscaping-supplies/", label: "Railway Sleepers & Landscaping" },
+      { url: "https://www.oxfordfencing.co.uk/timber-carcassing/", label: "Timber Carcassing & Decking" },
+      { url: "https://www.oxfordfencing.co.uk/tools-site-supplies/", label: "Post Mix, Brackets & Fencing Fixings" }
     ]
   },
 
@@ -213,19 +220,19 @@ export const BRANDS = {
       heading: "Manufactured On Site — Heavy-Duty Timber & Fencing from Witham Timber",
       subtext: "High-quality, fully framed fence panels, railway sleepers, and concrete fencing manufactured to last.",
       primaryBtnText: "Shop Timber Fencing",
-      primaryBtnUrl: "https://www.withamtimber.co.uk/timber-fencing",
+      primaryBtnUrl: "https://www.withamtimber.co.uk/fencing-supplies/",
       secondaryBtnText: "View Railway Sleepers",
-      secondaryBtnUrl: "https://www.withamtimber.co.uk/railway-sleepers"
+      secondaryBtnUrl: "https://www.withamtimber.co.uk/landscaping-supplies-old/railway-sleepers/"
     },
     linksBank: [
-      { url: "https://www.withamtimber.co.uk/timber-fencing", label: "Heavy-Duty Timber Fencing" },
-      { url: "https://www.withamtimber.co.uk/fence-panels-and-trellis", label: "Fence Panels & Garden Trellis" },
-      { url: "https://www.withamtimber.co.uk/concrete-fencing", label: "Concrete Fence Posts & Gravel Boards" },
-      { url: "https://www.withamtimber.co.uk/gates-and-ironmongery", label: "Timber Gates & Gate Ironmongery" },
-      { url: "https://www.withamtimber.co.uk/railway-sleepers", label: "Softwood & Hardwood Railway Sleepers" },
-      { url: "https://www.withamtimber.co.uk/decking", label: "Garden Decking Boards & Balustrades" },
-      { url: "https://www.withamtimber.co.uk/aggregates", label: "Decorative Aggregates & Sub-Base" },
-      { url: "https://www.withamtimber.co.uk/paving", label: "Patio Paving & Landscaping Slabs" }
+      { url: "https://www.withamtimber.co.uk/fencing-supplies/", label: "Heavy-Duty Timber Fencing" },
+      { url: "https://www.withamtimber.co.uk/landscaping-supplies-old/", label: "Landscaping Supplies" },
+      { url: "https://www.withamtimber.co.uk/landscaping-supplies-old/railway-sleepers/", label: "Softwood & Hardwood Railway Sleepers" },
+      { url: "https://www.withamtimber.co.uk/landscaping-supplies-old/paving/", label: "Patio Paving & Landscaping Slabs" },
+      { url: "https://www.withamtimber.co.uk/gates/", label: "Timber Gates & Gate Ironmongery" },
+      { url: "https://www.withamtimber.co.uk/timber-sheet-materials/", label: "Timber & Sheet Materials" },
+      { url: "https://www.withamtimber.co.uk/building-materials/", label: "Building Materials & Aggregates" },
+      { url: "https://www.withamtimber.co.uk/tools-site-supplies/", label: "Tools & Site Supplies" }
     ]
   },
 
@@ -257,17 +264,18 @@ export const BRANDS = {
       heading: "Start Your Groundworks & Garden Project with The Landscape Centre",
       subtext: "Bulk bags of aggregates, screened topsoil, natural stone paving, sleepers, and fresh turf delivered on time.",
       primaryBtnText: "Explore Aggregates & Topsoil",
-      primaryBtnUrl: "https://the-landscape-centre.co.uk/aggregates",
+      primaryBtnUrl: "https://the-landscape-centre.co.uk/aggregates/",
       secondaryBtnText: "Browse Paving & Sleepers",
-      secondaryBtnUrl: "https://the-landscape-centre.co.uk/paving"
+      secondaryBtnUrl: "https://the-landscape-centre.co.uk/paving/"
     },
     linksBank: [
-      { url: "https://the-landscape-centre.co.uk/aggregates", label: "Bulk Aggregates, Ballast & MOT Type 1" },
-      { url: "https://the-landscape-centre.co.uk/topsoil-and-bark", label: "Screened Topsoil, Compost & Bark Mulch" },
-      { url: "https://the-landscape-centre.co.uk/paving", label: "Natural Stone & Porcelain Patio Paving" },
-      { url: "https://the-landscape-centre.co.uk/decorative-stones", label: "Decorative Gravel, Slate & Chippings" },
-      { url: "https://the-landscape-centre.co.uk/sleepers", label: "Landscaping Railway Sleepers" },
-      { url: "https://the-landscape-centre.co.uk/turf-and-grass", label: "Fresh Lawn Turf & Artificial Grass" }
+      { url: "https://the-landscape-centre.co.uk/aggregates/", label: "Bulk Aggregates, Ballast & MOT Type 1" },
+      { url: "https://the-landscape-centre.co.uk/paving/", label: "Natural Stone & Porcelain Patio Paving" },
+      { url: "https://the-landscape-centre.co.uk/landscaping-supplies/", label: "Landscaping Supplies & Railway Sleepers" },
+      { url: "https://the-landscape-centre.co.uk/fencing-supplies/", label: "Fence Panels & Posts" },
+      { url: "https://the-landscape-centre.co.uk/garden-maintenance/", label: "Topsoil, Compost & Garden Maintenance" },
+      { url: "https://the-landscape-centre.co.uk/garden-buildings/", label: "Garden Sheds & Buildings" },
+      { url: "https://the-landscape-centre.co.uk/tools/", label: "Tools & Screws" }
     ]
   }
 };

@@ -160,6 +160,9 @@ export function synthesizeBrandHtmlVariation(baseHtml, brand, baseTitle = "") {
   ];
 
   allOtherDomains.forEach(domain => {
+    // Never rewrite URLs that already belong to the current brand!
+    if (domain.toLowerCase().trim() === brand.domain.toLowerCase().trim()) return;
+
     const regex = new RegExp(domain.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(\\/[^'\"\\s>]*)?", "gi");
     html = html.replace(regex, (fullUrl, pathPart) => {
       return matchClosestBrandUrl(pathPart || "", brand);

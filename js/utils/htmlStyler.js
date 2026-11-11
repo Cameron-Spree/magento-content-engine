@@ -20,14 +20,17 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
   const p = brand.palette;
 
   return `<style>
-/* === ${brand.name.toUpperCase()} BLOG CUSTOM HTML STYLES (AMASTY / PAGEBUILDER SAFE) === */
+/* === ${brand.name.toUpperCase()} BLOG STYLES (MATCHES LIVE MAGENTO & AMASTY THEME) === */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+
 .mce-blog-article-${brand.id} {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: ${p.textMain};
-  line-height: 1.75;
+  line-height: 1.68;
   font-size: 16px;
   max-width: 100%;
   box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
 }
 .mce-blog-article-${brand.id} *,
 .mce-blog-article-${brand.id} *::before,
@@ -35,44 +38,56 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
   box-sizing: border-box;
 }
 .mce-blog-article-${brand.id} h2 {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: ${p.primary};
-  font-size: 24px;
-  font-weight: 800;
+  font-size: 26px;
+  font-weight: 700;
   margin: 36px 0 16px 0;
   padding-bottom: 10px;
-  border-bottom: 2px solid ${p.borderTint};
-  line-height: 1.3;
+  border-bottom: 3px solid ${p.primaryDark || p.borderTint};
+  line-height: 1.28;
   letter-spacing: -0.01em;
 }
 .mce-blog-article-${brand.id} h3 {
-  color: ${p.primaryDark};
-  font-size: 19px;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: ${p.primaryDark || p.primary};
+  font-size: 20px;
   font-weight: 700;
   margin: 28px 0 12px 0;
-  line-height: 1.4;
+  line-height: 1.35;
+}
+.mce-blog-article-${brand.id} h4 {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: ${p.textMain};
+  font-size: 17px;
+  font-weight: 700;
+  margin: 20px 0 8px 0;
 }
 .mce-blog-article-${brand.id} p {
   margin: 0 0 18px 0;
-  color: #374151;
+  color: ${p.textMain};
+  font-size: 16px;
+  line-height: 1.68;
 }
-.mce-blog-article-${brand.id} a:not(.mce-btn-primary):not(.mce-btn-secondary) {
+.mce-blog-article-${brand.id} a:not(.mce-btn-primary):not(.mce-btn-secondary):not(.lawsons-widget-button) {
   color: ${p.primary};
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 3px;
   transition: opacity 0.2s ease;
 }
-.mce-blog-article-${brand.id} a:not(.mce-btn-primary):not(.mce-btn-secondary):hover {
+.mce-blog-article-${brand.id} a:not(.mce-btn-primary):not(.mce-btn-secondary):not(.lawsons-widget-button):hover {
   opacity: 0.8;
 }
 .mce-blog-article-${brand.id} ul,
 .mce-blog-article-${brand.id} ol {
   margin: 0 0 22px 0;
   padding-left: 24px;
-  color: #374151;
+  color: ${p.textMain};
 }
 .mce-blog-article-${brand.id} li {
   margin-bottom: 8px;
+  line-height: 1.65;
 }
 /* Single-Image Anti-Duplication Rule (Bypasses Magento PageBuilder Mobile/Desktop Double Image Bug) */
 .mce-blog-article-${brand.id} figure.mce-media-figure {
@@ -90,9 +105,9 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
   height: auto !important;
   max-height: 480px !important;
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: 8px;
   margin: 0 auto !important;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 .mce-blog-article-${brand.id} figure.mce-media-figure img.pagebuilder-mobile-only,
 .mce-blog-article-${brand.id} img[data-element="mobile_image"] {
@@ -109,7 +124,7 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
   width: 100%;
   overflow-x: auto;
   margin: 28px 0;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid ${p.borderTint};
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
 }
@@ -125,12 +140,13 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
   font-weight: 700;
   text-align: left;
   padding: 13px 16px;
-  border-bottom: 2px solid ${p.primaryDark};
+  border-bottom: 2px solid ${p.primaryDark || p.primary};
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 .mce-blog-article-${brand.id} td {
   padding: 12px 16px;
   border-bottom: 1px solid #e5e7eb;
-  color: #374151;
+  color: ${p.textMain};
 }
 .mce-blog-article-${brand.id} tr:nth-child(even) td {
   background: ${p.surfaceTint};
@@ -139,20 +155,20 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
 .mce-blog-article-${brand.id} .category-spotlight-box {
   background: ${p.surfaceTint};
   border: 2px solid ${p.primary};
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 28px 24px;
   margin: 34px 0;
   text-align: center;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
 }
 .mce-blog-article-${brand.id} .category-spotlight-box h3 {
   color: ${p.primary};
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 700;
   margin: 0 0 10px 0;
 }
 .mce-blog-article-${brand.id} .category-spotlight-box p {
-  color: #374151;
+  color: ${p.textMain};
   font-size: 15px;
   max-width: 640px;
   margin: 0 auto 20px auto;
@@ -187,21 +203,50 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
   font-size: 14.5px;
   transition: transform 0.15s ease, opacity 0.15s ease;
 }
-/* Want to Know More / Pro Tip Callout Box */
-.mce-blog-article-${brand.id} .callout-box {
+/* Authentic Lawsons & Brand Callout Box */
+.mce-blog-article-${brand.id} .callout-box,
+.mce-blog-article-${brand.id} .lawsons-pro-tip {
   background: ${p.surfaceTint};
   border-left: 5px solid ${p.primary};
-  border-radius: 8px;
+  border-radius: 6px;
   padding: 20px 24px;
-  margin: 30px 0;
+  margin: 28px 0;
 }
-.mce-blog-article-${brand.id} .callout-box h4 {
+.mce-blog-article-${brand.id} .callout-box h4,
+.mce-blog-article-${brand.id} .lawsons-pro-tip .heading {
   color: ${p.primary};
-  font-size: 16.5px;
+  font-size: 17px;
   font-weight: 700;
   margin: 0 0 10px 0;
 }
-/* PageBuilder-Safe Product Cards Grid (Replaces Broken Magento Native Product Widget) */
+/* Authentic Lawsons CTA Card (Want to know more?) */
+.mce-blog-article-${brand.id} .lawsons-widget-container {
+  width: 100%;
+  margin: 28px 0;
+  background: #ffffff !important;
+  border-left: 4px solid ${p.primary} !important;
+  padding: 24px;
+  border-radius: 0 8px 8px 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  color: ${p.textMain} !important;
+}
+.mce-blog-article-${brand.id} .lawsons-widget-button {
+  display: inline-block;
+  text-decoration: none !important;
+  background: #ffffff !important;
+  color: ${p.primary} !important;
+  border: 1px solid ${p.primary} !important;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+.mce-blog-article-${brand.id} .lawsons-widget-button:hover {
+  background: ${p.primary} !important;
+  color: #ffffff !important;
+}
+/* PageBuilder-Safe Product Cards Grid */
 .mce-blog-article-${brand.id} .mce-product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -222,7 +267,7 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
 .mce-blog-article-${brand.id} .mce-product-card h5 {
   font-size: 15px;
   font-weight: 700;
-  color: #111827;
+  color: ${p.textMain};
   margin: 0 0 8px 0;
   line-height: 1.4;
 }
