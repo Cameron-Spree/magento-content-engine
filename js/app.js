@@ -839,6 +839,10 @@ function renderPostQueue() {
       scopeBadgeHtml = `<span class="brand-store-code-tag" style="background: rgba(16, 185, 129, 0.12); color: #047857; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.25);">🌐 5-Brand Multiplier</span>`;
     }
 
+    const defaultDrawerBrand = (state.activeBrandId !== "all" && effectivePostBrands.includes(state.activeBrandId))
+      ? state.activeBrandId
+      : effectivePostBrands[0];
+
     // CONTENT FOR "ALL STORE VIEWS" GLOBAL SCOPE
     if (isGlobalScope) {
       const catStr = (post.categories || []).join(", ");
@@ -914,10 +918,40 @@ function renderPostQueue() {
               <button type="button" class="btn btn-secondary btn-sm" data-copy-global="date" data-post="${post.id}">
                 Copy Date
               </button>
-              <button type="button" class="btn btn-primary btn-sm" data-copy-global="all_combined" data-post="${post.id}">
+              <button type="button" class="btn btn-secondary btn-sm" data-copy-global="all_combined" data-post="${post.id}">
                 Copy All Global Setup (Combined)
               </button>
+              <button type="button" class="btn btn-outline btn-sm" data-toggle-block-drawer="${post.id}" title="Copy individual headings, paragraphs, tables, and brand-scoped CSS for PageBuilder">
+                🧩 Section Breakdown
+              </button>
             </div>
+          </div>
+
+          <!-- Collapsible Section Breakdown Drawer (All Store Views Master Scope) -->
+          <div id="block-drawer-${post.id}" style="display: none; margin-top: 16px; padding: 18px; background: rgba(248,250,252,0.95); border: 1px solid #e2e8f0; border-radius: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <strong class="block-drawer-title" style="font-size: 14px; color: #0f172a;">🧩 ${getBrandById(defaultDrawerBrand).name} Section & Element Breakdown</strong>
+                <div style="font-size: 12px; color: #64748b;">Copy the brand-scoped CSS block first, then build out headings, plain text, and custom styled HTML elements block-by-block.</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
+                  <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Store View:</span>
+                  ${effectivePostBrands.map(bId => {
+                    const bObj = getBrandById(bId);
+                    const isCur = bId === defaultDrawerBrand;
+                    return `
+                      <button type="button" class="brand-scope-pill ${isCur ? "active" : ""}" style="padding: 3px 9px; font-size: 11px;" data-drawer-brand="${bId}" data-drawer-post="${post.id}">
+                        <span class="brand-dot" style="background: ${bObj.palette.primary}; width: 7px; height: 7px;"></span>
+                        <span>${bObj.name}</span>
+                      </button>
+                    `;
+                  }).join("")}
+                </div>
+                <button type="button" class="btn btn-outline btn-sm" data-close-block-drawer="${post.id}">✕ Close Breakdown</button>
+              </div>
+            </div>
+            <div id="block-list-${post.id}" style="display: flex; flex-direction: column; gap: 12px;"></div>
           </div>
 
           <!-- Collapsible Global Edit Drawer -->
@@ -1106,10 +1140,25 @@ function renderPostQueue() {
         <div id="block-drawer-${post.id}" style="display: none; margin-top: 16px; padding: 18px; background: rgba(248,250,252,0.95); border: 1px solid #e2e8f0; border-radius: 12px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
             <div>
-              <strong style="font-size: 14px; color: #0f172a;">🧩 ${activeBrand.name} Section & Element Breakdown</strong>
-              <div style="font-size: 12px; color: #64748b;">Copy individual headings, plain text, and custom styled HTML elements (tables, callouts, cards) to build blog posts block-by-block in PageBuilder.</div>
+              <strong class="block-drawer-title" style="font-size: 14px; color: #0f172a;">🧩 ${activeBrand.name} Section & Element Breakdown</strong>
+              <div style="font-size: 12px; color: #64748b;">Copy the brand-scoped CSS block first, then build out headings, plain text, and custom styled HTML elements block-by-block.</div>
             </div>
-            <button type="button" class="btn btn-outline btn-sm" data-close-block-drawer="${post.id}">✕ Close Breakdown</button>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
+                <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Store View:</span>
+                ${effectivePostBrands.map(bId => {
+                  const bObj = getBrandById(bId);
+                  const isCur = bId === activeBrand.id;
+                  return `
+                    <button type="button" class="brand-scope-pill ${isCur ? "active" : ""}" style="padding: 3px 9px; font-size: 11px;" data-drawer-brand="${bId}" data-drawer-post="${post.id}">
+                      <span class="brand-dot" style="background: ${bObj.palette.primary}; width: 7px; height: 7px;"></span>
+                      <span>${bObj.name}</span>
+                    </button>
+                  `;
+                }).join("")}
+              </div>
+              <button type="button" class="btn btn-outline btn-sm" data-close-block-drawer="${post.id}">✕ Close Breakdown</button>
+            </div>
           </div>
           <div id="block-list-${post.id}" style="display: flex; flex-direction: column; gap: 12px;"></div>
         </div>
@@ -1285,6 +1334,31 @@ function renderPostQueue() {
     });
   });
 
+  // Bind store view switcher pills inside Section Breakdown Drawers
+  container.querySelectorAll("[data-drawer-brand]").forEach(bBtn => {
+    bBtn.addEventListener("click", () => {
+      const postId = bBtn.dataset.drawerPost;
+      const bId = bBtn.dataset.drawerBrand;
+      const post = state.posts.find(p => p.id === postId);
+      if (!post) return;
+
+      const drawer = document.getElementById(`block-drawer-${postId}`);
+      if (!drawer) return;
+
+      drawer.querySelectorAll("[data-drawer-brand]").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.drawerBrand === bId);
+      });
+
+      const titleEl = drawer.querySelector(".block-drawer-title");
+      if (titleEl) {
+        titleEl.textContent = `🧩 ${getBrandById(bId).name} Section & Element Breakdown`;
+      }
+
+      const listEl = document.getElementById(`block-list-${postId}`);
+      if (listEl) renderSectionsListHTML(post, bId, listEl);
+    });
+  });
+
   // Bind Global Edit Drawer
   container.querySelectorAll("[data-toggle-global-edit]").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -1378,7 +1452,7 @@ function renderSectionsListHTML(post, brandId, containerEl) {
   const brand = getBrandById(brandId);
   const v = (post.variations && post.variations[brand.id]) ? post.variations[brand.id] : {};
   const rawHtml = v.content_html || post.content_html || "";
-  const blocks = parseArticleIntoSections(rawHtml, brand.id);
+  const blocks = parseArticleIntoSections(rawHtml, brand.id, true);
 
   if (!blocks || blocks.length === 0) {
     containerEl.innerHTML = `<div style="padding: 16px; text-align: center; color: #64748b; font-size: 13px;">No sections or elements found for ${brand.name}.</div>`;
@@ -1386,6 +1460,43 @@ function renderSectionsListHTML(post, brandId, containerEl) {
   }
 
   containerEl.innerHTML = blocks.map((b, idx) => {
+    // 1. BRAND-SCOPED CSS <STYLE> BLOCK (STEP 1 IN PAGEBUILDER)
+    if (b.type === "css") {
+      const previewLines = b.html.split("\n").slice(0, 9).join("\n") + "\n  /* ... responsive styling rules ... */\n</style>";
+      return `
+        <div class="section-block-card css-highlight-card">
+          <div class="section-block-header">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span class="section-block-badge badge-css">🎨 TOP &lt;STYLE&gt; BLOCK</span>
+              <strong style="font-size: 14.5px; color: #1e1b4b;">${escapeHtml(b.title)}</strong>
+              <span class="brand-store-code-tag" style="background: ${brand.palette.surfaceTint}; color: ${brand.palette.primary}; font-weight: 700; border: 1px solid ${brand.palette.borderTint};">
+                ${brand.name} (${brand.storeCode})
+              </span>
+            </div>
+            <span class="step-pill completed" style="font-size: 11px; padding: 3px 10px;">
+              <span>✓</span>
+              <span>Step 1 in PageBuilder</span>
+            </span>
+          </div>
+          <div style="font-size: 12.5px; color: #4338ca; background: rgba(99, 102, 241, 0.08); padding: 9px 13px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 14px;">💡</span>
+            <span>${escapeHtml(b.hint || "Place this Custom HTML block at the very top of your PageBuilder layout.")}</span>
+          </div>
+          <div class="section-block-preview" style="font-family: var(--font-mono); font-size: 11.5px; line-height: 1.5; color: #334155; white-space: pre; max-height: 130px;">
+${escapeHtml(previewLines)}
+          </div>
+          <div class="section-block-actions">
+            <button type="button" class="btn btn-secondary btn-sm" data-block-copy="raw_css" data-block-idx="${idx}" title="Copy CSS rules without <style> tags">
+              📝 Copy Raw CSS (No &lt;style&gt; tags)
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" data-block-copy="html" data-block-idx="${idx}" style="background: #4f46e5; border-color: #4338ca;">
+              📋 Copy ${brand.name} &lt;style&gt; Block
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
     let badgeClass = "badge-section";
     let badgeLabel = b.headingTag ? b.headingTag.toUpperCase() : "SECTION";
     if (b.type === "table") { badgeClass = "badge-table"; badgeLabel = "TABLE"; }
@@ -1393,7 +1504,7 @@ function renderSectionsListHTML(post, brandId, containerEl) {
     else if (b.type === "callout") { badgeClass = "badge-callout"; badgeLabel = "CALLOUT / PRO-TIP"; }
     else if (b.type === "spotlight") { badgeClass = "badge-spotlight"; badgeLabel = "CTA BANNER"; }
 
-    const displayHeading = b.heading || b.title || `Block #${idx + 1}`;
+    const displayHeading = b.heading || b.title || `Block #${idx}`;
     const previewText = b.plainText
       ? (b.plainText.substring(0, 150) + (b.plainText.length > 150 ? "..." : ""))
       : (b.html.substring(0, 150) + "...");
@@ -1429,7 +1540,7 @@ function renderSectionsListHTML(post, brandId, containerEl) {
             <span class="section-block-badge ${badgeClass}">${badgeLabel}</span>
             <strong style="font-size: 14px; color: #0f172a;">${escapeHtml(displayHeading)}</strong>
           </div>
-          <span style="font-size: 11.5px; color: #94a3b8; font-weight: 600;">#${idx + 1}</span>
+          <span style="font-size: 11.5px; color: #94a3b8; font-weight: 600;">#${idx}</span>
         </div>
         <div class="section-block-preview">
           ${escapeHtml(previewText)}
@@ -1449,6 +1560,16 @@ function renderSectionsListHTML(post, brandId, containerEl) {
       if (!b) return;
 
       const act = btn.dataset.blockCopy;
+      if (b.type === "css") {
+        if (act === "raw_css") {
+          const raw = b.rawCss || b.html.replace(/<\/?style>/gi, "").trim();
+          copyToClipboard(raw, `Copied ${brand.name} Raw CSS (no <style> tags)!`);
+        } else {
+          copyToClipboard(b.html, `Copied ${brand.name} Scoped CSS <style> Block! Paste at the top of PageBuilder.`);
+        }
+        return;
+      }
+
       if (act === "heading") {
         copyToClipboard(b.heading, `Copied Heading: "${b.heading}"`);
       } else if (act === "text") {

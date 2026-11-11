@@ -10,15 +10,42 @@
  * to inject native Magento product blocks or edit text directly in PageBuilder.
  */
 
-export function parseArticleIntoSections(htmlContent, brandId = "lawsons") {
+import { generateBrandScopedCSS } from "./htmlStyler.js";
+import { getBrandById } from "./brandsConfig.js";
+
+export function parseArticleIntoSections(htmlContent, brandId = "lawsons", includeCss = true) {
   if (!htmlContent || typeof htmlContent !== "string") return [];
+
+  const brand = getBrandById(brandId);
+  const brandCss = generateBrandScopedCSS(brandId);
+
+  const blocks = [];
+
+  // Block #0: Brand-Scoped CSS <style> Block for top of PageBuilder
+  if (includeCss && brandCss) {
+    blocks.push({
+      id: `css_${brandId}`,
+      type: "css",
+      title: `${brand.name} Scoped CSS <style> Block`,
+      heading: `${brand.name} Scoped CSS <style> Block`,
+      headingTag: "style",
+      headingHtml: "",
+      html: brandCss,
+      rawCss: brandCss.replace(/<\/?style>/gi, "").trim(),
+      plainText: brandCss,
+      badge: "CSS STYLESHEET",
+      hint: `Place this into a PageBuilder "HTML Code" block at the very top of your ${brand.name} article. It styles all tables, CTA boxes, product grids, and typography.`
+    });
+  }
+
+  // Strip any existing <style>...</style> block from body HTML before parsing sections
+  const cleanBodyHtml = htmlContent.replace(/<style[\s\S]*?<\/style>/gi, "").trim();
 
   // Parse using DOMParser
   const parser = new DOMParser();
-  const doc = parser.parseFromString(`<div>${htmlContent}</div>`, "text/html");
+  const doc = parser.parseFromString(`<div>${cleanBodyHtml}</div>`, "text/html");
   const container = doc.body.firstElementChild || doc.body;
 
-  const blocks = [];
   let currentSection = null;
   let sectionIndex = 1;
 
