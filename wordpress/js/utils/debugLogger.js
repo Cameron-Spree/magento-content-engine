@@ -141,7 +141,7 @@ export function getDiagnosticReport(state) {
     timestamp: new Date().toISOString(),
     userAgent: navigator.userAgent,
     onlineStatus: navigator.onLine ? "Online" : "Offline",
-    localStorageUsedMb: `${storageMb} MB / ~5.00 MB`,
+    localStorageUsedMb: `${storageMb} MB / ~10.00 MB (Browser Quota)`,
     navigationTiming: navigationEntry ? {
       domInteractiveMs: Math.round(navigationEntry.domInteractive),
       domCompleteMs: Math.round(navigationEntry.domComplete),

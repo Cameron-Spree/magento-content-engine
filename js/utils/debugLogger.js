@@ -73,7 +73,7 @@ export function getDiagnosticReport(state) {
     timestamp: new Date().toISOString(),
     engineVersion: "Magento Multi-Brand Content Engine v1.0.0 (Liquid Glass Edition)",
     onlineStatus: navigator.onLine ? "Online" : "Offline",
-    localStorageUsedMb: `${(storageBytes / (1024 * 1024)).toFixed(2)} MB / ~5.00 MB`,
+    localStorageUsedMb: `${(storageBytes / (1024 * 1024)).toFixed(2)} MB / ~10.00 MB (Browser Quota)`,
     activeBrandScope: state ? state.activeBrandId : "lawsons",
     postsCount: state && state.posts ? state.posts.length : 0,
     mediaPoolCount: state && state.imagePool ? state.imagePool.length : 0,

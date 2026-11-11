@@ -303,6 +303,20 @@ function bindAllEvents() {
     copyToClipboard(txt, "Diagnostic report copied!");
   });
 
+  onClick("btn-clear-storage", () => {
+    if (confirm("Free up browser storage by clearing cached posts and local media? Your brand configurations and API links will remain safe.")) {
+      state.posts = [];
+      state.imagePool = [];
+      saveStateToStorage();
+      renderMediaPool();
+      renderPostQueue();
+      refreshExportPreview();
+      const reportEl = document.getElementById("debug-report-output");
+      if (reportEl) reportEl.value = JSON.stringify(getDiagnosticReport(state), null, 2);
+      showToast("Storage cleared & memory freed!");
+    }
+  });
+
   // Live Preview Modal In-Place Edit Controls
   onClick("btn-toggle-live-edit", toggleInPlaceLiveEditMode);
   onClick("btn-save-live-edits", saveCurrentModalInPlaceEdits);
