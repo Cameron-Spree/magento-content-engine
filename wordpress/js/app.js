@@ -11,6 +11,7 @@ import { calculateBatchSchedule, parseFormattedDateToInput, formatInputToFormatt
 import { generateWXRXML } from "./utils/xmlGenerator.js";
 import { uploadImageToWordPress, updateWordPressMediaDetails, testWordPressApiConnection, fetchWordPressMediaPool } from "./utils/wpApiSync.js";
 import { getDiagnosticReport, recordImageError } from "./utils/debugLogger.js";
+import { initLiveCopyEditor } from "./live-copy-editor.js";
 
 // Storage Key
 const STORAGE_KEY = "wp_content_engine_state_v3";
@@ -39,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initXmlExport();
   initGlobalHeaderActions();
   initModals();
+  initLiveCopyEditor("WordPress Content Engine");
   
   // Render Initial View
   renderAll();

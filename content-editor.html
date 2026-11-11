@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Content Engine — Multi-Page Visual Copy & Wording Editor</title>
+  <title>Content Engine — Full Visual Copy & Article Brief Editor</title>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <style>
     :root {
@@ -36,7 +36,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 0 0 80px 0;
+      padding: 0 0 100px 0;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
     }
@@ -55,13 +55,13 @@
       pointer-events: none;
     }
 
-    /* Floating Top Action Toolbar */
+    /* Floating Top Toolbar */
     .editor-top-bar {
       position: sticky;
       top: 0;
       z-index: 100;
       width: 100%;
-      background: rgba(255, 255, 255, 0.90);
+      background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(28px) saturate(190%);
       -webkit-backdrop-filter: blur(28px) saturate(190%);
       border-bottom: 1px solid rgba(15, 23, 42, 0.08);
@@ -79,7 +79,7 @@
       gap: 14px;
     }
 
-    /* Page Navigation Segmented Control */
+    /* Primary Page Switcher */
     .page-nav-pills {
       display: inline-flex;
       align-items: center;
@@ -116,6 +116,44 @@
       border-color: rgba(255, 255, 255, 0.95);
       box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08);
       font-weight: 700;
+    }
+
+    /* Sub-Tabs within an engine */
+    .sub-tabs-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 24px;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 6px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .sub-tab-btn {
+      padding: 8px 16px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: transparent;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+
+    .sub-tab-btn:hover {
+      background: rgba(255, 255, 255, 0.8);
+      color: var(--text-main);
+    }
+
+    .sub-tab-btn.active {
+      background: #ffffff;
+      color: var(--text-main);
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+      border-color: rgba(255, 255, 255, 0.9);
     }
 
     .btn-submit {
@@ -194,6 +232,15 @@
       display: block;
     }
 
+    .sub-panel {
+      display: none;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .sub-panel.active {
+      display: block;
+    }
+
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
@@ -201,7 +248,7 @@
 
     /* Cards & Components */
     .editor-section-card {
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.88);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
       border: 1px solid rgba(255, 255, 255, 0.95);
@@ -239,6 +286,42 @@
 
     @media (max-width: 860px) {
       .grid-2col { grid-template-columns: 1fr; }
+    }
+
+    .form-group-box {
+      margin-bottom: 18px;
+    }
+
+    .form-label-edit {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .editable-input-field {
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      font-size: 13.5px;
+      color: var(--text-main);
+      display: block;
+      width: 100%;
+    }
+
+    .editable-textarea-field {
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-main);
+      display: block;
+      width: 100%;
+      min-height: 80px;
+      line-height: 1.5;
     }
 
     .feature-pill {
@@ -304,7 +387,7 @@
       border-radius: 20px;
       box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
       width: 100%;
-      max-width: 660px;
+      max-width: 680px;
       padding: 28px;
     }
   </style>
@@ -316,29 +399,29 @@
     <div class="editor-top-inner">
       <div style="display: flex; align-items: center; gap: 14px;">
         <span style="font-size: 14px; font-weight: 800; color: #0f172a; letter-spacing: -0.01em;">
-          🎨 Content Engine Copy Studio
+          🎨 Complete Copy & Article Brief Studio
         </span>
 
-        <!-- Page Navigator Switcher -->
+        <!-- Primary Page Switcher -->
         <nav class="page-nav-pills">
-          <button type="button" class="page-nav-btn active" onclick="switchPage('page-portal', this)">
+          <button type="button" class="page-nav-btn" onclick="switchMainPage('page-portal', this)">
             <span>1. Platform Chooser</span>
           </button>
-          <button type="button" class="page-nav-btn" onclick="switchPage('page-magento', this)">
-            <span>2. Magento (Lawsons)</span>
+          <button type="button" class="page-nav-btn active" onclick="switchMainPage('page-magento', this)">
+            <span>2. Magento (Lawsons) Engine</span>
           </button>
-          <button type="button" class="page-nav-btn" onclick="switchPage('page-wordpress', this)">
-            <span>3. WordPress (Briants)</span>
+          <button type="button" class="page-nav-btn" onclick="switchMainPage('page-wordpress', this)">
+            <span>3. WordPress (Briants) Engine</span>
           </button>
         </nav>
       </div>
 
       <div style="display: flex; align-items: center; gap: 10px;">
         <span style="font-size: 12px; color: var(--text-muted); margin-right: 4px;">
-          ✨ Click any text to edit
+          ✨ Click any label, title, or field below to edit
         </span>
         <button type="button" class="btn-submit" id="btn-copy-all-updates">
-          <span>📋 Copy Updates for Chat</span>
+          <span>📋 Copy All Updates for Chat</span>
         </button>
       </div>
     </div>
@@ -347,11 +430,11 @@
   <!-- ========================================================================
        PAGE 1: PLATFORM CHOOSER PORTAL
        ======================================================================== -->
-  <main id="page-portal" class="page-view active">
+  <main id="page-portal" class="page-view">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
       <div>
         <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main);">Page 1: Platform Chooser Portal</h2>
-        <p style="font-size: 13.5px; color: var(--text-muted);">This is the first screen Cameron sees when loading the application.</p>
+        <p style="font-size: 13.5px; color: var(--text-muted);">Initial welcome screen where Cameron selects Magento or WordPress.</p>
       </div>
       <a href="index.html" target="_blank" class="btn-open-live">
         <span>↗ Open Live index.html</span>
@@ -382,7 +465,7 @@
           Generates blog variations for each of the magento sites, you then copy and paste the html when creating a new blog
         </p>
 
-        <label style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 8px;">Brands / Store Views Listed:</label>
+        <label style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 8px;">Brands Listed:</label>
         <div style="display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 24px;" id="p1-magento-pills">
           <span class="feature-pill" contenteditable="true" spellcheck="false">Lawsons</span>
           <span class="feature-pill" contenteditable="true" spellcheck="false">AVS Fencing</span>
@@ -413,7 +496,7 @@
           Generates the blogs, but can log in with wordpress to see images there and downloads as an XML for each upload to wordpress
         </p>
 
-        <label style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 8px;">Features / Connectors Listed:</label>
+        <label style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 8px;">Features Listed:</label>
         <div style="display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 24px;" id="p1-wp-pills">
           <span class="feature-pill" contenteditable="true" spellcheck="false">Briants of Risborough</span>
           <span class="feature-pill" contenteditable="true" spellcheck="false">WXR 1.2 XML</span>
@@ -426,240 +509,428 @@
         </div>
       </div>
     </div>
-
-    <!-- Footer Note -->
-    <div style="text-align: center; margin-top: 10px;">
-      <span id="p1-footer" contenteditable="true" spellcheck="false" style="font-size: 13px; color: var(--text-muted);">
-        Tip: You can easily switch between platforms anytime using the "Switch Platform" button in each app's header.
-      </span>
-    </div>
   </main>
 
   <!-- ========================================================================
-       PAGE 2: MAGENTO (LAWSONS) STUDIO
+       PAGE 2: MAGENTO (LAWSONS) STUDIO — FULL TABS & ARTICLE BRIEF
        ======================================================================== -->
-  <main id="page-magento" class="page-view">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+  <main id="page-magento" class="page-view active">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
       <div>
         <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main);">Page 2: Magento (Lawsons) Studio</h2>
-        <p style="font-size: 13.5px; color: var(--text-muted);">Wording for the Magento 5-Brand Amasty Engine (`magento.html`).</p>
+        <p style="font-size: 13.5px; color: var(--text-muted);">Edit all Article Brief fields, labels, placeholders, and tab texts below.</p>
       </div>
-      <a href="magento.html" target="_blank" class="btn-open-live">
-        <span>↗ Open Live magento.html</span>
-      </a>
-    </div>
-
-    <!-- Header & Brand Switcher Wording -->
-    <div class="editor-section-card">
-      <div class="editor-card-header">
-        <span class="editor-card-title">Top Header & Scope Switcher Labels</span>
-      </div>
-
-      <div class="grid-2col" style="margin-bottom: 18px;">
-        <div>
-          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Header App Title</label>
-          <div id="p2-header-title" contenteditable="true" spellcheck="false" style="font-size: 18px; font-weight: 800; padding: 6px 0;">Magento Content Engine</div>
-        </div>
-        <div>
-          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Header Version & Subtitle</label>
-          <div id="p2-header-sub" contenteditable="true" spellcheck="false" style="font-size: 14px; font-weight: 600; padding: 6px 0;">Lawsons Group • 5-Brand Amasty Studio v1.1.0</div>
-        </div>
-      </div>
-
-      <div class="grid-2col" style="margin-bottom: 18px;">
-        <div>
-          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Store Scope Bar Label</label>
-          <div id="p2-scope-bar-label" contenteditable="true" spellcheck="false" style="font-size: 13px; font-weight: 700; padding: 6px 0;">Active Store View Scope:</div>
-        </div>
-        <div>
-          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Master Scope Pill Text</label>
-          <div id="p2-scope-global-pill" contenteditable="true" spellcheck="false" style="font-size: 13px; font-weight: 700; padding: 6px 0;">🌐 All Store Views (Global)</div>
-        </div>
-      </div>
-
-      <label style="font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">Header Action Buttons:</label>
-      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-        <span class="feature-pill" id="p2-btn-diag" contenteditable="true" spellcheck="false">Diagnostics</span>
-        <span class="feature-pill" id="p2-btn-settings" contenteditable="true" spellcheck="false">Links & API Settings</span>
-        <span class="feature-pill" id="p2-btn-sample" contenteditable="true" spellcheck="false">Load 5-Brand Sample</span>
-        <span class="feature-pill" id="p2-btn-export" contenteditable="true" spellcheck="false">Export Amasty CSV</span>
+      <div style="display: flex; gap: 10px;">
+        <a href="magento.html" target="_blank" class="btn-open-live">
+          <span>↗ Open Live magento.html</span>
+        </a>
       </div>
     </div>
 
-    <!-- 5 Main Navigation Tabs -->
-    <div class="editor-section-card">
-      <div class="editor-card-header">
-        <span class="editor-card-title">5 Main Navigation Tabs</span>
-      </div>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-        <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TAB 1</span>
-          <div id="p2-tab1" contenteditable="true" spellcheck="false" style="font-weight: 700; font-size: 13.5px; margin-top: 4px;">1. AI Brand Multiplier</div>
+    <!-- Magento Sub-Tabs Navigation -->
+    <div class="sub-tabs-bar">
+      <button type="button" class="sub-tab-btn active" onclick="switchSubTab('magento-sub-brief', this)">
+        <span>Tab 1: 1. Article Brief</span>
+      </button>
+      <button type="button" class="sub-tab-btn" onclick="switchSubTab('magento-sub-ingest', this)">
+        <span>Tab 2: 2. Paste AI Output</span>
+      </button>
+      <button type="button" class="sub-tab-btn" onclick="switchSubTab('magento-sub-media', this)">
+        <span>Tab 3: 3. Add Media</span>
+      </button>
+      <button type="button" class="sub-tab-btn" onclick="switchSubTab('magento-sub-preview', this)">
+        <span>Tab 4: 4. Article Preview & Editor</span>
+      </button>
+      <button type="button" class="sub-tab-btn" onclick="switchSubTab('magento-sub-export', this)">
+        <span>Tab 5: 5. Amasty Export</span>
+      </button>
+    </div>
+
+    <!-- MAGENTO SUB-PANEL 1: ARTICLE BRIEF (FULL FIDELITY) -->
+    <div id="magento-sub-brief" class="sub-panel active">
+      <div class="editor-section-card">
+        <div class="editor-card-header">
+          <div>
+            <h3 id="mag-brief-heading" contenteditable="true" spellcheck="false" style="font-size: 19px; font-weight: 800; color: var(--text-main);">Build your Article Brief</h3>
+            <p id="mag-brief-subhead" contenteditable="true" spellcheck="false" style="font-size: 13.5px; color: var(--text-muted);">Plan one article to be written for each individual brand</p>
+          </div>
+          <span style="font-size: 12px; font-weight: 700; color: #008a2e; background: rgba(0,138,46,0.1); padding: 4px 10px; border-radius: 9999px;">Magento Scope</span>
         </div>
-        <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TAB 2</span>
-          <div id="p2-tab2" contenteditable="true" spellcheck="false" style="font-weight: 700; font-size: 13.5px; margin-top: 4px;">2. JSON Ingestion</div>
+
+        <div class="grid-2col">
+          <!-- Left Column -->
+          <div>
+            <div class="form-group-box">
+              <label class="form-label-edit" id="lbl-mag-topic" contenteditable="true" spellcheck="false">Master Article Concept / Core Subject *</label>
+              <div class="editable-input-field" id="val-mag-topic" contenteditable="true" spellcheck="false">Slotted Concrete Fence Posts & Gravel Boards Installation</div>
+            </div>
+
+            <div class="form-group-box">
+              <label class="form-label-edit" id="lbl-mag-keywords" contenteditable="true" spellcheck="false">Target Keywords (Comma Separated)</label>
+              <div class="editable-input-field" id="val-mag-keywords" contenteditable="true" spellcheck="false">concrete fence posts, gravel boards, slotted posts, garden fencing, stormproof fence</div>
+            </div>
+
+            <div class="form-group-box">
+              <label class="form-label-edit" id="lbl-mag-author" contenteditable="true" spellcheck="false">Default Master Author / Specialist Byline</label>
+              <div class="editable-input-field" id="val-mag-author" contenteditable="true" spellcheck="false">Lawsons Fencing & Landscaping Specialist</div>
+            </div>
+
+            <div class="form-group-box">
+              <label class="form-label-edit" id="lbl-mag-category" contenteditable="true" spellcheck="false">Master Category</label>
+              <div class="editable-input-field" id="val-mag-category" contenteditable="true" spellcheck="false">Fencing & Gates</div>
+            </div>
+          </div>
+
+          <!-- Right Column -->
+          <div>
+            <div class="form-group-box">
+              <label class="form-label-edit" id="lbl-mag-words" contenteditable="true" spellcheck="false">Target Word Count (Per Brand Variation)</label>
+              <div class="editable-input-field" id="val-mag-words" contenteditable="true" spellcheck="false">1200 - 1600 words</div>
+            </div>
+
+            <div class="form-group-box">
+              <label class="form-label-edit" id="lbl-mag-images" contenteditable="true" spellcheck="false">Images to Place in Body HTML</label>
+              <div class="editable-input-field" id="val-mag-images" contenteditable="true" spellcheck="false">2 - 3 contextual images</div>
+            </div>
+
+            <div class="form-group-box">
+              <label class="form-label-edit" id="lbl-mag-widgets" contenteditable="true" spellcheck="false">Styled HTML Widgets & Modules to Include:</label>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="padding: 8px 12px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border);">
+                  <strong id="wgt-mag-1" contenteditable="true" spellcheck="false" style="font-size: 12.5px; color: var(--text-main);">"Want to Know More?" FAQ Callout Box</strong>
+                </div>
+                <div style="padding: 8px 12px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border);">
+                  <strong id="wgt-mag-2" contenteditable="true" spellcheck="false" style="font-size: 12.5px; color: var(--text-main);">Product Comparison Specifications Table</strong>
+                </div>
+                <div style="padding: 8px 12px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border);">
+                  <strong id="wgt-mag-3" contenteditable="true" spellcheck="false" style="font-size: 12.5px; color: var(--text-main);">"Need Materials?" Store Call-to-Action Banner</strong>
+                </div>
+                <div style="padding: 8px 12px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border);">
+                  <strong id="wgt-mag-4" contenteditable="true" spellcheck="false" style="font-size: 12.5px; color: var(--text-main);">Brand Contractor Pro-Tip Callout Box</strong>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TAB 3</span>
-          <div id="p2-tab3" contenteditable="true" spellcheck="false" style="font-weight: 700; font-size: 13.5px; margin-top: 4px;">3. /pub/media/ Studio</div>
-        </div>
-        <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TAB 4</span>
-          <div id="p2-tab4" contenteditable="true" spellcheck="false" style="font-weight: 700; font-size: 13.5px; margin-top: 4px;">4. Store View Scope Manager</div>
-        </div>
-        <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TAB 5</span>
-          <div id="p2-tab5" contenteditable="true" spellcheck="false" style="font-weight: 700; font-size: 13.5px; margin-top: 4px;">5. Amasty Export & Pixel Hub</div>
+
+        <div style="margin-top: 10px;">
+          <label class="form-label-edit" id="lbl-mag-prompt-box" contenteditable="true" spellcheck="false">Prompt Box Action Button Text:</label>
+          <div style="display: flex; gap: 10px;">
+            <span class="feature-pill" id="btn-mag-copy-prompt" contenteditable="true" spellcheck="false">📋 Copy AI Prompt to Clipboard</span>
+            <span class="feature-pill" id="btn-mag-reset-prompt" contenteditable="true" spellcheck="false">Reset Brief Inputs</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Tab 1 & Tab 4 Headings and Guidance -->
-    <div class="editor-section-card">
-      <div class="editor-card-header">
-        <span class="editor-card-title">Key Section Headings & Workflow Guidance</span>
-      </div>
-
-      <div style="margin-bottom: 20px;">
-        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Tab 1 Title & Description</label>
-        <div id="p2-tab1-head" contenteditable="true" spellcheck="false" style="font-size: 18px; font-weight: 800; margin-bottom: 4px;">AI 5-Brand Multiplier & Prompt Studio</div>
-        <div id="p2-tab1-sub" contenteditable="true" spellcheck="false" style="font-size: 13.5px; color: var(--text-muted);">Generate 1 master concept that branches into 5 SEO-safe brand variations with PageBuilder-safe HTML and custom link banks.</div>
-      </div>
-
-      <div style="margin-bottom: 20px;">
-        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Tab 4 Title & Scope Description</label>
-        <div id="p2-tab4-head" contenteditable="true" spellcheck="false" style="font-size: 18px; font-weight: 800; margin-bottom: 4px;">Multi-Store Post Queue & Scope Copier</div>
-        <div id="p2-tab4-sub" contenteditable="true" spellcheck="false" style="font-size: 13.5px; color: var(--text-muted);">Copy global setup fields first under All Store Views, then switch store views to copy each brand's tailored content and preview live styling.</div>
-      </div>
-
-      <!-- 3-Step Multi-Store Guide -->
-      <label style="font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 8px;">3-Step Multi-Store Setup Cards:</label>
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <div style="padding: 12px 16px; background: rgba(15, 23, 42, 0.03); border-radius: 10px; border: 1px solid var(--border);">
-          <strong id="p2-step1-title" contenteditable="true" spellcheck="false" style="display: block; font-size: 13px; color: var(--text-main); margin-bottom: 2px;">Step 1: All Store Views (Global Setup)</strong>
-          <span id="p2-step1-desc" contenteditable="true" spellcheck="false" style="font-size: 12.5px; color: var(--text-muted);">Set up the post in Magento under All Store Views: Paste Master Title, Author, Categories, Tags, and Featured Image.</span>
+    <!-- MAGENTO SUB-PANEL 2: PASTE AI OUTPUT -->
+    <div id="magento-sub-ingest" class="sub-panel">
+      <div class="editor-section-card">
+        <div class="editor-card-header">
+          <div>
+            <h3 id="mag-ingest-heading" contenteditable="true" spellcheck="false" style="font-size: 19px; font-weight: 800; color: var(--text-main);">Paste Raw AI JSON Output</h3>
+            <p id="mag-ingest-subhead" contenteditable="true" spellcheck="false" style="font-size: 13.5px; color: var(--text-muted);">Paste your generated JSON payload to build all 5 brand variations instantly.</p>
+          </div>
         </div>
-        <div style="padding: 12px 16px; background: rgba(0, 138, 46, 0.05); border-radius: 10px; border: 1px solid rgba(0, 138, 46, 0.15);">
-          <strong id="p2-step2-title" contenteditable="true" spellcheck="false" style="display: block; font-size: 13px; color: #008a2e; margin-bottom: 2px;">Step 2: Store View Specific Overrides</strong>
-          <span id="p2-step2-desc" contenteditable="true" spellcheck="false" style="font-size: 12.5px; color: var(--text-muted);">Switch Magento's top-left scope to Lawsons, AVS, Oxford, Witham, or The Landscape Centre, uncheck "Use Default", and paste each brand's unique Title, URL Key, Meta, and Custom HTML.</span>
+
+        <div class="form-group-box">
+          <label class="form-label-edit" id="lbl-mag-paste-box" contenteditable="true" spellcheck="false">JSON Textarea Placeholder Text:</label>
+          <div class="editable-textarea-field" id="val-mag-paste-placeholder" contenteditable="true" spellcheck="false">Paste your ```json { "title": "...", "content_html": "...", "variations": { ... } } ``` output here...</div>
         </div>
-        <div style="padding: 12px 16px; background: rgba(0, 122, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 122, 255, 0.15);">
-          <strong id="p2-step3-title" contenteditable="true" spellcheck="false" style="display: block; font-size: 13px; color: #007aff; margin-bottom: 2px;">Step 3: In-Preview Live Editing & Image Swaps</strong>
-          <span id="p2-step3-desc" contenteditable="true" spellcheck="false" style="font-size: 12.5px; color: var(--text-muted);">Need to tweak wording or swap an image? Open the Live Preview, click on any text to edit in place, or click any image to pick a replacement from your pool!</span>
+
+        <div style="display: flex; gap: 10px;">
+          <span class="feature-pill" id="btn-mag-validate-json" contenteditable="true" spellcheck="false">Validate & Ingest to Queue</span>
+          <span class="feature-pill" id="btn-mag-clear-json" contenteditable="true" spellcheck="false">Clear</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAGENTO SUB-PANEL 3: ADD MEDIA -->
+    <div id="magento-sub-media" class="sub-panel">
+      <div class="editor-section-card">
+        <div class="editor-card-header">
+          <div>
+            <h3 id="mag-media-heading" contenteditable="true" spellcheck="false" style="font-size: 19px; font-weight: 800; color: var(--text-main);">Add Media</h3>
+            <p id="mag-media-subhead" contenteditable="true" spellcheck="false" style="font-size: 13.5px; color: var(--text-muted);">Manage media pool, upload local photos (auto-compressed), and copy single-image anti-duplicate HTML snippets.</p>
+          </div>
+        </div>
+
+        <div class="grid-2col">
+          <div class="form-group-box">
+            <label class="form-label-edit" id="lbl-mag-media-card1" contenteditable="true" spellcheck="false">Upload Card Title:</label>
+            <div class="editable-input-field" id="val-mag-media-card1" contenteditable="true" spellcheck="false">Add Image via File Upload or Magento Media Path</div>
+          </div>
+          <div class="form-group-box">
+            <label class="form-label-edit" id="lbl-mag-media-card2" contenteditable="true" spellcheck="false">Single Image Generator Card Title:</label>
+            <div class="editable-input-field" id="val-mag-media-card2" contenteditable="true" spellcheck="false">Single-Image HTML Generator (No PageBuilder Image Doubling)</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <span class="feature-pill" id="btn-mag-add-media" contenteditable="true" spellcheck="false">Add to Media Pool & Auto-Match</span>
+          <span class="feature-pill" id="btn-mag-rematch" contenteditable="true" spellcheck="false">Auto-Match Images to Posts</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAGENTO SUB-PANEL 4: ARTICLE PREVIEW & EDITOR -->
+    <div id="magento-sub-preview" class="sub-panel">
+      <div class="editor-section-card">
+        <div class="editor-card-header">
+          <div>
+            <h3 id="mag-preview-heading" contenteditable="true" spellcheck="false" style="font-size: 19px; font-weight: 800; color: var(--text-main);">Article Preview & Editor</h3>
+            <p id="mag-preview-subhead" contenteditable="true" spellcheck="false" style="font-size: 13.5px; color: var(--text-muted);">Copy global setup fields first under All Store Views, then switch store views to copy each brand's tailored content and preview live styling.</p>
+          </div>
+        </div>
+
+        <div class="grid-2col" style="margin-bottom: 18px;">
+          <div class="form-group-box">
+            <label class="form-label-edit" id="lbl-mag-sched-title" contenteditable="true" spellcheck="false">Scheduler Bar Title:</label>
+            <div class="editable-input-field" id="val-mag-sched-title" contenteditable="true" spellcheck="false">Batch Publish Date Scheduler:</div>
+          </div>
+          <div class="form-group-box">
+            <label class="form-label-edit" id="lbl-mag-css-toggle" contenteditable="true" spellcheck="false">CSS Checkbox Toggle Label:</label>
+            <div class="editable-input-field" id="val-mag-css-toggle" contenteditable="true" spellcheck="false">Include Top &lt;style&gt; Block When Copying HTML</div>
+          </div>
+        </div>
+
+        <label class="form-label-edit" id="lbl-mag-copy-strip" contenteditable="true" spellcheck="false">Store View Copy Strip Action Buttons:</label>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <span class="feature-pill" id="btn-mag-copy-title" contenteditable="true" spellcheck="false">Copy Title</span>
+          <span class="feature-pill" id="btn-mag-copy-url" contenteditable="true" spellcheck="false">Copy URL Key</span>
+          <span class="feature-pill" id="btn-mag-copy-meta" contenteditable="true" spellcheck="false">Copy Meta Desc</span>
+          <span class="feature-pill" id="btn-mag-copy-html" contenteditable="true" spellcheck="false">Copy Scoped HTML</span>
+          <span class="feature-pill" id="btn-mag-open-preview" contenteditable="true" spellcheck="false">Live Storefront Preview</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAGENTO SUB-PANEL 5: EXPORT -->
+    <div id="magento-sub-export" class="sub-panel">
+      <div class="editor-section-card">
+        <div class="editor-card-header">
+          <div>
+            <h3 id="mag-export-heading" contenteditable="true" spellcheck="false" style="font-size: 19px; font-weight: 800; color: var(--text-main);">Amasty Export & Pixel Agency Hub</h3>
+            <p id="mag-export-subhead" contenteditable="true" spellcheck="false" style="font-size: 13.5px; color: var(--text-muted);">Download multi-store CSVs, REST API JSON bundles, or copy the technical briefing for Pixel.</p>
+          </div>
+        </div>
+
+        <div class="grid-2col">
+          <div class="form-group-box">
+            <label class="form-label-edit" id="lbl-mag-export-opt" contenteditable="true" spellcheck="false">Export Options Title:</label>
+            <div class="editable-input-field" id="val-mag-export-opt" contenteditable="true" spellcheck="false">Multi-Store Export Options</div>
+          </div>
+          <div class="form-group-box">
+            <label class="form-label-edit" id="lbl-mag-brief-opt" contenteditable="true" spellcheck="false">Briefing Card Title:</label>
+            <div class="editable-input-field" id="val-mag-brief-opt" contenteditable="true" spellcheck="false">Ready-to-Send Briefing for Pixel</div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <span class="feature-pill" id="btn-mag-down-csv" contenteditable="true" spellcheck="false">Download Amasty Blog Pro CSV (.csv)</span>
+          <span class="feature-pill" id="btn-mag-down-json" contenteditable="true" spellcheck="false">Download Magento 2 REST API Payload (.json)</span>
+          <span class="feature-pill" id="btn-mag-copy-brief" contenteditable="true" spellcheck="false">Copy Briefing</span>
         </div>
       </div>
     </div>
   </main>
 
   <!-- ========================================================================
-       PAGE 3: WORDPRESS (BRIANTS) STUDIO
+       PAGE 3: WORDPRESS (BRIANTS) STUDIO — FULL TABS & ARTICLE BRIEF
        ======================================================================== -->
   <main id="page-wordpress" class="page-view">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
       <div>
         <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main);">Page 3: WordPress (Briants) Studio</h2>
-        <p style="font-size: 13.5px; color: var(--text-muted);">Wording for the WordPress Content Engine (`wordpress/index.html`).</p>
+        <p style="font-size: 13.5px; color: var(--text-muted);">Edit all WordPress Article Brief fields, parameters, and tab texts below.</p>
       </div>
-      <a href="wordpress/index.html" target="_blank" class="btn-open-live">
-        <span>↗ Open Live wordpress/index.html</span>
-      </a>
-    </div>
-
-    <!-- Header & Stats Wording -->
-    <div class="editor-section-card">
-      <div class="editor-card-header">
-        <span class="editor-card-title">Top Header & Stat Counter Labels</span>
-      </div>
-
-      <div class="grid-2col" style="margin-bottom: 18px;">
-        <div>
-          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Header App Title</label>
-          <div id="p3-header-title" contenteditable="true" spellcheck="false" style="font-size: 18px; font-weight: 800; padding: 6px 0;">WordPress Content Engine</div>
-        </div>
-        <div>
-          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Header Version Tag</label>
-          <div id="p3-header-sub" contenteditable="true" spellcheck="false" style="font-size: 14px; font-weight: 600; padding: 6px 0;">Briants of Risborough • WordPress Studio v8.8.0</div>
-        </div>
-      </div>
-
-      <label style="font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">Stats Counter Pills:</label>
-      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px;">
-        <span class="feature-pill" id="p3-stat-posts" contenteditable="true" spellcheck="false">Posts</span>
-        <span class="feature-pill" id="p3-stat-sched" contenteditable="true" spellcheck="false">Scheduled</span>
-        <span class="feature-pill" id="p3-stat-media" contenteditable="true" spellcheck="false">Media Assets</span>
-        <span class="feature-pill" id="p3-stat-ready" contenteditable="true" spellcheck="false">Export Ready</span>
-      </div>
-
-      <label style="font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">Header Action Buttons:</label>
-      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-        <span class="feature-pill" id="p3-btn-diag" contenteditable="true" spellcheck="false">Diagnostics</span>
-        <span class="feature-pill" id="p3-btn-settings" contenteditable="true" spellcheck="false">Site & Links Settings</span>
-        <span class="feature-pill" id="p3-btn-sample" contenteditable="true" spellcheck="false">Load Sample Data</span>
-        <span class="feature-pill" id="p3-btn-export" contenteditable="true" spellcheck="false">Export WXR XML</span>
+      <div style="display: flex; gap: 10px;">
+        <a href="wordpress/index.html" target="_blank" class="btn-open-live">
+          <span>↗ Open Live wordpress/index.html</span>
+        </a>
       </div>
     </div>
 
-    <!-- 5 Main Navigation Tabs -->
-    <div class="editor-section-card">
-      <div class="editor-card-header">
-        <span class="editor-card-title">5 Main Navigation Tabs</span>
-      </div>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-        <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TAB 1</span>
-          <div id="p3-tab1" contenteditable="true" spellcheck="false" style="font-weight: 700; font-size: 13.5px; margin-top: 4px;">1. AI Prompt Generator</div>
+    <!-- WordPress Sub-Tabs Navigation -->
+    <div class="sub-tabs-bar">
+      <button type="button" class="sub-tab-btn active" onclick="switchWpSubTab('wp-sub-brief', this)">
+        <span>Tab 1: 1. Article Brief</span>
+      </button>
+      <button type="button" class="sub-tab-btn" onclick="switchWpSubTab('wp-sub-ingest', this)">
+        <span>Tab 2: 2. Paste AI Output</span>
+      </button>
+      <button type="button" class="sub-tab-btn" onclick="switchWpSubTab('wp-sub-media', this)">
+        <span>Tab 3: 3. Media Library</span>
+      </button>
+      <button type="button" class="sub-tab-btn" onclick="switchWpSubTab('wp-sub-queue', this)">
+        <span>Tab 4: 4. Post Queue & Scheduler</span>
+      </button>
+      <button type="button" class="sub-tab-btn" onclick="switchWpSubTab('wp-sub-export', this)">
+        <span>Tab 5: 5. WXR XML Export</span>
+      </button>
+    </div>
+
+    <!-- WORDPRESS SUB-PANEL 1: ARTICLE BRIEF -->
+    <div id="wp-sub-brief" class="sub-panel active">
+      <div class="editor-section-card">
+        <div class="editor-card-header">
+          <div>
+            <h3 id="wp-brief-heading" contenteditable="true" spellcheck="false" style="font-size: 19px; font-weight: 800; color: var(--text-main);">External AI Prompt Generator</h3>
+            <p id="wp-brief-subhead" contenteditable="true" spellcheck="false" style="font-size: 13.5px; color: var(--text-muted);">Generate bulletproof system prompts for ChatGPT, Claude, or Gemini. Customize HTML widgets and content length below.</p>
+          </div>
+          <span style="font-size: 12px; font-weight: 700; color: #095f36; background: rgba(9,95,54,0.1); padding: 4px 10px; border-radius: 9999px;">WordPress WXR Scope</span>
         </div>
-        <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TAB 2</span>
-          <div id="p3-tab2" contenteditable="true" spellcheck="false" style="font-weight: 700; font-size: 13.5px; margin-top: 4px;">2. JSON Ingestion</div>
+
+        <div class="grid-2col">
+          <!-- Left Column -->
+          <div>
+            <div class="form-group-box">
+              <label class="form-label-edit" id="lbl-wp-topic" contenteditable="true" spellcheck="false">Blog Post Topic / Main Subject *</label>
+              <div class="editable-input-field" id="val-wp-topic" contenteditable="true" spellcheck="false">The Complete Guide to Selecting & Maintaining STIHL Garden Machinery</div>
+            </div>
+
+            <div class="form-group-box">
+              <label class="form-label-edit" id="lbl-wp-keywords" contenteditable="true" spellcheck="false">Target Keywords (Comma Separated)</label>
+              <div class="editable-input-field" id="val-wp-keywords" contenteditable="true" spellcheck="false">stihl garden machinery, chainsaw maintenance, lawnmower service, briants of risborough</div>
+            </div>
+
+            <div class="form-group-box">
+              <label class="form-label-edit" id="lbl-wp-niche" contenteditable="true" spellcheck="false">Site Niche / Domain</label>
+              <div class="editable-input-field" id="val-wp-niche" contenteditable="true" spellcheck="false">Garden Machinery & Country Store Specialists</div>
+            </div>
+
+            <div class="form-group-box">
+              <label class="form-label-edit" id="lbl-wp-brand" contenteditable="true" spellcheck="false">Focus Brand / Manufacturer</label>
+              <div class="editable-input-field" id="val-wp-brand" contenteditable="true" spellcheck="false">STIHL (plus Briants Workshop Servicing)</div>
+            </div>
+          </div>
+
+          <!-- Right Column -->
+          <div>
+            <div class="form-group-box">
+              <label class="form-label-edit" id="lbl-wp-link" contenteditable="true" spellcheck="false">Internal Anchor Target Link</label>
+              <div class="editable-input-field" id="val-wp-link" contenteditable="true" spellcheck="false">https://briantsofrisborough.co.uk/product-category/garden-machinery/</div>
+            </div>
+
+            <div class="form-group-box">
+              <label class="form-label-edit" id="lbl-wp-anchor" contenteditable="true" spellcheck="false">Target Link Anchor Text</label>
+              <div class="editable-input-field" id="val-wp-anchor" contenteditable="true" spellcheck="false">STIHL Garden Machinery Range</div>
+            </div>
+
+            <div class="form-group-box">
+              <label class="form-label-edit" id="lbl-wp-widgets" contenteditable="true" spellcheck="false">Styled HTML Widgets to Include:</label>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="padding: 8px 12px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border);">
+                  <strong id="wgt-wp-1" contenteditable="true" spellcheck="false" style="font-size: 12.5px; color: var(--text-main);">"Want to Know More?" Expandable FAQ Box</strong>
+                </div>
+                <div style="padding: 8px 12px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border);">
+                  <strong id="wgt-wp-2" contenteditable="true" spellcheck="false" style="font-size: 12.5px; color: var(--text-main);">Technical Specs / Comparison Table</strong>
+                </div>
+                <div style="padding: 8px 12px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border);">
+                  <strong id="wgt-wp-3" contenteditable="true" spellcheck="false" style="font-size: 12.5px; color: var(--text-main);">"Category Spotlight" Call-to-Action Box with Button</strong>
+                </div>
+                <div style="padding: 8px 12px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border);">
+                  <strong id="wgt-wp-4" contenteditable="true" spellcheck="false" style="font-size: 12.5px; color: var(--text-main);">Pro Tip / Warning Callout Box</strong>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TAB 3</span>
-          <div id="p3-tab3" contenteditable="true" spellcheck="false" style="font-weight: 700; font-size: 13.5px; margin-top: 4px;">3. Media Library</div>
-        </div>
-        <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TAB 4</span>
-          <div id="p3-tab4" contenteditable="true" spellcheck="false" style="font-weight: 700; font-size: 13.5px; margin-top: 4px;">4. Post Queue & Scheduler</div>
-        </div>
-        <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TAB 5</span>
-          <div id="p3-tab5" contenteditable="true" spellcheck="false" style="font-weight: 700; font-size: 13.5px; margin-top: 4px;">5. WXR XML Export</div>
+
+        <div style="margin-top: 10px;">
+          <label class="form-label-edit" id="lbl-wp-prompt-buttons" contenteditable="true" spellcheck="false">Prompt Actions & Buttons:</label>
+          <div style="display: flex; gap: 10px;">
+            <span class="feature-pill" id="btn-wp-copy-prompt" contenteditable="true" spellcheck="false">📋 Copy AI Prompt to Clipboard</span>
+            <span class="feature-pill" id="btn-wp-reset-prompt" contenteditable="true" spellcheck="false">Reset Inputs</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Mode Switcher & Core Sections -->
-    <div class="editor-section-card">
-      <div class="editor-card-header">
-        <span class="editor-card-title">Prompt Generator & Queue Descriptions</span>
-      </div>
-
-      <div style="margin-bottom: 20px;">
-        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Tab 1 Title & Description</label>
-        <div id="p3-tab1-head" contenteditable="true" spellcheck="false" style="font-size: 18px; font-weight: 800; margin-bottom: 4px;">External AI Prompt Generator</div>
-        <div id="p3-tab1-sub" contenteditable="true" spellcheck="false" style="font-size: 13.5px; color: var(--text-muted);">Generate bulletproof system prompts for ChatGPT, Claude, or Gemini. Customize HTML widgets and content length below.</div>
-      </div>
-
-      <div class="grid-2col" style="margin-bottom: 20px;">
-        <div>
-          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Mode 1 Button Label</label>
-          <div id="p3-mode-single" contenteditable="true" spellcheck="false" style="font-size: 13.5px; font-weight: 700; padding: 6px 0;">Single Article Mode (Detailed)</div>
+    <!-- WORDPRESS SUB-PANEL 2: PASTE AI OUTPUT -->
+    <div id="wp-sub-ingest" class="sub-panel">
+      <div class="editor-section-card">
+        <div class="editor-card-header">
+          <div>
+            <h3 id="wp-ingest-heading" contenteditable="true" spellcheck="false" style="font-size: 19px; font-weight: 800; color: var(--text-main);">Paste AI JSON Output</h3>
+            <p id="wp-ingest-subhead" contenteditable="true" spellcheck="false" style="font-size: 13.5px; color: var(--text-muted);">Paste the JSON array of articles generated by ChatGPT, Claude, or Gemini.</p>
+          </div>
         </div>
-        <div>
-          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Mode 2 Button Label</label>
-          <div id="p3-mode-bulk" contenteditable="true" spellcheck="false" style="font-size: 13.5px; font-weight: 700; padding: 6px 0;">Bulk Topical Cluster Mode (5-10 Articles)</div>
+
+        <div class="form-group-box">
+          <label class="form-label-edit" id="lbl-wp-paste-box" contenteditable="true" spellcheck="false">Textarea Placeholder:</label>
+          <div class="editable-textarea-field" id="val-wp-paste-placeholder" contenteditable="true" spellcheck="false">Paste the JSON array of articles here... e.g. [{ "title": "...", "content_html": "..." }]</div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <span class="feature-pill" id="btn-wp-validate-json" contenteditable="true" spellcheck="false">Parse & Queue Articles</span>
+          <span class="feature-pill" id="btn-wp-clear-json" contenteditable="true" spellcheck="false">Clear</span>
         </div>
       </div>
+    </div>
 
-      <div>
-        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Export Tab XML Document Card Title</label>
-        <div id="p3-xml-head" contenteditable="true" spellcheck="false" style="font-size: 16px; font-weight: 800; padding: 6px 0;">Generated WXR 1.2 XML Document</div>
+    <!-- WORDPRESS SUB-PANEL 3: MEDIA LIBRARY -->
+    <div id="wp-sub-media" class="sub-panel">
+      <div class="editor-section-card">
+        <div class="editor-card-header">
+          <div>
+            <h3 id="wp-media-heading" contenteditable="true" spellcheck="false" style="font-size: 19px; font-weight: 800; color: var(--text-main);">Media Library & Auto-Matcher</h3>
+            <p id="wp-media-subhead" contenteditable="true" spellcheck="false" style="font-size: 13.5px; color: var(--text-muted);">Manage your visual image assets, tags, and auto-match into article placeholders.</p>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <span class="feature-pill" id="btn-wp-add-image" contenteditable="true" spellcheck="false">Add Image Asset</span>
+          <span class="feature-pill" id="btn-wp-fetch-media" contenteditable="true" spellcheck="false">Sync from WP Media Library</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORDPRESS SUB-PANEL 4: POST QUEUE & SCHEDULER -->
+    <div id="wp-sub-queue" class="sub-panel">
+      <div class="editor-section-card">
+        <div class="editor-card-header">
+          <div>
+            <h3 id="wp-queue-heading" contenteditable="true" spellcheck="false" style="font-size: 19px; font-weight: 800; color: var(--text-main);">Post Queue & Scheduler</h3>
+            <p id="wp-queue-subhead" contenteditable="true" spellcheck="false" style="font-size: 13.5px; color: var(--text-muted);">Review, edit metadata, schedule publish dates, and preview HTML render.</p>
+          </div>
+        </div>
+
+        <div class="grid-2col" style="margin-bottom: 18px;">
+          <div class="form-group-box">
+            <label class="form-label-edit" id="lbl-wp-sched-title" contenteditable="true" spellcheck="false">Schedule Mode Label:</label>
+            <div class="editable-input-field" id="val-wp-sched-mode" contenteditable="true" spellcheck="false">Batch Automatic Interval</div>
+          </div>
+          <div class="form-group-box">
+            <label class="form-label-edit" id="lbl-wp-queue-btn" contenteditable="true" spellcheck="false">Queue Card Actions:</label>
+            <div style="display: flex; gap: 8px;">
+              <span class="feature-pill" id="btn-wp-preview-post" contenteditable="true" spellcheck="false">Live Preview</span>
+              <span class="feature-pill" id="btn-wp-edit-post" contenteditable="true" spellcheck="false">Edit Post</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORDPRESS SUB-PANEL 5: WXR EXPORT -->
+    <div id="wp-sub-export" class="sub-panel">
+      <div class="editor-section-card">
+        <div class="editor-card-header">
+          <div>
+            <h3 id="wp-export-heading" contenteditable="true" spellcheck="false" style="font-size: 19px; font-weight: 800; color: var(--text-main);">WXR XML Export Engine</h3>
+            <p id="wp-export-subhead" contenteditable="true" spellcheck="false" style="font-size: 13.5px; color: var(--text-muted);">Compile your queued articles into a standard WordPress WXR 1.2 XML file.</p>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <span class="feature-pill" id="btn-wp-download-xml" contenteditable="true" spellcheck="false">Download WordPress WXR (.xml)</span>
+          <span class="feature-pill" id="btn-wp-copy-xml" contenteditable="true" spellcheck="false">Copy XML to Clipboard</span>
+        </div>
       </div>
     </div>
   </main>
 
-  <!-- Output Modal -->
+  <!-- Output Copy Modal -->
   <div class="copy-modal-overlay" id="copy-modal">
     <div class="copy-modal-box">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -671,7 +942,7 @@
       </div>
 
       <p style="font-size: 13.5px; color: #475569; margin-bottom: 14px;">
-        All your edits across Page 1, Page 2, and Page 3 have been copied to your clipboard. Paste them directly into our chat!
+        Your wording updates across the pages, tabs, and article briefs have been copied to your clipboard! Paste directly into our chat so I can apply the live changes.
       </p>
 
       <textarea id="output-copy-box" readonly style="width: 100%; height: 260px; font-family: monospace; font-size: 12px; padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1; background: #f8fafc; color: #1e293b; margin-bottom: 16px;"></textarea>
@@ -686,12 +957,26 @@
   </div>
 
   <script>
-    function switchPage(pageId, btnEl) {
+    function switchMainPage(pageId, btnEl) {
       document.querySelectorAll(".page-view").forEach(p => p.classList.remove("active"));
       document.querySelectorAll(".page-nav-btn").forEach(b => b.classList.remove("active"));
       document.getElementById(pageId).classList.add("active");
       btnEl.classList.add("active");
       window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function switchSubTab(subId, btnEl) {
+      document.querySelectorAll("#page-magento .sub-panel").forEach(p => p.classList.remove("active"));
+      document.querySelectorAll("#page-magento .sub-tab-btn").forEach(b => b.classList.remove("active"));
+      document.getElementById(subId).classList.add("active");
+      btnEl.classList.add("active");
+    }
+
+    function switchWpSubTab(subId, btnEl) {
+      document.querySelectorAll("#page-wordpress .sub-panel").forEach(p => p.classList.remove("active"));
+      document.querySelectorAll("#page-wordpress .sub-tab-btn").forEach(b => b.classList.remove("active"));
+      document.getElementById(subId).classList.add("active");
+      btnEl.classList.add("active");
     }
 
     function addPill(containerId) {
@@ -706,17 +991,12 @@
       newPill.focus();
     }
 
+    function getTxt(id) {
+      const el = document.getElementById(id);
+      return el ? el.innerText.trim() : "";
+    }
+
     function collectAllUpdates() {
-      const getPills = (containerId) => {
-        const pills = document.querySelectorAll(`#${containerId} .feature-pill`);
-        return Array.from(pills).map(p => p.innerText.trim()).filter(Boolean);
-      };
-
-      const getTxt = (id) => {
-        const el = document.getElementById(id);
-        return el ? el.innerText.trim() : "";
-      };
-
       let out = "Here are my wording updates across the Content Engine:\n\n";
 
       // Page 1
@@ -727,41 +1007,42 @@
       out += `  - Title: ${getTxt("p1-magento-title")} ${getTxt("p1-magento-sub")}\n`;
       out += `  - Badge: ${getTxt("p1-magento-scope")}\n`;
       out += `  - Description: ${getTxt("p1-magento-desc")}\n`;
-      out += `  - Brands: ${getPills("p1-magento-pills").join(", ")}\n`;
-      out += `  - Button: ${getTxt("p1-magento-btn")}\n`;
       out += `### WordPress Card:\n`;
       out += `  - Title: ${getTxt("p1-wp-title")} ${getTxt("p1-wp-sub")}\n`;
       out += `  - Badge: ${getTxt("p1-wp-scope")}\n`;
-      out += `  - Description: ${getTxt("p1-wp-desc")}\n`;
-      out += `  - Features: ${getPills("p1-wp-pills").join(", ")}\n`;
-      out += `  - Button: ${getTxt("p1-wp-btn")}\n`;
-      out += `- Footer Tip: ${getTxt("p1-footer")}\n\n`;
+      out += `  - Description: ${getTxt("p1-wp-desc")}\n\n`;
 
-      // Page 2
+      // Page 2: Magento
       out += "## PAGE 2: MAGENTO (LAWSONS) STUDIO (magento.html)\n";
-      out += `- Header Title: ${getTxt("p2-header-title")}\n`;
-      out += `- Header Subtitle: ${getTxt("p2-header-sub")}\n`;
-      out += `- Scope Bar Label: ${getTxt("p2-scope-bar-label")}\n`;
-      out += `- Master Scope Pill: ${getTxt("p2-scope-global-pill")}\n`;
-      out += `- Action Buttons: ${getTxt("p2-btn-diag")}, ${getTxt("p2-btn-settings")}, ${getTxt("p2-btn-sample")}, ${getTxt("p2-btn-export")}\n`;
-      out += `- Tabs: [Tab 1: ${getTxt("p2-tab1")}], [Tab 2: ${getTxt("p2-tab2")}], [Tab 3: ${getTxt("p2-tab3")}], [Tab 4: ${getTxt("p2-tab4")}], [Tab 5: ${getTxt("p2-tab5")}]\n`;
-      out += `- Tab 1 Head & Sub: ${getTxt("p2-tab1-head")} | ${getTxt("p2-tab1-sub")}\n`;
-      out += `- Tab 4 Head & Sub: ${getTxt("p2-tab4-head")} | ${getTxt("p2-tab4-sub")}\n`;
-      out += `- 3-Step Setup Guidance:\n`;
-      out += `  - ${getTxt("p2-step1-title")}: ${getTxt("p2-step1-desc")}\n`;
-      out += `  - ${getTxt("p2-step2-title")}: ${getTxt("p2-step2-desc")}\n`;
-      out += `  - ${getTxt("p2-step3-title")}: ${getTxt("p2-step3-desc")}\n\n`;
+      out += `### Tab 1: Article Brief:\n`;
+      out += `  - Heading: ${getTxt("mag-brief-heading")}\n`;
+      out += `  - Subtitle: ${getTxt("mag-brief-subhead")}\n`;
+      out += `  - ${getTxt("lbl-mag-topic")}: "${getTxt("val-mag-topic")}"\n`;
+      out += `  - ${getTxt("lbl-mag-keywords")}: "${getTxt("val-mag-keywords")}"\n`;
+      out += `  - ${getTxt("lbl-mag-author")}: "${getTxt("val-mag-author")}"\n`;
+      out += `  - ${getTxt("lbl-mag-category")}: "${getTxt("val-mag-category")}"\n`;
+      out += `  - ${getTxt("lbl-mag-words")}: "${getTxt("val-mag-words")}"\n`;
+      out += `  - Widgets: [${getTxt("wgt-mag-1")}], [${getTxt("wgt-mag-2")}], [${getTxt("wgt-mag-3")}], [${getTxt("wgt-mag-4")}]\n`;
+      out += `### Tab 2: Paste Output:\n`;
+      out += `  - Heading: ${getTxt("mag-ingest-heading")}\n`;
+      out += `### Tab 3: Media:\n`;
+      out += `  - Heading: ${getTxt("mag-media-heading")}\n`;
+      out += `### Tab 4: Preview & Editor:\n`;
+      out += `  - Heading: ${getTxt("mag-preview-heading")}\n`;
+      out += `  - Subtitle: ${getTxt("mag-preview-subhead")}\n\n`;
 
-      // Page 3
+      // Page 3: WordPress
       out += "## PAGE 3: WORDPRESS (BRIANTS) STUDIO (wordpress/index.html)\n";
-      out += `- Header Title: ${getTxt("p3-header-title")}\n`;
-      out += `- Header Subtitle: ${getTxt("p3-header-sub")}\n`;
-      out += `- Stat Pills: ${getTxt("p3-stat-posts")}, ${getTxt("p3-stat-sched")}, ${getTxt("p3-stat-media")}, ${getTxt("p3-stat-ready")}\n`;
-      out += `- Action Buttons: ${getTxt("p3-btn-diag")}, ${getTxt("p3-btn-settings")}, ${getTxt("p3-btn-sample")}, ${getTxt("p3-btn-export")}\n`;
-      out += `- Tabs: [Tab 1: ${getTxt("p3-tab1")}], [Tab 2: ${getTxt("p3-tab2")}], [Tab 3: ${getTxt("p3-tab3")}], [Tab 4: ${getTxt("p3-tab4")}], [Tab 5: ${getTxt("p3-tab5")}]\n`;
-      out += `- Tab 1 Head & Sub: ${getTxt("p3-tab1-head")} | ${getTxt("p3-tab1-sub")}\n`;
-      out += `- Modes: ${getTxt("p3-mode-single")} | ${getTxt("p3-mode-bulk")}\n`;
-      out += `- XML Card Title: ${getTxt("p3-xml-head")}\n`;
+      out += `### Tab 1: Article Brief:\n`;
+      out += `  - Heading: ${getTxt("wp-brief-heading")}\n`;
+      out += `  - Subtitle: ${getTxt("wp-brief-subhead")}\n`;
+      out += `  - ${getTxt("lbl-wp-topic")}: "${getTxt("val-wp-topic")}"\n`;
+      out += `  - ${getTxt("lbl-wp-keywords")}: "${getTxt("val-wp-keywords")}"\n`;
+      out += `  - ${getTxt("lbl-wp-niche")}: "${getTxt("val-wp-niche")}"\n`;
+      out += `  - ${getTxt("lbl-wp-brand")}: "${getTxt("val-wp-brand")}"\n`;
+      out += `  - ${getTxt("lbl-wp-link")}: "${getTxt("val-wp-link")}"\n`;
+      out += `  - ${getTxt("lbl-wp-anchor")}: "${getTxt("val-wp-anchor")}"\n`;
+      out += `  - Widgets: [${getTxt("wgt-wp-1")}], [${getTxt("wgt-wp-2")}], [${getTxt("wgt-wp-3")}], [${getTxt("wgt-wp-4")}]\n`;
 
       return out;
     }

@@ -16,6 +16,7 @@ import { compressImageIfNeeded } from "./utils/imageCompressor.js";
 import { getDiagnosticReport } from "./utils/debugLogger.js";
 import { generateContentWithGemini, testMagentoApiConnection, pushPostToMagentoApi } from "./utils/magentoApiSync.js";
 import { DEFAULT_SITE_SETTINGS, SAMPLE_IMAGE_POOL, SAMPLE_POST_PAYLOADS } from "./utils/sampleData.js";
+import { initLiveCopyEditor } from "./live-copy-editor.js";
 
 const STORAGE_KEY = "mce_lawsons_state_v1";
 
@@ -43,6 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   applyBrandTheme(state.activeBrandId);
   bindAllEvents();
+  initLiveCopyEditor("Magento Content Engine");
   refreshPromptOutput();
   renderMediaPool();
   renderPostQueue();

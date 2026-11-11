@@ -35,7 +35,7 @@
           <div class="brand-text">
             <h1>Magento Content Engine</h1>
             <span class="version-badge" id="app-version-tag">
-              Lawsons Group • 5-Brand Amasty Studio v1.1.0
+              Lawsons Group
             </span>
           </div>
         </div>
@@ -68,6 +68,9 @@
         <a href="index.html" class="btn btn-outline btn-sm" id="btn-switch-platform" style="text-decoration: none;">
           <i data-lucide="arrow-left"></i> Switch Platform
         </a>
+        <button class="btn btn-outline btn-sm" id="btn-toggle-copy-edit" style="border-color: #007aff; color: #007aff; font-weight: 700;">
+          <i data-lucide="edit-3"></i> ✏️ Edit App Copy
+        </button>
         <button class="btn btn-outline btn-sm" id="btn-open-debug">
           <i data-lucide="activity"></i> Diagnostics
         </button>
@@ -78,7 +81,7 @@
           <i data-lucide="sparkles"></i> Load 5-Brand Sample
         </button>
         <button class="btn btn-primary btn-sm" id="btn-quick-export-csv">
-          <i data-lucide="download"></i> Export Amasty CSV
+          <i data-lucide="download"></i> Export Amasty CSV (Pixel need to sort)
         </button>
       </div>
     </div>
@@ -140,26 +143,26 @@
       <div class="nav-tabs">
         <button class="tab-btn active" data-tab="tab-prompt">
           <i data-lucide="wand-2"></i>
-          <span>1. AI Brand Multiplier</span>
+          <span>1. Article Brief</span>
         </button>
         <button class="tab-btn" data-tab="tab-ingest">
           <i data-lucide="braces"></i>
-          <span>2. JSON Ingestion</span>
+          <span>2. Paste AI Output</span>
           <span class="badge-count" id="badge-ingest-count">0</span>
         </button>
         <button class="tab-btn" data-tab="tab-media">
           <i data-lucide="images"></i>
-          <span>3. /pub/media/ Studio</span>
+          <span>3. Add media</span>
           <span class="badge-count" id="badge-media-count">0</span>
         </button>
         <button class="tab-btn" data-tab="tab-queue">
           <i data-lucide="layout-template"></i>
-          <span>4. Store View Queue & Preview</span>
+          <span>4. Article Preview & Editor</span>
           <span class="badge-count" id="badge-queue-count">0</span>
         </button>
         <button class="tab-btn" data-tab="tab-export">
           <i data-lucide="share-2"></i>
-          <span>5. Amasty Export & Pixel Hub</span>
+          <span>5. Amasty Export (coming soon)</span>
         </button>
       </div>
     </nav>
@@ -168,13 +171,13 @@
     <main class="main-content">
 
       <!-- ====================================================================
-           TAB 1: AI BRAND MULTIPLIER & PROMPT STUDIO
+           TAB 1: BUILD YOUR ARTICLE BRIEF
            ==================================================================== -->
       <section id="tab-prompt" class="tab-panel active">
         <div class="panel-header">
           <div>
-            <h2><i data-lucide="sparkles"></i> AI 5-Brand Multiplier & Prompt Studio</h2>
-            <p class="panel-subtitle">Generate 1 master concept that branches into 5 SEO-safe brand variations with PageBuilder-safe HTML and custom link banks.</p>
+            <h2><i data-lucide="sparkles"></i> Build your Article Brief</h2>
+            <p class="panel-subtitle">Plan one article to be written for each individual brand</p>
           </div>
           <div style="display: flex; gap: 10px;">
             <button class="btn btn-outline btn-sm" id="btn-reset-prompt">
@@ -325,46 +328,23 @@
           </div>
         </div>
 
-        <div class="split-grid">
-          <div class="card">
-            <div class="card-title">
-              <i data-lucide="code"></i>
-              <span>Paste Raw AI JSON Output</span>
-            </div>
-            <textarea id="raw-json-input" class="code-textarea" rows="18" placeholder='Paste your ```json { "title": "...", "content_html": "...", "variations": { ... } } ``` output here...'></textarea>
-            <div id="json-validation-feedback" style="margin-top: 14px; font-size: 13px; color: var(--text-secondary);"></div>
+        <div class="card" style="margin-bottom: 24px;">
+          <div class="card-title">
+            <i data-lucide="code"></i>
+            <span>Paste Raw AI JSON Output</span>
           </div>
-
-          <div class="card">
-            <div class="card-title">
-              <i data-lucide="shield-check"></i>
-              <span>How the Multi-Store Workflow Operates</span>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 14px; font-size: 13.5px; color: var(--text-secondary); line-height: 1.6;">
-              <div style="padding: 14px; border-radius: 12px; background: rgba(15, 23, 42, 0.04); border: 1px solid rgba(15, 23, 42, 0.08);">
-                <strong style="color: var(--text-primary); display: block; margin-bottom: 4px;">Step 1: All Store Views (Global Setup)</strong>
-                Set up the post in Magento under <em>All Store Views</em>: Paste Master Title, Author, Categories, Tags, and Featured Image.
-              </div>
-              <div style="padding: 14px; border-radius: 12px; background: rgba(0, 138, 46, 0.06); border: 1px solid rgba(0, 138, 46, 0.16);">
-                <strong style="color: var(--text-primary); display: block; margin-bottom: 4px;">Step 2: Store View Specific Overrides</strong>
-                Switch Magento's top-left scope to <strong>Lawsons</strong>, <strong>AVS</strong>, <strong>Oxford</strong>, <strong>Witham</strong>, or <strong>The Landscape Centre</strong>, uncheck "Use Default", and paste each brand's unique Title, URL Key, Meta, and Custom HTML.
-              </div>
-              <div style="padding: 14px; border-radius: 12px; background: rgba(0, 133, 202, 0.06); border: 1px solid rgba(0, 133, 202, 0.16);">
-                <strong style="color: var(--text-primary); display: block; margin-bottom: 4px;">Step 3: In-Preview Live Editing & Image Swaps</strong>
-                Need to tweak wording or swap an image? Open the Live Preview, click on any text to edit in place, or click any image to pick a replacement from your pool!
-              </div>
-            </div>
-          </div>
+          <textarea id="raw-json-input" class="code-textarea" rows="18" placeholder='Paste your ```json { "title": "...", "content_html": "...", "variations": { ... } } ``` output here...'></textarea>
+          <div id="json-validation-feedback" style="margin-top: 14px; font-size: 13px; color: var(--text-secondary);"></div>
         </div>
       </section>
 
       <!-- ====================================================================
-           TAB 3: /pub/media/ STUDIO
+           TAB 3: ADD MEDIA
            ==================================================================== -->
       <section id="tab-media" class="tab-panel">
         <div class="panel-header">
           <div>
-            <h2><i data-lucide="images"></i> Magento <code>/pub/media/</code> Studio</h2>
+            <h2><i data-lucide="images"></i> Add Media</h2>
             <p class="panel-subtitle">Manage media pool, upload local photos (auto-compressed), and copy single-image anti-duplicate HTML snippets.</p>
           </div>
           <div style="display: flex; gap: 10px;">
@@ -424,12 +404,12 @@
       </section>
 
       <!-- ====================================================================
-           TAB 4: MULTI-STORE POST QUEUE, SCOPE COPIER & LIVE PREVIEW
+           TAB 4: ARTICLE PREVIEW & EDITOR
            ==================================================================== -->
       <section id="tab-queue" class="tab-panel">
         <div class="panel-header">
           <div>
-            <h2><i data-lucide="layout-template"></i> Multi-Store Post Queue & Scope Copier</h2>
+            <h2><i data-lucide="layout-template"></i> Article Preview & Editor</h2>
             <p class="panel-subtitle">Copy global setup fields first under All Store Views, then switch store views to copy each brand's tailored content and preview live styling.</p>
           </div>
           <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
