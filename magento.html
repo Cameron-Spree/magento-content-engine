@@ -191,11 +191,10 @@
           <div class="card">
             <div class="card-title">
               <i data-lucide="sliders"></i>
-              <span>Article Brief & Multi-Store Settings</span>
+              <span>Article Brief</span>
             </div>
 
             <div class="form-group">
-              <label>Prompt Generation Strategy</label>
               <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 <button type="button" class="btn btn-primary btn-sm" id="btn-mode-multiplier">
                   <i data-lucide="git-fork"></i> 5-Brand Multiplier (Recommended)
@@ -210,7 +209,7 @@
             </div>
 
             <div class="form-group">
-              <label for="prompt-topic">Master Generic Title / Topic (All Store Views)</label>
+              <label for="prompt-topic">Generic Title / Topic (All Store Views)</label>
               <input type="text" id="prompt-topic" value="Concrete vs Timber Fence Posts Guide" placeholder="e.g. Railway Sleepers Landscaping Guide">
               <p class="label-hint" style="margin-top: 4px;">Keep this generic and brand-neutral. All 5 brand variations will automatically share the exact same simple URL key for email marketing.</p>
             </div>
@@ -221,7 +220,7 @@
                 <input type="text" id="prompt-author" value="Lawsons Editorial Team">
               </div>
               <div class="form-group">
-                <label for="prompt-categories">Master Categories <span class="label-hint">(Comma separated)</span></label>
+                <label for="prompt-categories">Categories <span class="label-hint">(Comma separated)</span></label>
                 <input type="text" id="prompt-categories" value="Fencing Guides, Garden Advice">
               </div>
             </div>
@@ -300,7 +299,7 @@
             <div class="card-title" style="justify-content: space-between;">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <i data-lucide="terminal"></i>
-                <span>Live System Prompt Output</span>
+                <span>Prompt Using Article Brief</span>
               </div>
               <span class="brand-store-code-tag" id="prompt-char-counter">Ready</span>
             </div>
@@ -310,13 +309,13 @@
       </section>
 
       <!-- ====================================================================
-           TAB 2: JSON INGESTION & 5-BRAND VALIDATOR
+           TAB 2: PASTE AI OUTPUT
            ==================================================================== -->
       <section id="tab-ingest" class="tab-panel">
         <div class="panel-header">
           <div>
-            <h2><i data-lucide="braces"></i> Multi-Brand JSON Ingestion & Auto-Multiplier</h2>
-            <p class="panel-subtitle">Paste JSON from your AI assistant. Auto-populates all 5 Store Views with PageBuilder-safe HTML.</p>
+            <h2><i data-lucide="braces"></i> Paste AI Output</h2>
+            <p class="panel-subtitle">Paste JSON from your AI assistant. Auto-populates all 5 Store Views with HTML.</p>
           </div>
           <div style="display: flex; gap: 10px;">
             <button class="btn btn-outline btn-sm" id="btn-clear-json">
@@ -345,7 +344,7 @@
         <div class="panel-header">
           <div>
             <h2><i data-lucide="images"></i> Add Media</h2>
-            <p class="panel-subtitle">Manage media pool, upload local photos (auto-compressed), and copy single-image anti-duplicate HTML snippets.</p>
+            <p class="panel-subtitle">Upload the images to magento and then paste in the link to the image</p>
           </div>
           <div style="display: flex; gap: 10px;">
             <button class="btn btn-secondary btn-sm" id="btn-rematch-all-media">
