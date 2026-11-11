@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Content Engine — Visual Copy & Wording Editor</title>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <title>Content Engine — Multi-Page Visual Copy & Wording Editor</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <style>
     :root {
       --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --border: #e2e8f0;
@@ -15,12 +16,9 @@
       --text-main: #0f172a;
       --text-muted: #64748b;
       --magento-green: #008a2e;
-      --magento-gold: #ffdd00;
-      --wp-gold: #c9a84c;
-      --wp-dark: #1a1a1a;
-      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05);
-      --shadow-lg: 0 20px 45px -12px rgba(15, 23, 42, 0.09), 0 4px 16px -2px rgba(15, 23, 42, 0.04);
-      --radius-card: 24px;
+      --wp-green: #095f36;
+      --accent-blue: #007aff;
+      --radius-card: 20px;
       --radius-pill: 9999px;
     }
 
@@ -38,7 +36,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 0 0 60px 0;
+      padding: 0 0 80px 0;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
     }
@@ -50,10 +48,9 @@
       inset: -10%;
       z-index: -1;
       background:
-        radial-gradient(circle at 15% 18%, rgba(0, 138, 46, 0.07) 0%, transparent 40%),
-        radial-gradient(circle at 85% 15%, rgba(201, 168, 76, 0.08) 0%, transparent 42%),
-        radial-gradient(circle at 75% 85%, rgba(0, 122, 255, 0.05) 0%, transparent 40%),
-        radial-gradient(circle at 20% 80%, rgba(9, 95, 54, 0.06) 0%, transparent 44%),
+        radial-gradient(circle at 12% 16%, rgba(0, 138, 46, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 86% 14%, rgba(9, 95, 54, 0.08) 0%, transparent 42%),
+        radial-gradient(circle at 75% 82%, rgba(0, 122, 255, 0.05) 0%, transparent 40%),
         linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%);
       pointer-events: none;
     }
@@ -64,103 +61,106 @@
       top: 0;
       z-index: 100;
       width: 100%;
-      background: rgba(255, 255, 255, 0.88);
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      background: rgba(255, 255, 255, 0.90);
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
       border-bottom: 1px solid rgba(15, 23, 42, 0.08);
       box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04);
       padding: 12px 24px;
     }
 
     .editor-top-inner {
-      max-width: 1080px;
+      max-width: 1380px;
       margin: 0 auto;
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 14px;
     }
 
-    .editor-status-pill {
+    /* Page Navigation Segmented Control */
+    .page-nav-pills {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.05);
+      padding: 4px;
       border-radius: var(--radius-pill);
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.25);
-      font-size: 12.5px;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .page-nav-btn {
+      padding: 7px 16px;
+      border-radius: var(--radius-pill);
+      border: 1px solid transparent;
+      background: transparent;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .page-nav-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .page-nav-btn.active {
+      background: #ffffff;
+      color: var(--text-main);
+      border-color: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08);
       font-weight: 700;
-      color: #065f46;
-    }
-
-    .editor-status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #10b981;
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(0.9); }
     }
 
     .btn-submit {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 20px;
+      padding: 9px 20px;
       border-radius: 12px;
       background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
       color: #ffffff;
       font-size: 13.5px;
       font-weight: 700;
       border: 1px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.2);
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18);
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.2s ease;
     }
 
     .btn-submit:hover {
       transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.28);
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.25);
       background: #000000;
     }
 
-    .btn-reset {
+    .btn-open-live {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 9px 16px;
+      padding: 8px 14px;
       border-radius: 12px;
       background: #ffffff;
-      color: var(--text-muted);
-      font-size: 13px;
+      color: var(--accent-blue);
+      font-size: 12.5px;
       font-weight: 600;
       border: 1px solid var(--border);
-      cursor: pointer;
+      text-decoration: none;
       transition: all 0.18s ease;
     }
 
-    .btn-reset:hover {
-      background: #f1f5f9;
-      color: var(--text-main);
+    .btn-open-live:hover {
+      background: #eff6ff;
+      border-color: #bfdbfe;
     }
 
-    .portal-container {
-      width: 100%;
-      max-width: 980px;
-      padding: 32px 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    /* Editable styling */
+    /* Editable Text Styling */
     [contenteditable="true"] {
       outline: 1.5px dashed rgba(0, 122, 255, 0.35);
       outline-offset: 4px;
@@ -170,7 +170,7 @@
     }
 
     [contenteditable="true"]:hover {
-      outline: 2px dashed rgba(0, 122, 255, 0.7);
+      outline: 2px dashed rgba(0, 122, 255, 0.75);
       background: rgba(0, 122, 255, 0.04);
       cursor: text;
     }
@@ -181,182 +181,64 @@
       box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
     }
 
-    /* Minimalist Header */
-    .portal-header {
-      text-align: center;
-      margin-bottom: 40px;
+    /* Page View Containers */
+    .page-view {
+      display: none;
       width: 100%;
+      max-width: 1280px;
+      padding: 32px 24px;
+      animation: fadeIn 0.22s ease-out;
     }
 
-    .portal-badge {
-      display: inline-flex;
+    .page-view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards & Components */
+    .editor-section-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      outline: 1px solid rgba(15, 23, 42, 0.06);
+      border-radius: var(--radius-card);
+      padding: 28px;
+      box-shadow: 0 10px 30px -6px rgba(15, 23, 42, 0.05);
+      margin-bottom: 24px;
+    }
+
+    .editor-card-header {
+      display: flex;
       align-items: center;
-      gap: 7px;
-      padding: 6px 14px;
-      border-radius: var(--radius-pill);
-      background: #ffffff;
-      border: 1px solid var(--border);
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-muted);
-      letter-spacing: 0.02em;
-      margin-bottom: 16px;
-      box-shadow: var(--shadow-sm);
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
     }
 
-    .portal-badge .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #10b981;
-    }
-
-    .portal-header h1 {
-      font-size: 38px;
-      font-weight: 800;
-      letter-spacing: -0.035em;
-      color: var(--text-main);
-      line-height: 1.15;
-      margin-bottom: 12px;
-    }
-
-    .portal-header p {
+    .editor-card-title {
       font-size: 16px;
-      color: var(--text-muted);
-      max-width: 520px;
-      margin: 0 auto;
-      line-height: 1.5;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      letter-spacing: -0.015em;
     }
 
-    /* Two Big Choice Cards */
-    .choices-grid {
-      width: 100%;
+    .grid-2col {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 28px;
+      gap: 22px;
     }
 
-    @media (max-width: 768px) {
-      .choices-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-      .portal-header h1 {
-        font-size: 30px;
-      }
-    }
-
-    .choice-card {
-      background: var(--card-bg);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-card);
-      padding: 36px 32px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 420px;
-      box-shadow: 0 10px 30px -6px rgba(15, 23, 42, 0.06);
-      position: relative;
-      transition: all 0.24s ease;
-    }
-
-    .choice-card:hover {
-      border-color: #cbd5e1;
-      box-shadow: var(--shadow-lg);
-    }
-
-    /* Top Icon Badge */
-    .card-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-    }
-
-    .brand-icon {
-      width: 58px;
-      height: 58px;
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .brand-icon.magento {
-      background: linear-gradient(135deg, #008a2e 0%, #006822 100%);
-      color: #ffffff;
-      box-shadow: 0 8px 20px rgba(0, 138, 46, 0.22);
-    }
-
-    .brand-icon.wordpress {
-      background: linear-gradient(135deg, #095f36 0%, #064e2b 100%);
-      color: #ffffff;
-      box-shadow: 0 8px 20px rgba(9, 95, 54, 0.22);
-    }
-
-    .brand-icon svg {
-      width: 28px;
-      height: 28px;
-    }
-
-    .scope-tag {
-      font-size: 11.5px;
-      font-weight: 700;
-      padding: 5px 12px;
-      border-radius: var(--radius-pill);
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-    }
-
-    .scope-tag.magento {
-      background: rgba(0, 138, 46, 0.08);
-      color: #008a2e;
-      border: 1px solid rgba(0, 138, 46, 0.2);
-    }
-
-    .scope-tag.wordpress {
-      background: rgba(9, 95, 54, 0.08);
-      color: #095f36;
-      border: 1px solid rgba(9, 95, 54, 0.2);
-    }
-
-    /* Content Area */
-    .card-title-group {
-      margin-bottom: 16px;
-    }
-
-    .card-platform-title {
-      font-size: 32px;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      color: var(--text-main);
-      display: flex;
-      align-items: baseline;
-      gap: 10px;
-      line-height: 1.1;
-      flex-wrap: wrap;
-    }
-
-    .card-brand-sub {
-      font-size: 19px;
-      font-weight: 600;
-      color: var(--text-muted);
-      letter-spacing: -0.01em;
-    }
-
-    .card-description {
-      font-size: 14.5px;
-      line-height: 1.6;
-      color: var(--text-muted);
-      margin-bottom: 24px;
-    }
-
-    /* Feature Pills */
-    .card-features {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 32px;
+    @media (max-width: 860px) {
+      .grid-2col { grid-template-columns: 1fr; }
     }
 
     .feature-pill {
@@ -390,30 +272,14 @@
       color: #007aff;
     }
 
-    /* Bottom Action Button */
-    .card-cta-btn {
-      width: 100%;
-      padding: 13px 20px;
-      border-radius: 12px;
-      font-size: 14px;
+    .scope-tag {
+      font-size: 11.5px;
       font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      background: #ffffff;
-      color: var(--text-main);
-      border: 1.5px solid var(--border);
-      pointer-events: none;
-    }
-
-    /* Footer text */
-    .portal-footer {
-      margin-top: 48px;
-      text-align: center;
-      font-size: 12.5px;
-      color: var(--text-muted);
-      max-width: 600px;
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      display: inline-block;
     }
 
     /* Modal for copied output */
@@ -438,14 +304,8 @@
       border-radius: 20px;
       box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
       width: 100%;
-      max-width: 620px;
+      max-width: 660px;
       padding: 28px;
-      animation: popIn 0.22s ease-out;
-    }
-
-    @keyframes popIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
     }
   </style>
 </head>
@@ -454,161 +314,370 @@
   <!-- Floating Top Action Bar -->
   <header class="editor-top-bar">
     <div class="editor-top-inner">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div class="editor-status-pill">
-          <span class="editor-status-dot"></span>
-          <span>Live Visual Copy Editor</span>
-        </div>
-        <span style="font-size: 12px; color: var(--text-muted);">
-          Click directly on any text below to edit
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <span style="font-size: 14px; font-weight: 800; color: #0f172a; letter-spacing: -0.01em;">
+          🎨 Content Engine Copy Studio
         </span>
+
+        <!-- Page Navigator Switcher -->
+        <nav class="page-nav-pills">
+          <button type="button" class="page-nav-btn active" onclick="switchPage('page-portal', this)">
+            <span>1. Platform Chooser</span>
+          </button>
+          <button type="button" class="page-nav-btn" onclick="switchPage('page-magento', this)">
+            <span>2. Magento (Lawsons)</span>
+          </button>
+          <button type="button" class="page-nav-btn" onclick="switchPage('page-wordpress', this)">
+            <span>3. WordPress (Briants)</span>
+          </button>
+        </nav>
       </div>
 
       <div style="display: flex; align-items: center; gap: 10px;">
-        <button type="button" class="btn-reset" id="btn-reset-wording">
-          ↺ Reset to Defaults
-        </button>
-        <button type="button" class="btn-submit" id="btn-copy-updates">
+        <span style="font-size: 12px; color: var(--text-muted); margin-right: 4px;">
+          ✨ Click any text to edit
+        </span>
+        <button type="button" class="btn-submit" id="btn-copy-all-updates">
           <span>📋 Copy Updates for Chat</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Interactive Visual Portal Page -->
-  <main class="portal-container">
-
-    <!-- Minimal Header -->
-    <header class="portal-header">
-      <div class="portal-badge">
-        <span class="dot"></span>
-        <span id="txt-badge" contenteditable="true" spellcheck="false">Content Engine Workspace</span>
+  <!-- ========================================================================
+       PAGE 1: PLATFORM CHOOSER PORTAL
+       ======================================================================== -->
+  <main id="page-portal" class="page-view active">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+      <div>
+        <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main);">Page 1: Platform Chooser Portal</h2>
+        <p style="font-size: 13.5px; color: var(--text-muted);">This is the first screen Cameron sees when loading the application.</p>
       </div>
-      <h1 id="txt-headline" contenteditable="true" spellcheck="false">Choose Platform</h1>
-      <p id="txt-subheadline" contenteditable="true" spellcheck="false">Select your publishing system below to launch the dedicated studio.</p>
-    </header>
+      <a href="index.html" target="_blank" class="btn-open-live">
+        <span>↗ Open Live index.html</span>
+      </a>
+    </div>
 
-    <!-- Two Direct Choices Grid -->
-    <section class="choices-grid">
+    <!-- Header Section -->
+    <div class="editor-section-card" style="text-align: center;">
+      <h1 id="p1-headline" contenteditable="true" spellcheck="false" style="font-size: 36px; font-weight: 800; letter-spacing: -0.035em; margin-bottom: 10px;">Choose Platform</h1>
+      <p id="p1-subheadline" contenteditable="true" spellcheck="false" style="font-size: 16px; color: var(--text-muted); max-width: 540px; margin: 0 auto;">Select magento or wordpress, as they export a little different</p>
+    </div>
 
-      <!-- CHOICE 1: MAGENTO (LAWSONS) -->
-      <div class="choice-card magento" id="card-magento">
-        <div>
-          <div class="card-top">
-            <div class="brand-icon magento">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                <polyline points="2 17 12 22 22 17"></polyline>
-                <polyline points="2 12 12 17 22 12"></polyline>
-              </svg>
-            </div>
-            <span class="scope-tag magento" id="magento-scope-tag" contenteditable="true" spellcheck="false">5 Store Views</span>
-          </div>
-
-          <div class="card-title-group">
-            <div class="card-platform-title">
-              <span id="magento-title" contenteditable="true" spellcheck="false">Magento</span>
-              <span class="card-brand-sub" id="magento-brand-sub" contenteditable="true" spellcheck="false">(Lawsons)</span>
-            </div>
-          </div>
-
-          <p class="card-description" id="magento-desc" contenteditable="true" spellcheck="false">
-            Multi-Brand Amasty Blog Studio with AI Brand Multiplier, PageBuilder-safe scoped HTML, unified simple URLs, and live storefront previews.
-          </p>
-
-          <div class="card-features" id="magento-features-container">
-            <span class="feature-pill" contenteditable="true" spellcheck="false">Lawsons</span>
-            <span class="feature-pill" contenteditable="true" spellcheck="false">AVS Fencing</span>
-            <span class="feature-pill" contenteditable="true" spellcheck="false">Oxford Fencing</span>
-            <span class="feature-pill" contenteditable="true" spellcheck="false">Witham Timber</span>
-            <span class="feature-pill" contenteditable="true" spellcheck="false">The Landscape Centre</span>
-            <button type="button" class="btn-add-pill" onclick="addPill('magento-features-container')">+ Add Tag</button>
-          </div>
+    <!-- 2 Choice Cards -->
+    <div class="grid-2col">
+      <!-- Magento Card -->
+      <div class="editor-section-card" style="border-top: 4px solid var(--magento-green);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <div style="width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, #008a2e, #006822); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px;">M</div>
+          <span class="scope-tag" id="p1-magento-scope" contenteditable="true" spellcheck="false" style="background: rgba(0, 138, 46, 0.08); color: #008a2e; border: 1px solid rgba(0, 138, 46, 0.2);">BUILD & COPY</span>
         </div>
 
-        <div class="card-cta-btn">
-          <span id="magento-btn-text" contenteditable="true" spellcheck="false">Open Magento Engine</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-            <polyline points="12 5 19 12 12 19"></polyline>
-          </svg>
+        <h3 style="font-size: 26px; font-weight: 800; margin-bottom: 10px;">
+          <span id="p1-magento-title" contenteditable="true" spellcheck="false">Magento</span>
+          <span id="p1-magento-sub" contenteditable="true" spellcheck="false" style="font-size: 17px; font-weight: 600; color: var(--text-muted);">(Lawsons)</span>
+        </h3>
+
+        <p id="p1-magento-desc" contenteditable="true" spellcheck="false" style="font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">
+          Generates blog variations for each of the magento sites, you then copy and paste the html when creating a new blog
+        </p>
+
+        <label style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 8px;">Brands / Store Views Listed:</label>
+        <div style="display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 24px;" id="p1-magento-pills">
+          <span class="feature-pill" contenteditable="true" spellcheck="false">Lawsons</span>
+          <span class="feature-pill" contenteditable="true" spellcheck="false">AVS Fencing</span>
+          <span class="feature-pill" contenteditable="true" spellcheck="false">Oxford Fencing</span>
+          <span class="feature-pill" contenteditable="true" spellcheck="false">Witham Timber</span>
+          <span class="feature-pill" contenteditable="true" spellcheck="false">The Landscape Centre</span>
+          <button type="button" class="btn-add-pill" onclick="addPill('p1-magento-pills')">+ Add Tag</button>
+        </div>
+
+        <div style="padding: 12px; border-radius: 12px; background: #ffffff; border: 1.5px solid var(--border); font-weight: 700; font-size: 13.5px; text-align: center;">
+          <span id="p1-magento-btn" contenteditable="true" spellcheck="false">Open Magento</span> →
         </div>
       </div>
 
-      <!-- CHOICE 2: WORDPRESS (BRIANTS) -->
-      <div class="choice-card wordpress" id="card-wordpress">
-        <div>
-          <div class="card-top">
-            <div class="brand-icon wordpress">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-                <polyline points="10 9 9 9 8 9"></polyline>
-              </svg>
-            </div>
-            <span class="scope-tag wordpress" id="wp-scope-tag" contenteditable="true" spellcheck="false">WordPress WXR</span>
-          </div>
-
-          <div class="card-title-group">
-            <div class="card-platform-title">
-              <span id="wp-title" contenteditable="true" spellcheck="false">WordPress</span>
-              <span class="card-brand-sub" id="wp-brand-sub" contenteditable="true" spellcheck="false">(Briants)</span>
-            </div>
-          </div>
-
-          <p class="card-description" id="wp-desc" contenteditable="true" spellcheck="false">
-            Briants of Risborough Content Engine with Yoast SEO metadata, WXR 1.2 XML bulk export, WordPress Media Library relay, and category link banks.
-          </p>
-
-          <div class="card-features" id="wp-features-container">
-            <span class="feature-pill" contenteditable="true" spellcheck="false">Briants of Risborough</span>
-            <span class="feature-pill" contenteditable="true" spellcheck="false">WXR 1.2 XML</span>
-            <span class="feature-pill" contenteditable="true" spellcheck="false">Yoast SEO</span>
-            <span class="feature-pill" contenteditable="true" spellcheck="false">WP REST API</span>
-            <span class="feature-pill" contenteditable="true" spellcheck="false">STIHL & Tools</span>
-            <button type="button" class="btn-add-pill" onclick="addPill('wp-features-container')">+ Add Tag</button>
-          </div>
+      <!-- WordPress Card -->
+      <div class="editor-section-card" style="border-top: 4px solid var(--wp-green);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <div style="width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, #095f36, #064e2b); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px;">W</div>
+          <span class="scope-tag" id="p1-wp-scope" contenteditable="true" spellcheck="false" style="background: rgba(9, 95, 54, 0.08); color: #095f36; border: 1px solid rgba(9, 95, 54, 0.2);">BUILD & IMPORT</span>
         </div>
 
-        <div class="card-cta-btn">
-          <span id="wp-btn-text" contenteditable="true" spellcheck="false">Open WordPress Engine</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-            <polyline points="12 5 19 12 12 19"></polyline>
-          </svg>
+        <h3 style="font-size: 26px; font-weight: 800; margin-bottom: 10px;">
+          <span id="p1-wp-title" contenteditable="true" spellcheck="false">WordPress</span>
+          <span id="p1-wp-sub" contenteditable="true" spellcheck="false" style="font-size: 17px; font-weight: 600; color: var(--text-muted);">(Briants)</span>
+        </h3>
+
+        <p id="p1-wp-desc" contenteditable="true" spellcheck="false" style="font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">
+          Generates the blogs, but can log in with wordpress to see images there and downloads as an XML for each upload to wordpress
+        </p>
+
+        <label style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 8px;">Features / Connectors Listed:</label>
+        <div style="display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 24px;" id="p1-wp-pills">
+          <span class="feature-pill" contenteditable="true" spellcheck="false">Briants of Risborough</span>
+          <span class="feature-pill" contenteditable="true" spellcheck="false">WXR 1.2 XML</span>
+          <span class="feature-pill" contenteditable="true" spellcheck="false">WP REST API</span>
+          <button type="button" class="btn-add-pill" onclick="addPill('p1-wp-pills')">+ Add Tag</button>
+        </div>
+
+        <div style="padding: 12px; border-radius: 12px; background: #ffffff; border: 1.5px solid var(--border); font-weight: 700; font-size: 13.5px; text-align: center;">
+          <span id="p1-wp-btn" contenteditable="true" spellcheck="false">Open WordPress</span> →
         </div>
       </div>
-
-    </section>
+    </div>
 
     <!-- Footer Note -->
-    <footer class="portal-footer">
-      <span id="txt-footer" contenteditable="true" spellcheck="false">Tip: You can easily switch between platforms anytime using the "Switch Platform" button in each app's header.</span>
-    </footer>
-
+    <div style="text-align: center; margin-top: 10px;">
+      <span id="p1-footer" contenteditable="true" spellcheck="false" style="font-size: 13px; color: var(--text-muted);">
+        Tip: You can easily switch between platforms anytime using the "Switch Platform" button in each app's header.
+      </span>
+    </div>
   </main>
 
-  <!-- Output Copy Modal -->
+  <!-- ========================================================================
+       PAGE 2: MAGENTO (LAWSONS) STUDIO
+       ======================================================================== -->
+  <main id="page-magento" class="page-view">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+      <div>
+        <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main);">Page 2: Magento (Lawsons) Studio</h2>
+        <p style="font-size: 13.5px; color: var(--text-muted);">Wording for the Magento 5-Brand Amasty Engine (`magento.html`).</p>
+      </div>
+      <a href="magento.html" target="_blank" class="btn-open-live">
+        <span>↗ Open Live magento.html</span>
+      </a>
+    </div>
+
+    <!-- Header & Brand Switcher Wording -->
+    <div class="editor-section-card">
+      <div class="editor-card-header">
+        <span class="editor-card-title">Top Header & Scope Switcher Labels</span>
+      </div>
+
+      <div class="grid-2col" style="margin-bottom: 18px;">
+        <div>
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Header App Title</label>
+          <div id="p2-header-title" contenteditable="true" spellcheck="false" style="font-size: 18px; font-weight: 800; padding: 6px 0;">Magento Content Engine</div>
+        </div>
+        <div>
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Header Version & Subtitle</label>
+          <div id="p2-header-sub" contenteditable="true" spellcheck="false" style="font-size: 14px; font-weight: 600; padding: 6px 0;">Lawsons Group • 5-Brand Amasty Studio v1.1.0</div>
+        </div>
+      </div>
+
+      <div class="grid-2col" style="margin-bottom: 18px;">
+        <div>
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Store Scope Bar Label</label>
+          <div id="p2-scope-bar-label" contenteditable="true" spellcheck="false" style="font-size: 13px; font-weight: 700; padding: 6px 0;">Active Store View Scope:</div>
+        </div>
+        <div>
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Master Scope Pill Text</label>
+          <div id="p2-scope-global-pill" contenteditable="true" spellcheck="false" style="font-size: 13px; font-weight: 700; padding: 6px 0;">🌐 All Store Views (Global)</div>
+        </div>
+      </div>
+
+      <label style="font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">Header Action Buttons:</label>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <span class="feature-pill" id="p2-btn-diag" contenteditable="true" spellcheck="false">Diagnostics</span>
+        <span class="feature-pill" id="p2-btn-settings" contenteditable="true" spellcheck="false">Links & API Settings</span>
+        <span class="feature-pill" id="p2-btn-sample" contenteditable="true" spellcheck="false">Load 5-Brand Sample</span>
+        <span class="feature-pill" id="p2-btn-export" contenteditable="true" spellcheck="false">Export Amasty CSV</span>
+      </div>
+    </div>
+
+    <!-- 5 Main Navigation Tabs -->
+    <div class="editor-section-card">
+      <div class="editor-card-header">
+        <span class="editor-card-title">5 Main Navigation Tabs</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+        <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TAB 1</span>
+          <div id="p2-tab1" contenteditable="true" spellcheck="false" style="font-weight: 700; font-size: 13.5px; margin-top: 4px;">1. AI Brand Multiplier</div>
+        </div>
+        <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TAB 2</span>
+          <div id="p2-tab2" contenteditable="true" spellcheck="false" style="font-weight: 700; font-size: 13.5px; margin-top: 4px;">2. JSON Ingestion</div>
+        </div>
+        <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TAB 3</span>
+          <div id="p2-tab3" contenteditable="true" spellcheck="false" style="font-weight: 700; font-size: 13.5px; margin-top: 4px;">3. /pub/media/ Studio</div>
+        </div>
+        <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TAB 4</span>
+          <div id="p2-tab4" contenteditable="true" spellcheck="false" style="font-weight: 700; font-size: 13.5px; margin-top: 4px;">4. Store View Scope Manager</div>
+        </div>
+        <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TAB 5</span>
+          <div id="p2-tab5" contenteditable="true" spellcheck="false" style="font-weight: 700; font-size: 13.5px; margin-top: 4px;">5. Amasty Export & Pixel Hub</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 1 & Tab 4 Headings and Guidance -->
+    <div class="editor-section-card">
+      <div class="editor-card-header">
+        <span class="editor-card-title">Key Section Headings & Workflow Guidance</span>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Tab 1 Title & Description</label>
+        <div id="p2-tab1-head" contenteditable="true" spellcheck="false" style="font-size: 18px; font-weight: 800; margin-bottom: 4px;">AI 5-Brand Multiplier & Prompt Studio</div>
+        <div id="p2-tab1-sub" contenteditable="true" spellcheck="false" style="font-size: 13.5px; color: var(--text-muted);">Generate 1 master concept that branches into 5 SEO-safe brand variations with PageBuilder-safe HTML and custom link banks.</div>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Tab 4 Title & Scope Description</label>
+        <div id="p2-tab4-head" contenteditable="true" spellcheck="false" style="font-size: 18px; font-weight: 800; margin-bottom: 4px;">Multi-Store Post Queue & Scope Copier</div>
+        <div id="p2-tab4-sub" contenteditable="true" spellcheck="false" style="font-size: 13.5px; color: var(--text-muted);">Copy global setup fields first under All Store Views, then switch store views to copy each brand's tailored content and preview live styling.</div>
+      </div>
+
+      <!-- 3-Step Multi-Store Guide -->
+      <label style="font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 8px;">3-Step Multi-Store Setup Cards:</label>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="padding: 12px 16px; background: rgba(15, 23, 42, 0.03); border-radius: 10px; border: 1px solid var(--border);">
+          <strong id="p2-step1-title" contenteditable="true" spellcheck="false" style="display: block; font-size: 13px; color: var(--text-main); margin-bottom: 2px;">Step 1: All Store Views (Global Setup)</strong>
+          <span id="p2-step1-desc" contenteditable="true" spellcheck="false" style="font-size: 12.5px; color: var(--text-muted);">Set up the post in Magento under All Store Views: Paste Master Title, Author, Categories, Tags, and Featured Image.</span>
+        </div>
+        <div style="padding: 12px 16px; background: rgba(0, 138, 46, 0.05); border-radius: 10px; border: 1px solid rgba(0, 138, 46, 0.15);">
+          <strong id="p2-step2-title" contenteditable="true" spellcheck="false" style="display: block; font-size: 13px; color: #008a2e; margin-bottom: 2px;">Step 2: Store View Specific Overrides</strong>
+          <span id="p2-step2-desc" contenteditable="true" spellcheck="false" style="font-size: 12.5px; color: var(--text-muted);">Switch Magento's top-left scope to Lawsons, AVS, Oxford, Witham, or The Landscape Centre, uncheck "Use Default", and paste each brand's unique Title, URL Key, Meta, and Custom HTML.</span>
+        </div>
+        <div style="padding: 12px 16px; background: rgba(0, 122, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 122, 255, 0.15);">
+          <strong id="p2-step3-title" contenteditable="true" spellcheck="false" style="display: block; font-size: 13px; color: #007aff; margin-bottom: 2px;">Step 3: In-Preview Live Editing & Image Swaps</strong>
+          <span id="p2-step3-desc" contenteditable="true" spellcheck="false" style="font-size: 12.5px; color: var(--text-muted);">Need to tweak wording or swap an image? Open the Live Preview, click on any text to edit in place, or click any image to pick a replacement from your pool!</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ========================================================================
+       PAGE 3: WORDPRESS (BRIANTS) STUDIO
+       ======================================================================== -->
+  <main id="page-wordpress" class="page-view">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+      <div>
+        <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main);">Page 3: WordPress (Briants) Studio</h2>
+        <p style="font-size: 13.5px; color: var(--text-muted);">Wording for the WordPress Content Engine (`wordpress/index.html`).</p>
+      </div>
+      <a href="wordpress/index.html" target="_blank" class="btn-open-live">
+        <span>↗ Open Live wordpress/index.html</span>
+      </a>
+    </div>
+
+    <!-- Header & Stats Wording -->
+    <div class="editor-section-card">
+      <div class="editor-card-header">
+        <span class="editor-card-title">Top Header & Stat Counter Labels</span>
+      </div>
+
+      <div class="grid-2col" style="margin-bottom: 18px;">
+        <div>
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Header App Title</label>
+          <div id="p3-header-title" contenteditable="true" spellcheck="false" style="font-size: 18px; font-weight: 800; padding: 6px 0;">WordPress Content Engine</div>
+        </div>
+        <div>
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Header Version Tag</label>
+          <div id="p3-header-sub" contenteditable="true" spellcheck="false" style="font-size: 14px; font-weight: 600; padding: 6px 0;">Briants of Risborough • WordPress Studio v8.8.0</div>
+        </div>
+      </div>
+
+      <label style="font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">Stats Counter Pills:</label>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px;">
+        <span class="feature-pill" id="p3-stat-posts" contenteditable="true" spellcheck="false">Posts</span>
+        <span class="feature-pill" id="p3-stat-sched" contenteditable="true" spellcheck="false">Scheduled</span>
+        <span class="feature-pill" id="p3-stat-media" contenteditable="true" spellcheck="false">Media Assets</span>
+        <span class="feature-pill" id="p3-stat-ready" contenteditable="true" spellcheck="false">Export Ready</span>
+      </div>
+
+      <label style="font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">Header Action Buttons:</label>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <span class="feature-pill" id="p3-btn-diag" contenteditable="true" spellcheck="false">Diagnostics</span>
+        <span class="feature-pill" id="p3-btn-settings" contenteditable="true" spellcheck="false">Site & Links Settings</span>
+        <span class="feature-pill" id="p3-btn-sample" contenteditable="true" spellcheck="false">Load Sample Data</span>
+        <span class="feature-pill" id="p3-btn-export" contenteditable="true" spellcheck="false">Export WXR XML</span>
+      </div>
+    </div>
+
+    <!-- 5 Main Navigation Tabs -->
+    <div class="editor-section-card">
+      <div class="editor-card-header">
+        <span class="editor-card-title">5 Main Navigation Tabs</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+        <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TAB 1</span>
+          <div id="p3-tab1" contenteditable="true" spellcheck="false" style="font-weight: 700; font-size: 13.5px; margin-top: 4px;">1. AI Prompt Generator</div>
+        </div>
+        <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TAB 2</span>
+          <div id="p3-tab2" contenteditable="true" spellcheck="false" style="font-weight: 700; font-size: 13.5px; margin-top: 4px;">2. JSON Ingestion</div>
+        </div>
+        <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TAB 3</span>
+          <div id="p3-tab3" contenteditable="true" spellcheck="false" style="font-weight: 700; font-size: 13.5px; margin-top: 4px;">3. Media Library</div>
+        </div>
+        <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TAB 4</span>
+          <div id="p3-tab4" contenteditable="true" spellcheck="false" style="font-weight: 700; font-size: 13.5px; margin-top: 4px;">4. Post Queue & Scheduler</div>
+        </div>
+        <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TAB 5</span>
+          <div id="p3-tab5" contenteditable="true" spellcheck="false" style="font-weight: 700; font-size: 13.5px; margin-top: 4px;">5. WXR XML Export</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mode Switcher & Core Sections -->
+    <div class="editor-section-card">
+      <div class="editor-card-header">
+        <span class="editor-card-title">Prompt Generator & Queue Descriptions</span>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Tab 1 Title & Description</label>
+        <div id="p3-tab1-head" contenteditable="true" spellcheck="false" style="font-size: 18px; font-weight: 800; margin-bottom: 4px;">External AI Prompt Generator</div>
+        <div id="p3-tab1-sub" contenteditable="true" spellcheck="false" style="font-size: 13.5px; color: var(--text-muted);">Generate bulletproof system prompts for ChatGPT, Claude, or Gemini. Customize HTML widgets and content length below.</div>
+      </div>
+
+      <div class="grid-2col" style="margin-bottom: 20px;">
+        <div>
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Mode 1 Button Label</label>
+          <div id="p3-mode-single" contenteditable="true" spellcheck="false" style="font-size: 13.5px; font-weight: 700; padding: 6px 0;">Single Article Mode (Detailed)</div>
+        </div>
+        <div>
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Mode 2 Button Label</label>
+          <div id="p3-mode-bulk" contenteditable="true" spellcheck="false" style="font-size: 13.5px; font-weight: 700; padding: 6px 0;">Bulk Topical Cluster Mode (5-10 Articles)</div>
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Export Tab XML Document Card Title</label>
+        <div id="p3-xml-head" contenteditable="true" spellcheck="false" style="font-size: 16px; font-weight: 800; padding: 6px 0;">Generated WXR 1.2 XML Document</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Output Modal -->
   <div class="copy-modal-overlay" id="copy-modal">
     <div class="copy-modal-box">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
         <div style="display: flex; align-items: center; gap: 10px;">
           <span style="font-size: 22px;">📋</span>
-          <h3 style="font-size: 18px; font-weight: 800; color: #0f172a;">Content Updates Ready!</h3>
+          <h3 style="font-size: 18px; font-weight: 800; color: #0f172a;">All Wording Updates Ready!</h3>
         </div>
         <button type="button" onclick="closeModal()" style="border: none; background: #f1f5f9; width: 32px; height: 32px; border-radius: 50%; font-weight: bold; cursor: pointer;">✕</button>
       </div>
 
       <p style="font-size: 13.5px; color: #475569; margin-bottom: 14px;">
-        Your wording updates have been copied to your clipboard! Paste this directly into our chat so I can apply the live changes across the app.
+        All your edits across Page 1, Page 2, and Page 3 have been copied to your clipboard. Paste them directly into our chat!
       </p>
 
-      <textarea id="output-copy-box" readonly style="width: 100%; height: 220px; font-family: monospace; font-size: 12px; padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1; background: #f8fafc; color: #1e293b; margin-bottom: 16px;"></textarea>
+      <textarea id="output-copy-box" readonly style="width: 100%; height: 260px; font-family: monospace; font-size: 12px; padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1; background: #f8fafc; color: #1e293b; margin-bottom: 16px;"></textarea>
 
       <div style="display: flex; justify-content: flex-end; gap: 10px;">
-        <button type="button" class="btn-reset" onclick="closeModal()">Close</button>
+        <button type="button" class="btn-open-live" onclick="closeModal()">Close</button>
         <button type="button" class="btn-submit" onclick="copyAgain()">
           <span>Copy to Clipboard Again</span>
         </button>
@@ -617,6 +686,14 @@
   </div>
 
   <script>
+    function switchPage(pageId, btnEl) {
+      document.querySelectorAll(".page-view").forEach(p => p.classList.remove("active"));
+      document.querySelectorAll(".page-nav-btn").forEach(b => b.classList.remove("active"));
+      document.getElementById(pageId).classList.add("active");
+      btnEl.classList.add("active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
     function addPill(containerId) {
       const container = document.getElementById(containerId);
       const btn = container.querySelector(".btn-add-pill");
@@ -624,61 +701,73 @@
       newPill.className = "feature-pill";
       newPill.contentEditable = "true";
       newPill.spellcheck = false;
-      newPill.innerText = "New Feature";
+      newPill.innerText = "New Item";
       container.insertBefore(newPill, btn);
       newPill.focus();
     }
 
-    function collectUpdates() {
+    function collectAllUpdates() {
       const getPills = (containerId) => {
         const pills = document.querySelectorAll(`#${containerId} .feature-pill`);
         return Array.from(pills).map(p => p.innerText.trim()).filter(Boolean);
       };
 
-      const data = {
-        headerBadge: document.getElementById("txt-badge").innerText.trim(),
-        headline: document.getElementById("txt-headline").innerText.trim(),
-        subheadline: document.getElementById("txt-subheadline").innerText.trim(),
-        magentoCard: {
-          scopeTag: document.getElementById("magento-scope-tag").innerText.trim(),
-          title: document.getElementById("magento-title").innerText.trim(),
-          brandSub: document.getElementById("magento-brand-sub").innerText.trim(),
-          description: document.getElementById("magento-desc").innerText.trim(),
-          features: getPills("magento-features-container"),
-          buttonText: document.getElementById("magento-btn-text").innerText.trim()
-        },
-        wordpressCard: {
-          scopeTag: document.getElementById("wp-scope-tag").innerText.trim(),
-          title: document.getElementById("wp-title").innerText.trim(),
-          brandSub: document.getElementById("wp-brand-sub").innerText.trim(),
-          description: document.getElementById("wp-desc").innerText.trim(),
-          features: getPills("wp-features-container"),
-          buttonText: document.getElementById("wp-btn-text").innerText.trim()
-        },
-        footerTip: document.getElementById("txt-footer").innerText.trim()
+      const getTxt = (id) => {
+        const el = document.getElementById(id);
+        return el ? el.innerText.trim() : "";
       };
 
-      return `Here are my wording updates for the Content Engine:\n\n` +
-        `**Header Badge:** ${data.headerBadge}\n` +
-        `**Headline:** ${data.headline}\n` +
-        `**Subheadline:** ${data.subheadline}\n\n` +
-        `### Magento (Lawsons) Card:\n` +
-        `- **Title:** ${data.magentoCard.title} ${data.magentoCard.brandSub}\n` +
-        `- **Scope Badge:** ${data.magentoCard.scopeTag}\n` +
-        `- **Description:** ${data.magentoCard.description}\n` +
-        `- **Features / Brands:** ${data.magentoCard.features.join(", ")}\n` +
-        `- **Button Text:** ${data.magentoCard.buttonText}\n\n` +
-        `### WordPress (Briants) Card:\n` +
-        `- **Title:** ${data.wordpressCard.title} ${data.wordpressCard.brandSub}\n` +
-        `- **Scope Badge:** ${data.wordpressCard.scopeTag}\n` +
-        `- **Description:** ${data.wordpressCard.description}\n` +
-        `- **Features / Brands:** ${data.wordpressCard.features.join(", ")}\n` +
-        `- **Button Text:** ${data.wordpressCard.buttonText}\n\n` +
-        `**Footer Tip:** ${data.footerTip}`;
+      let out = "Here are my wording updates across the Content Engine:\n\n";
+
+      // Page 1
+      out += "## PAGE 1: PLATFORM CHOOSER (index.html)\n";
+      out += `- Headline: ${getTxt("p1-headline")}\n`;
+      out += `- Subheadline: ${getTxt("p1-subheadline")}\n`;
+      out += `### Magento Card:\n`;
+      out += `  - Title: ${getTxt("p1-magento-title")} ${getTxt("p1-magento-sub")}\n`;
+      out += `  - Badge: ${getTxt("p1-magento-scope")}\n`;
+      out += `  - Description: ${getTxt("p1-magento-desc")}\n`;
+      out += `  - Brands: ${getPills("p1-magento-pills").join(", ")}\n`;
+      out += `  - Button: ${getTxt("p1-magento-btn")}\n`;
+      out += `### WordPress Card:\n`;
+      out += `  - Title: ${getTxt("p1-wp-title")} ${getTxt("p1-wp-sub")}\n`;
+      out += `  - Badge: ${getTxt("p1-wp-scope")}\n`;
+      out += `  - Description: ${getTxt("p1-wp-desc")}\n`;
+      out += `  - Features: ${getPills("p1-wp-pills").join(", ")}\n`;
+      out += `  - Button: ${getTxt("p1-wp-btn")}\n`;
+      out += `- Footer Tip: ${getTxt("p1-footer")}\n\n`;
+
+      // Page 2
+      out += "## PAGE 2: MAGENTO (LAWSONS) STUDIO (magento.html)\n";
+      out += `- Header Title: ${getTxt("p2-header-title")}\n`;
+      out += `- Header Subtitle: ${getTxt("p2-header-sub")}\n`;
+      out += `- Scope Bar Label: ${getTxt("p2-scope-bar-label")}\n`;
+      out += `- Master Scope Pill: ${getTxt("p2-scope-global-pill")}\n`;
+      out += `- Action Buttons: ${getTxt("p2-btn-diag")}, ${getTxt("p2-btn-settings")}, ${getTxt("p2-btn-sample")}, ${getTxt("p2-btn-export")}\n`;
+      out += `- Tabs: [Tab 1: ${getTxt("p2-tab1")}], [Tab 2: ${getTxt("p2-tab2")}], [Tab 3: ${getTxt("p2-tab3")}], [Tab 4: ${getTxt("p2-tab4")}], [Tab 5: ${getTxt("p2-tab5")}]\n`;
+      out += `- Tab 1 Head & Sub: ${getTxt("p2-tab1-head")} | ${getTxt("p2-tab1-sub")}\n`;
+      out += `- Tab 4 Head & Sub: ${getTxt("p2-tab4-head")} | ${getTxt("p2-tab4-sub")}\n`;
+      out += `- 3-Step Setup Guidance:\n`;
+      out += `  - ${getTxt("p2-step1-title")}: ${getTxt("p2-step1-desc")}\n`;
+      out += `  - ${getTxt("p2-step2-title")}: ${getTxt("p2-step2-desc")}\n`;
+      out += `  - ${getTxt("p2-step3-title")}: ${getTxt("p2-step3-desc")}\n\n`;
+
+      // Page 3
+      out += "## PAGE 3: WORDPRESS (BRIANTS) STUDIO (wordpress/index.html)\n";
+      out += `- Header Title: ${getTxt("p3-header-title")}\n`;
+      out += `- Header Subtitle: ${getTxt("p3-header-sub")}\n`;
+      out += `- Stat Pills: ${getTxt("p3-stat-posts")}, ${getTxt("p3-stat-sched")}, ${getTxt("p3-stat-media")}, ${getTxt("p3-stat-ready")}\n`;
+      out += `- Action Buttons: ${getTxt("p3-btn-diag")}, ${getTxt("p3-btn-settings")}, ${getTxt("p3-btn-sample")}, ${getTxt("p3-btn-export")}\n`;
+      out += `- Tabs: [Tab 1: ${getTxt("p3-tab1")}], [Tab 2: ${getTxt("p3-tab2")}], [Tab 3: ${getTxt("p3-tab3")}], [Tab 4: ${getTxt("p3-tab4")}], [Tab 5: ${getTxt("p3-tab5")}]\n`;
+      out += `- Tab 1 Head & Sub: ${getTxt("p3-tab1-head")} | ${getTxt("p3-tab1-sub")}\n`;
+      out += `- Modes: ${getTxt("p3-mode-single")} | ${getTxt("p3-mode-bulk")}\n`;
+      out += `- XML Card Title: ${getTxt("p3-xml-head")}\n`;
+
+      return out;
     }
 
-    document.getElementById("btn-copy-updates").onclick = () => {
-      const summary = collectUpdates();
+    document.getElementById("btn-copy-all-updates").onclick = () => {
+      const summary = collectAllUpdates();
       navigator.clipboard.writeText(summary).then(() => {
         document.getElementById("output-copy-box").value = summary;
         document.getElementById("copy-modal").classList.add("active");
@@ -697,12 +786,6 @@
     function closeModal() {
       document.getElementById("copy-modal").classList.remove("active");
     }
-
-    document.getElementById("btn-reset-wording").onclick = () => {
-      if (confirm("Reset all text to default wording?")) {
-        window.location.reload();
-      }
-    };
   </script>
 </body>
 </html>
