@@ -1523,7 +1523,13 @@ ${escapeHtml(previewLines)}
         </button>
       `;
     } else {
+      const copyHeadingBtn = (b.heading && b.heading.trim()) ? `
+        <button type="button" class="btn btn-secondary btn-sm" data-block-copy="heading" data-block-idx="${idx}">
+          📋 Copy Heading
+        </button>
+      ` : "";
       actionButtons = `
+        ${copyHeadingBtn}
         <button type="button" class="btn btn-secondary btn-sm" data-block-copy="text" data-block-idx="${idx}">
           📝 Copy Text
         </button>

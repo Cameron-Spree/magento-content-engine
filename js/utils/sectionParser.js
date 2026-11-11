@@ -44,20 +44,42 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
   // Parse using DOMParser
   const parser = new DOMParser();
   const doc = parser.parseFromString(`<div>${cleanBodyHtml}</div>`, "text/html");
-  const container = doc.body.firstElementChild || doc.body;
+  let container = doc.body.firstElementChild || doc.body;
 
+  // Unwrap any single top-level wrapper div (e.g. .mce-blog-article-lawsons)
+  while (
+    container &&
+    container.children &&
+    container.children.length === 1 &&
+    container.firstElementChild &&
+    container.firstElementChild.tagName.toLowerCase() === "div" &&
+    !container.firstElementChild.classList.contains("mce-product-grid") &&
+    !container.firstElementChild.classList.contains("category-spotlight-box") &&
+    !container.firstElementChild.classList.contains("callout-box") &&
+    !container.firstElementChild.classList.contains("mce-table-wrap")
+  ) {
+    container = container.firstElementChild;
+  }
+
+  let pendingHeading = null;
   let currentSection = null;
   let sectionIndex = 1;
 
-  function flushSection() {
+  function flushCurrentSection() {
     if (currentSection) {
-      if (currentSection.elements.length > 0 || currentSection.heading) {
-        // Collect HTML and Plain text for this section
-        const sectionHtml = currentSection.elements.map(el => el.outerHTML).join("\n");
-        const plainText = currentSection.elements
-          .map(el => el.innerText.trim())
-          .filter(Boolean)
-          .join("\n\n");
+      const plainText = currentSection.elements
+        .map(el => (el.innerText || "").trim())
+        .filter(Boolean)
+        .join("\n\n");
+
+      const hasVisibleMedia = currentSection.elements.some(el => el.querySelector && el.querySelector("img, svg, figure, a, iframe, table"));
+
+      // NEVER push an empty section!
+      if (currentSection.elements.length > 0 && (plainText.length > 0 || hasVisibleMedia)) {
+        const elementsHtml = currentSection.elements.map(el => el.outerHTML).join("\n");
+        const fullSectionHtml = currentSection.headingHtml
+          ? `${currentSection.headingHtml}\n${elementsHtml}`
+          : elementsHtml;
 
         blocks.push({
           id: `sec_${blocks.length + 1}`,
@@ -65,7 +87,8 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
           heading: currentSection.heading || `Section ${sectionIndex}`,
           headingTag: currentSection.headingTag || "h2",
           headingHtml: currentSection.headingHtml || "",
-          html: sectionHtml,
+          html: fullSectionHtml,
+          elementsHtml: elementsHtml,
           plainText: plainText,
           elementCount: currentSection.elements.length
         });
@@ -76,51 +99,81 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
   }
 
   // Iterate over top-level child nodes
-  const children = Array.from(container.children);
+  const children = container ? Array.from(container.children) : [];
 
   for (let i = 0; i < children.length; i++) {
     const el = children[i];
-    const tagName = el.tagName.toLowerCase();
+    const tagName = el.tagName ? el.tagName.toLowerCase() : "";
+
+    // Skip empty spacer elements (<p></p>, <p>&nbsp;</p>, whitespace)
+    const rawText = (el.innerText || "").replace(/[\s\u00a0]+/g, " ").trim();
+    const hasMedia = Boolean(el.querySelector && el.querySelector("img, svg, figure, iframe, video, table, a"));
+    if (!rawText && !hasMedia && tagName !== "table" && !el.classList.contains("mce-table-wrap")) {
+      continue;
+    }
 
     // 1. Comparison / Specification Tables
-    if (tagName === "table" || el.classList.contains("mce-table-wrap") || el.querySelector("table")) {
-      flushSection();
-      const tableEl = el.classList.contains("mce-table-wrap") ? el : (el.querySelector("table") || el);
+    if (tagName === "table" || el.classList.contains("mce-table-wrap") || (el.querySelector && el.querySelector("table"))) {
+      const headingText = pendingHeading ? pendingHeading.text : "";
+      const headingHtml = pendingHeading ? pendingHeading.html : "";
+      pendingHeading = null;
+      flushCurrentSection();
+
+      const tableEl = el.classList.contains("mce-table-wrap") ? el : ((el.querySelector && el.querySelector("table")) || el);
       const wrapHtml = `<div class="mce-table-wrap">\n${tableEl.outerHTML}\n</div>`;
+      const fullHtml = headingHtml ? `${headingHtml}\n${wrapHtml}` : wrapHtml;
+
       blocks.push({
         id: `table_${blocks.length + 1}`,
         type: "table",
-        title: "Technical Comparison Table",
-        html: wrapHtml,
-        plainText: tableEl.innerText.trim(),
+        heading: headingText,
+        headingHtml: headingHtml,
+        title: headingText || "Technical Comparison Table",
+        html: fullHtml,
+        tableHtml: wrapHtml,
+        plainText: (tableEl.innerText || "").trim(),
         badge: "TABLE"
       });
       continue;
     }
 
     // 2. Product Grid / Showcase Cards
-    if (el.classList.contains("mce-product-grid") || el.querySelector(".mce-product-card")) {
-      flushSection();
+    if (el.classList.contains("mce-product-grid") || (el.querySelector && el.querySelector(".mce-product-card"))) {
+      const headingText = pendingHeading ? pendingHeading.text : "";
+      const headingHtml = pendingHeading ? pendingHeading.html : "";
+      pendingHeading = null;
+      flushCurrentSection();
+
+      const fullHtml = headingHtml ? `${headingHtml}\n${el.outerHTML}` : el.outerHTML;
       blocks.push({
         id: `prod_${blocks.length + 1}`,
         type: "product-grid",
-        title: "PageBuilder Product Showcase Grid",
-        html: el.outerHTML,
-        plainText: el.innerText.trim(),
+        heading: headingText,
+        headingHtml: headingHtml,
+        title: headingText || "PageBuilder Product Showcase Grid",
+        html: fullHtml,
+        plainText: (el.innerText || "").trim(),
         badge: "PRODUCTS"
       });
       continue;
     }
 
     // 3. Category Spotlight Banner & Dual CTA
-    if (el.classList.contains("category-spotlight-box") || el.querySelector(".spotlight-btn")) {
-      flushSection();
+    if (el.classList.contains("category-spotlight-box") || (el.querySelector && el.querySelector(".spotlight-btn"))) {
+      const headingText = pendingHeading ? pendingHeading.text : "";
+      const headingHtml = pendingHeading ? pendingHeading.html : "";
+      pendingHeading = null;
+      flushCurrentSection();
+
+      const fullHtml = headingHtml ? `${headingHtml}\n${el.outerHTML}` : el.outerHTML;
       blocks.push({
         id: `cta_${blocks.length + 1}`,
         type: "spotlight",
-        title: "Brand Spotlight & CTA Banner",
-        html: el.outerHTML,
-        plainText: el.innerText.trim(),
+        heading: headingText,
+        headingHtml: headingHtml,
+        title: headingText || "Brand Spotlight & CTA Banner",
+        html: fullHtml,
+        plainText: (el.innerText || "").trim(),
         badge: "CTA BANNER"
       });
       continue;
@@ -128,27 +181,47 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
 
     // 4. Pro-Tip / Want to Know More Callout Box
     if (el.classList.contains("callout-box") || el.classList.contains("lawsons-pro-tip") || el.classList.contains("lawsons-widget-container")) {
-      flushSection();
+      const headingText = pendingHeading ? pendingHeading.text : "";
+      const headingHtml = pendingHeading ? pendingHeading.html : "";
+      pendingHeading = null;
+      flushCurrentSection();
+
+      const calloutTitle = (el.querySelector && el.querySelector("h4, .heading, h3")?.innerText.trim()) || "Expert Pro-Tip / Callout Box";
+      const fullHtml = headingHtml ? `${headingHtml}\n${el.outerHTML}` : el.outerHTML;
       blocks.push({
         id: `callout_${blocks.length + 1}`,
         type: "callout",
-        title: el.querySelector("h4, .heading, h3")?.innerText.trim() || "Expert Pro-Tip / Callout Box",
-        html: el.outerHTML,
-        plainText: el.innerText.trim(),
+        heading: headingText,
+        headingHtml: headingHtml,
+        title: headingText || calloutTitle,
+        html: fullHtml,
+        plainText: (el.innerText || "").trim(),
         badge: "CALLOUT"
       });
       continue;
     }
 
-    // 5. Headings (H2 starts a new section)
+    // 5. Headings (H2 starts a new section or titles an upcoming element)
     if (tagName === "h2") {
-      flushSection();
-      currentSection = {
-        heading: el.innerText.trim(),
-        headingTag: "h2",
-        headingHtml: el.outerHTML,
-        elements: []
+      flushCurrentSection();
+      pendingHeading = {
+        text: (el.innerText || "").trim(),
+        tag: "h2",
+        html: el.outerHTML
       };
+      continue;
+    }
+
+    // If we have a pendingHeading, start a new section with it!
+    if (pendingHeading) {
+      flushCurrentSection();
+      currentSection = {
+        heading: pendingHeading.text,
+        headingTag: pendingHeading.tag,
+        headingHtml: pendingHeading.html,
+        elements: [el]
+      };
+      pendingHeading = null;
       continue;
     }
 
@@ -167,9 +240,25 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
     currentSection.elements.push(el);
   }
 
-  flushSection();
+  flushCurrentSection();
 
-  return blocks;
+  // If there was an orphaned trailing heading with no content (edge case)
+  if (pendingHeading && pendingHeading.text) {
+    blocks.push({
+      id: `sec_${blocks.length + 1}`,
+      type: "section",
+      heading: pendingHeading.text,
+      headingTag: pendingHeading.tag,
+      headingHtml: pendingHeading.html,
+      html: pendingHeading.html,
+      elementsHtml: "",
+      plainText: pendingHeading.text,
+      elementCount: 0
+    });
+  }
+
+  // Filter out any completely empty blocks (where html and plainText are both blank)
+  return blocks.filter(b => b.type === "css" || (b.html && b.html.trim().length > 0) || (b.plainText && b.plainText.trim().length > 0));
 }
 
 /**
