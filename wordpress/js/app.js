@@ -567,7 +567,7 @@ function initIngestionAndMedia() {
     });
   }
 
-function processUploadedImageFiles(files) {
+function processUploadedImageFiles(files, manualTitle = "", manualTags = []) {
   const fileArray = Array.from(files).filter(f => f.type.startsWith("image/") || /\.(png|jpe?g|gif|webp|svg|avif|bmp|heic)$/i.test(f.name));
 
   if (fileArray.length === 0) {
@@ -606,7 +606,8 @@ function processUploadedImageFiles(files) {
 
     reader.onload = (event) => {
       const dataUrl = event.target.result;
-      const tags = extractTagsFromFilename(filename);
+      const derivedTags = (manualTags && manualTags.length > 0) ? manualTags : extractTagsFromFilename(filename);
+      const derivedTitle = manualTitle || file.name.split(".")[0].replace(/[-_]/g, " ");
 
       const newImg = {
         id: "img_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
@@ -614,18 +615,19 @@ function processUploadedImageFiles(files) {
         url: computedWpUrl,
         wpMediaId: wpMediaId,
         previewUrl: objectUrl || dataUrl,
-        title: file.name.split(".")[0].replace(/[-_]/g, " "),
-        tags: tags,
+        title: derivedTitle,
+        tags: derivedTags,
         fileData: dataUrl
       };
 
-      state.imagePool.push(newImg);
-      state.posts = state.posts.map(p => autoMatchPostMedia(p, state.imagePool, state.settings));
+      state.imagePool.unshift(newImg);
 
       processedCount++;
       if (processedCount === fileArray.length) {
+        rematchAllPostsMedia(true);
         saveState();
         renderAll();
+        showToast(`Added ${fileArray.length} image asset${fileArray.length > 1 ? 's' : ''} to pool & matched!`, "success");
       }
     };
 
@@ -637,6 +639,87 @@ function processUploadedImageFiles(files) {
     reader.readAsDataURL(file);
   });
 }
+
+function handleAddWpMediaItem() {
+  const urlInput = document.getElementById("media-url-input");
+  const titleInput = document.getElementById("media-title-input");
+  const tagsInput = document.getElementById("media-tags-input");
+  const fileInput = document.getElementById("media-file-input");
+
+  const manualUrl = urlInput ? urlInput.value.trim() : "";
+  const manualTitle = titleInput ? titleInput.value.trim() : "";
+  const manualTags = tagsInput ? tagsInput.value.split(",").map(t => t.trim().toLowerCase()).filter(Boolean) : [];
+  const files = fileInput && fileInput.files ? fileInput.files : [];
+
+  if (!manualUrl && (!files || files.length === 0)) {
+    showToast("Please enter a WordPress image URL or select photo file(s) to add.", "warning");
+    return;
+  }
+
+  if (manualUrl) {
+    const cleanFilename = slugifyFilename(manualUrl.split("/").pop() || "image.jpg");
+    const derivedTitle = manualTitle || cleanFilename.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
+    const derivedTags = manualTags.length > 0 ? manualTags : derivedTitle.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+
+    const newImg = {
+      id: "img_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+      filename: cleanFilename,
+      url: manualUrl,
+      previewUrl: manualUrl,
+      title: derivedTitle,
+      tags: derivedTags
+    };
+
+    state.imagePool.unshift(newImg);
+  }
+
+  if (files && files.length > 0) {
+    processUploadedImageFiles(files, manualTitle, manualTags);
+  }
+
+  if (urlInput) urlInput.value = "";
+  if (titleInput) titleInput.value = "";
+  if (tagsInput) tagsInput.value = "";
+  if (fileInput) fileInput.value = "";
+
+  rematchAllPostsMedia(true);
+  saveState();
+  renderAll();
+  showToast("Added image to Media Pool & auto-matched with posts!", "success");
+}
+
+function rematchAllPostsMedia(silent = false) {
+  state.posts = state.posts.map(p => {
+    const unlocked = {
+      ...p,
+      is_media_locked: false,
+      featured_image_id: p.featured_image_manual ? p.featured_image_id : null,
+      featured_image: p.featured_image_manual ? p.featured_image : null,
+      mapped_images: {}
+    };
+    return autoMatchPostMedia(unlocked, state.imagePool, state.settings);
+  });
+  saveState();
+  renderAll();
+  if (!silent) {
+    showToast("Re-matched all post media assets across queue!", "success");
+  }
+}
+
+  const btnAddMediaItem = document.getElementById("btn-add-media-item");
+  if (btnAddMediaItem) {
+    btnAddMediaItem.addEventListener("click", handleAddWpMediaItem);
+  }
+
+  const btnRematchMedia = document.getElementById("btn-rematch-all-media");
+  if (btnRematchMedia) {
+    btnRematchMedia.addEventListener("click", () => rematchAllPostsMedia(false));
+  }
+
+  const btnQuickSettings = document.getElementById("btn-quick-settings-credentials");
+  if (btnQuickSettings) {
+    btnQuickSettings.addEventListener("click", () => openModal("modal-settings"));
+  }
 
   const btnAddImgMedia = document.getElementById("btn-open-add-image-media");
   if (btnAddImgMedia) {
@@ -664,15 +747,24 @@ function processUploadedImageFiles(files) {
     btnSearchWpMedia.addEventListener("click", async () => {
       const query = (document.getElementById("media-search-input").value || "").trim();
       if (!query) {
-        showToast("Please enter a keyword to search WordPress library.", "warning");
+        showToast("Please enter a keyword to search.", "warning");
         return;
       }
+
+      // Check if WordPress REST API credentials are configured
+      if (!state.settings.wpUsername || !state.settings.wpAppPassword) {
+        renderMediaPool();
+        showToast(`Filtered local pool for "${query}". (Tip: To search live 7,000+ WordPress assets, configure WP login in Settings).`, "info");
+        return;
+      }
+
       showToast(`Searching 7,000+ WordPress assets for "${query}"...`, "info");
       const wpItems = await fetchWordPressMediaPool(state.settings, query);
       if (wpItems.length > 0) {
         const existingIds = new Set(state.imagePool.map(i => i.wpMediaId));
         const newItems = wpItems.filter(i => !existingIds.has(i.wpMediaId));
         state.imagePool = [...newItems, ...state.imagePool];
+        rematchAllPostsMedia(true);
         saveState();
         renderMediaPool();
         showToast(`Found ${wpItems.length} matching media assets in WordPress!`, "success");
@@ -754,6 +846,26 @@ async function autoSuggestMediaForCurrentJson(userTriggered = false) {
 
   // Render interactive keyword pills above search bar for 1-click searching!
   renderTitleKeywordPills(keywords);
+
+  // If not logged into WordPress, match against local image pool seamlessly
+  if (!state.settings.wpUsername || !state.settings.wpAppPassword) {
+    if (state.imagePool.length > 0) {
+      const matchedLocal = state.imagePool.find(img => {
+        const imgText = `${img.title || ''} ${img.filename || ''} ${(img.tags || []).join(' ')}`.toLowerCase();
+        return keywords.some(k => imgText.includes(k));
+      }) || state.imagePool[0];
+
+      if (matchedLocal && !isManualFeaturedSelection) {
+        activeIngestFeaturedImgId = matchedLocal.id;
+        updateIngestFeaturedBanner(matchedLocal.title);
+      }
+      renderMediaPool();
+      if (userTriggered) {
+        showToast(`Matched "${matchedLocal.title}" from local media pool!`, "success");
+      }
+    }
+    return;
+  }
 
   const primaryKeyword = keywords[0];
   if (userTriggered) {
@@ -879,15 +991,21 @@ function renderMediaPool() {
       </div>
       <div class="media-asset-details">
         <div class="media-asset-title" title="${escapeHtml(img.title)}">${escapeHtml(img.title)}</div>
-        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--accent-gold-dark); margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(img.url)}">
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--accent-gold-dark); margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(img.url)}">
           ${escapeHtml(img.filename || img.url.split('/').pop())}
         </div>
         <div class="tag-pills">
-          ${img.tags.map(t => `<span class="tag-pill">${escapeHtml(t)}</span>`).join("")}
+          ${(img.tags || []).map(t => `<span class="tag-pill">${escapeHtml(t)}</span>`).join("")}
         </div>
-        <div class="media-asset-actions">
-          <button class="btn btn-outline btn-sm btn-edit-img" data-img-id="${img.id}" title="Edit / Rename Image">
-            <i data-lucide="edit-2"></i> Rename / Edit
+        <div class="media-asset-actions" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px;">
+          <button class="btn btn-secondary btn-sm btn-copy-img-url" data-img-url="${escapeHtml(img.url)}" title="Copy Image URL" style="flex: 1; font-size: 11px; padding: 4px 8px;">
+            <i data-lucide="link"></i> Copy URL
+          </button>
+          <button class="btn btn-secondary btn-sm btn-copy-img-html" data-img-id="${img.id}" title="Copy responsive <img> HTML tag" style="flex: 1; font-size: 11px; padding: 4px 8px;">
+            <i data-lucide="code"></i> Copy HTML
+          </button>
+          <button class="btn btn-outline btn-sm btn-edit-img" data-img-id="${img.id}" title="Edit / Rename Image" style="font-size: 11px; padding: 4px 8px;">
+            <i data-lucide="edit-2"></i> Edit
           </button>
           <button class="btn-icon-delete btn-delete-img" data-img-id="${img.id}" title="Delete Image">
             <i data-lucide="trash-2"></i>
@@ -952,7 +1070,7 @@ function renderMediaPool() {
   const emptyHTML = `
     <div class="empty-placeholder" style="text-align:center; padding: 40px; color: var(--text-muted); grid-column: 1 / -1;">
       <i data-lucide="image-off" style="width:36px; height:36px; margin-bottom:8px;"></i>
-      <p>No images match your query. Click "Upload" or type a keyword to search 7,000+ WordPress library.</p>
+      <p>No images in media pool yet. Paste an Image URL above or click "Load Sample Data" to start.</p>
     </div>`;
 
   if (container) {
@@ -961,6 +1079,46 @@ function renderMediaPool() {
   if (fullContainer) {
     fullContainer.innerHTML = images.length > 0 ? images.map(renderLibraryCardHTML).join("") : emptyHTML;
   }
+
+  // Update WP Auth Status badge
+  const authBadge = document.getElementById("badge-wp-auth-status");
+  if (authBadge) {
+    if (state.settings.wpUsername && state.settings.wpAppPassword) {
+      authBadge.textContent = "✅ REST API Connected";
+      authBadge.className = "badge badge-success";
+    } else {
+      authBadge.textContent = "ℹ️ Manual URL Mode";
+      authBadge.className = "badge badge-info";
+    }
+  }
+
+  // Copy Image URL button handler
+  document.querySelectorAll(".btn-copy-img-url").forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const url = btn.getAttribute("data-img-url");
+      if (url) {
+        navigator.clipboard.writeText(url).then(() => {
+          showToast(`Copied Image URL to clipboard!`, "success");
+        });
+      }
+    };
+  });
+
+  // Copy <img> HTML tag button handler
+  document.querySelectorAll(".btn-copy-img-html").forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const imgId = btn.getAttribute("data-img-id");
+      const img = state.imagePool.find(i => i.id === imgId);
+      if (img) {
+        const figureHtml = `<figure class="wp-block-image size-large is-resized aligncenter" style="margin:24px 0; text-align:center;"><img src="${img.url}" alt="${escapeHtml(img.title)}"/><figcaption style="font-size:12px; color:#888; font-style:italic; margin-top:6px;">${escapeHtml(img.title)}</figcaption></figure>`;
+        navigator.clipboard.writeText(figureHtml).then(() => {
+          showToast(`Copied responsive <img> HTML for "${img.title}"!`, "success");
+        });
+      }
+    };
+  });
 
   // Attach event handlers for Tab II buttons
   document.querySelectorAll(".btn-set-featured-img").forEach(btn => {
@@ -1463,13 +1621,12 @@ function saveNewImage() {
   const rawFilename = document.getElementById("image-filename").value.trim() || "image.jpg";
   const filename = slugifyFilename(rawFilename);
   const manualUrl = document.getElementById("image-url").value.trim();
-  const title = document.getElementById("image-title").value.trim() || "Image Asset";
+  const title = document.getElementById("image-title").value.trim() || cleanFilenameToTitle(filename);
   const tagsStr = document.getElementById("image-tags").value.trim();
 
-  if (!tagsStr) {
-    showToast("Please provide keyword tags for matching.", "error");
-    return;
-  }
+  const derivedTags = tagsStr
+    ? tagsStr.split(",").map(t => t.trim().toLowerCase()).filter(Boolean)
+    : title.toLowerCase().split(/\s+/).filter(w => w.length > 2);
 
   const computedUrl = manualUrl || buildWpUploadUrl(filename, state.settings);
 
@@ -1477,12 +1634,13 @@ function saveNewImage() {
     id: "img_" + Date.now(),
     filename: filename,
     url: computedUrl,
+    previewUrl: computedUrl,
     title: title,
-    tags: tagsStr.split(",").map(t => t.trim().toLowerCase()).filter(Boolean)
+    tags: derivedTags
   };
 
-  state.imagePool.push(newImg);
-  state.posts = state.posts.map(p => autoMatchPostMedia(p, state.imagePool, state.settings));
+  state.imagePool.unshift(newImg);
+  rematchAllPostsMedia(true);
 
   saveState();
   renderAll();
@@ -1493,7 +1651,12 @@ function saveNewImage() {
   document.getElementById("image-title").value = "";
   document.getElementById("image-tags").value = "";
 
-  showToast("Image asset saved to pool!", "success");
+  showToast("Image asset saved to pool & auto-matched!", "success");
+}
+
+function cleanFilenameToTitle(filename) {
+  if (!filename) return "Image Asset";
+  return filename.split(".")[0].replace(/[-_]+/g, " ");
 }
 
 function populateSettingsForm() {

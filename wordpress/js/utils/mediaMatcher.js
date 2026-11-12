@@ -75,7 +75,12 @@ export function autoMatchPostMedia(post, imagePool, settings, manualBodyImgIds =
   }
 
   // Check if mapped_images is ALREADY locked on this post from ingestion or manual selection
-  const isAlreadyMapped = Boolean(post.is_media_locked || (post.mapped_images && Object.keys(post.mapped_images).length > 0));
+  // Only consider locked if it actually mapped images previously; if empty, allow matching against pool!
+  const hasExistingMappings = Boolean(
+    post.featured_image ||
+    (post.mapped_images && Object.keys(post.mapped_images).length > 0 && Object.values(post.mapped_images).some(Boolean))
+  );
+  const isAlreadyMapped = Boolean(post.is_media_locked && hasExistingMappings);
   const hasManualBodyInput = Array.isArray(manualBodyImgIds) && manualBodyImgIds.length > 0;
 
   // Track used images so featured cover & body placeholders get unique, distinct images!

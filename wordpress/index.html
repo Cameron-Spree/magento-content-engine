@@ -421,41 +421,91 @@ How to Sharpen a STIHL Chainsaw Chain at Home</textarea>
       <section id="tab-media" class="tab-panel">
         <div class="panel-header">
           <div>
-            <h2><i data-lucide="image"></i> Media Library & Asset Pool</h2>
-            <p class="panel-subtitle">Upload, sort, rename, edit, and organize all featured cover images and in-body content media.</p>
+            <h2><i data-lucide="image"></i> Media Library</h2>
+            <p class="panel-subtitle">Upload the images to WordPress and then paste in the link to the image, or connect to the WordPress REST API.</p>
           </div>
           <div class="header-buttons">
-            <label class="btn btn-secondary" for="file-upload-input-media" style="cursor: pointer;">
-              <i data-lucide="upload"></i> Upload Images
-            </label>
-            <input type="file" id="file-upload-input-media" accept="image/*" multiple class="hidden">
-            <button class="btn btn-primary" id="btn-open-add-image-media">
-              <i data-lucide="plus"></i> Add Image URL
+            <button class="btn btn-secondary btn-sm" id="btn-rematch-all-media" title="Auto-match images to all posts in queue">
+              <i data-lucide="wand"></i> Auto-Match Images to Posts
             </button>
-            <button class="btn btn-outline" id="btn-download-zip-media">
+            <button class="btn btn-outline btn-sm" id="btn-download-zip-media">
               <i data-lucide="file-archive"></i> Download Media Zip (.zip)
             </button>
           </div>
         </div>
 
-        <div class="card" style="margin-bottom: 24px;">
-          <div class="form-row" style="margin-bottom: 0; align-items: flex-end;">
-            <div class="form-group inline-group" style="flex: 1;">
-              <label for="media-search-input">Search Local & Live WordPress Assets</label>
-              <div style="display:flex; gap: 8px;">
-                <input type="text" id="media-search-input" class="form-input" placeholder="Type keyword (e.g. stihl, chainsaw, lawnmower) to search local & 7,000+ WP library...">
-                <button class="btn btn-primary" id="btn-search-wp-media" style="white-space:nowrap;">
-                  <i data-lucide="search"></i> Search 7,000+ WP Library
+        <div class="grid-2col" style="margin-bottom: 24px;">
+          <!-- Left Card: Add Image via Live URL or File Upload (Magento-Style) -->
+          <div class="card">
+            <div class="card-header-flex" style="margin-bottom: 14px;">
+              <h3><i data-lucide="upload-cloud"></i> Add Image via URL or Local File</h3>
+              <span class="badge badge-warning" style="font-size: 11px;">Primary Method</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.5;">
+              Paste any live WordPress media URL, product image link, or upload local photos. New images are immediately matched to your blog posts.
+            </p>
+
+            <div class="form-group" style="margin-bottom: 12px;">
+              <label for="media-url-input">WordPress Media URL or Live Image Link <span class="required">*</span></label>
+              <input type="url" id="media-url-input" class="form-input" placeholder="https://briantsofrisborough.co.uk/wp-content/uploads/2026/06/... or https://...">
+            </div>
+
+            <div class="form-row" style="margin-bottom: 12px;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="media-title-input">Image Title / Alt Text</label>
+                <input type="text" id="media-title-input" class="form-input" placeholder="e.g. STIHL MS 170 Petrol Chainsaw">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="media-tags-input">Matching Keywords <span class="label-hint">(Comma separated)</span></label>
+                <input type="text" id="media-tags-input" class="form-input" placeholder="e.g. stihl, chainsaw, timber felling">
+              </div>
+            </div>
+
+            <div class="form-row" style="align-items: center; justify-content: space-between; margin-bottom: 0; padding-top: 4px;">
+              <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                <label for="media-file-input">Or Select Local Photo File(s)</label>
+                <input type="file" id="media-file-input" class="form-input" accept="image/*" multiple style="padding: 5px;">
+              </div>
+              <div style="margin-top: 18px; margin-left: 12px;">
+                <button type="button" class="btn btn-primary" id="btn-add-media-item" style="white-space: nowrap;">
+                  <i data-lucide="plus-circle"></i> Add to Pool & Auto-Match
                 </button>
               </div>
             </div>
-            <div class="form-group inline-group" style="width: 180px;">
-              <label for="media-sort-select">Sort By</label>
-              <select id="media-sort-select" class="form-select">
-                <option value="newest">Newest Added</option>
-                <option value="title">Title (A-Z)</option>
-                <option value="filename">Filename (A-Z)</option>
-              </select>
+          </div>
+
+          <!-- Right Card: WordPress REST API & Search (Optional) -->
+          <div class="card">
+            <div class="card-header-flex" style="margin-bottom: 14px;">
+              <h3><i data-lucide="database"></i> WordPress REST API Search <span style="font-size: 11px; font-weight: normal; color: var(--text-muted);">(Optional)</span></h3>
+              <span class="badge badge-info" id="badge-wp-auth-status" style="font-size: 11px;">Manual URL Mode</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.5;">
+              If your manager decides to connect WordPress REST API credentials later, you can search and pull directly from Briants' 7,000+ live WordPress media library.
+            </p>
+
+            <div class="form-group" style="margin-bottom: 14px;">
+              <label for="media-search-input">Search WordPress Library or Local Pool</label>
+              <div style="display:flex; gap: 8px;">
+                <input type="text" id="media-search-input" class="form-input" placeholder="Type keyword (e.g. stihl, chainsaw, lawnmower)...">
+                <button class="btn btn-secondary" id="btn-search-wp-media" style="white-space:nowrap;">
+                  <i data-lucide="search"></i> Search WP Library
+                </button>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 6px; border-top: 1px solid var(--border-subtle); flex-wrap: wrap; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <label for="media-sort-select" style="font-size: 12px; margin: 0; color: var(--text-muted);">Sort Gallery:</label>
+                <select id="media-sort-select" class="form-select" style="width: 140px; font-size: 12px; padding: 4px 8px;">
+                  <option value="newest">Newest Added</option>
+                  <option value="title">Title (A-Z)</option>
+                  <option value="filename">Filename (A-Z)</option>
+                </select>
+              </div>
+              <button type="button" class="btn btn-outline btn-sm" id="btn-quick-settings-credentials" style="font-size: 11px; padding: 4px 10px;">
+                <i data-lucide="settings"></i> Configure WP Login
+              </button>
             </div>
           </div>
         </div>

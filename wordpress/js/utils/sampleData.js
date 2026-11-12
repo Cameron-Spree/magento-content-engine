@@ -40,7 +40,40 @@ export const DEFAULT_SITE_SETTINGS = {
   ]
 };
 
-export const SAMPLE_IMAGE_POOL = [];
+export const SAMPLE_IMAGE_POOL = [
+  {
+    id: "img_sample_wp_1",
+    title: "STIHL Petrol Chainsaw Wood Felling & Cutting",
+    filename: "stihl-chainsaw-tree-cutting.jpg",
+    url: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=1200&q=80",
+    previewUrl: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=1200&q=80",
+    tags: ["chainsaw", "stihl", "tree", "felling", "cutting", "wood", "forestry"]
+  },
+  {
+    id: "img_sample_wp_2",
+    title: "Petrol Rotary Lawnmower Garden Machinery",
+    filename: "lawn-mower-garden-machinery.jpg",
+    url: "https://images.unsplash.com/photo-1592417817098-8f3d69104a47?auto=format&fit=crop&w=1200&q=80",
+    previewUrl: "https://images.unsplash.com/photo-1592417817098-8f3d69104a47?auto=format&fit=crop&w=1200&q=80",
+    tags: ["lawnmower", "lawn", "mower", "garden machinery", "grass", "stihl"]
+  },
+  {
+    id: "img_sample_wp_3",
+    title: "Chainsaw Safety Helmet, Visor & Forestry PPE Gear",
+    filename: "chainsaw-protective-ppe-gear.jpg",
+    url: "https://images.unsplash.com/photo-1508873696983-2df5293cb395?auto=format&fit=crop&w=1200&q=80",
+    previewUrl: "https://images.unsplash.com/photo-1508873696983-2df5293cb395?auto=format&fit=crop&w=1200&q=80",
+    tags: ["safety", "ppe", "helmet", "chainsaw", "protective gear", "arborist", "equipment"]
+  },
+  {
+    id: "img_sample_wp_4",
+    title: "Pressure Treated Garden Timber Fencing & Posts",
+    filename: "timber-fencing-panels-posts.jpg",
+    url: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1200&q=80",
+    previewUrl: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1200&q=80",
+    tags: ["fencing", "timber", "posts", "garden", "panels"]
+  }
+];
 
 export const SAMPLE_POST_PAYLOADS = [
   {
