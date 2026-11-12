@@ -108,6 +108,7 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
         const fullSectionHtml = currentSection.headingHtml
           ? `${currentSection.headingHtml}\n${elementsHtml}`
           : elementsHtml;
+        const wrappedHtml = `<div class="mce-blog-article-${brand.id}">\n${fullSectionHtml}\n</div>`;
 
         blocks.push({
           id: `sec_${blocks.length + 1}`,
@@ -115,7 +116,7 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
           heading: currentSection.heading || `Section ${sectionIndex}`,
           headingTag: currentSection.headingTag || "h2",
           headingHtml: currentSection.headingHtml || "",
-          html: fullSectionHtml,
+          html: wrappedHtml,
           elementsHtml: elementsHtml,
           plainText: plainText,
           elementCount: currentSection.elements.length
@@ -147,9 +148,12 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
       pendingHeading = null;
       flushCurrentSection();
 
-      const tableEl = el.classList.contains("mce-table-wrap") ? el : ((el.querySelector && el.querySelector("table")) || el);
-      const wrapHtml = `<div class="mce-table-wrap">\n${tableEl.outerHTML}\n</div>`;
+      const cleanTable = (el.tagName && el.tagName.toLowerCase() === "table")
+        ? el
+        : ((el.querySelector && el.querySelector("table")) || el);
+      const wrapHtml = `<div class="mce-table-wrap">\n${cleanTable.outerHTML}\n</div>`;
       const fullHtml = headingHtml ? `${headingHtml}\n${wrapHtml}` : wrapHtml;
+      const wrappedHtml = `<div class="mce-blog-article-${brand.id}">\n${fullHtml}\n</div>`;
 
       blocks.push({
         id: `table_${blocks.length + 1}`,
@@ -157,9 +161,9 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
         heading: headingText,
         headingHtml: headingHtml,
         title: headingText || "Technical Comparison Table",
-        html: fullHtml,
+        html: wrappedHtml,
         tableHtml: wrapHtml,
-        plainText: getNodeText(tableEl),
+        plainText: getNodeText(cleanTable),
         badge: "TABLE"
       });
       continue;
@@ -173,13 +177,14 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
       flushCurrentSection();
 
       const fullHtml = headingHtml ? `${headingHtml}\n${el.outerHTML}` : el.outerHTML;
+      const wrappedHtml = `<div class="mce-blog-article-${brand.id}">\n${fullHtml}\n</div>`;
       blocks.push({
         id: `prod_${blocks.length + 1}`,
         type: "product-grid",
         heading: headingText,
         headingHtml: headingHtml,
         title: headingText || "PageBuilder Product Showcase Grid",
-        html: fullHtml,
+        html: wrappedHtml,
         plainText: getNodeText(el),
         badge: "PRODUCTS"
       });
@@ -194,13 +199,14 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
       flushCurrentSection();
 
       const fullHtml = headingHtml ? `${headingHtml}\n${el.outerHTML}` : el.outerHTML;
+      const wrappedHtml = `<div class="mce-blog-article-${brand.id}">\n${fullHtml}\n</div>`;
       blocks.push({
         id: `cta_${blocks.length + 1}`,
         type: "spotlight",
         heading: headingText,
         headingHtml: headingHtml,
         title: headingText || "Brand Spotlight & CTA Banner",
-        html: fullHtml,
+        html: wrappedHtml,
         plainText: getNodeText(el),
         badge: "CTA BANNER"
       });
@@ -216,13 +222,14 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
 
       const calloutTitle = getNodeText(el.querySelector && el.querySelector("h4, .heading, h3")) || "Expert Pro-Tip / Callout Box";
       const fullHtml = headingHtml ? `${headingHtml}\n${el.outerHTML}` : el.outerHTML;
+      const wrappedHtml = `<div class="mce-blog-article-${brand.id}">\n${fullHtml}\n</div>`;
       blocks.push({
         id: `callout_${blocks.length + 1}`,
         type: "callout",
         heading: headingText,
         headingHtml: headingHtml,
         title: headingText || calloutTitle,
-        html: fullHtml,
+        html: wrappedHtml,
         plainText: getNodeText(el),
         badge: "CALLOUT"
       });
@@ -272,13 +279,14 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
 
   // If there was an orphaned trailing heading with no content (edge case)
   if (pendingHeading && pendingHeading.text) {
+    const wrappedHtml = `<div class="mce-blog-article-${brand.id}">\n${pendingHeading.html}\n</div>`;
     blocks.push({
       id: `sec_${blocks.length + 1}`,
       type: "section",
       heading: pendingHeading.text,
       headingTag: pendingHeading.tag,
       headingHtml: pendingHeading.html,
-      html: pendingHeading.html,
+      html: wrappedHtml,
       elementsHtml: "",
       plainText: pendingHeading.text,
       elementCount: 0

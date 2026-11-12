@@ -23,7 +23,9 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
 /* === ${brand.name.toUpperCase()} BLOG STYLES (MATCHES LIVE MAGENTO & AMASTY THEME) === */
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap');
 
-.mce-blog-article-${brand.id} {
+.mce-blog-article-${brand.id},
+.amblog-post-content,
+.am-blog-post {
   font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: ${p.textMain};
   line-height: 1.68;
@@ -37,7 +39,9 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
 .mce-blog-article-${brand.id} *::after {
   box-sizing: border-box;
 }
-.mce-blog-article-${brand.id} h2 {
+.mce-blog-article-${brand.id} h2,
+.amblog-post-content h2,
+.am-blog-post h2 {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: ${p.primary};
   font-size: 26px;
@@ -48,7 +52,9 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
   line-height: 1.28;
   letter-spacing: -0.01em;
 }
-.mce-blog-article-${brand.id} h3 {
+.mce-blog-article-${brand.id} h3,
+.amblog-post-content h3,
+.am-blog-post h3 {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: ${p.primaryDark || p.primary};
   font-size: 20px;
@@ -56,47 +62,58 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
   margin: 28px 0 12px 0;
   line-height: 1.35;
 }
-.mce-blog-article-${brand.id} h4 {
+.mce-blog-article-${brand.id} h4,
+.amblog-post-content h4,
+.am-blog-post h4 {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: ${p.textMain};
   font-size: 17px;
   font-weight: 700;
   margin: 20px 0 8px 0;
 }
-.mce-blog-article-${brand.id} p {
+.mce-blog-article-${brand.id} p,
+.amblog-post-content p,
+.am-blog-post p {
   margin: 0 0 18px 0;
   color: ${p.textMain};
   font-size: 16px;
   line-height: 1.68;
 }
-.mce-blog-article-${brand.id} a:not(.mce-btn-primary):not(.mce-btn-secondary):not(.lawsons-widget-button) {
+.mce-blog-article-${brand.id} a:not(.mce-btn-primary):not(.mce-btn-secondary):not(.lawsons-widget-button),
+.amblog-post-content a:not(.mce-btn-primary):not(.mce-btn-secondary):not(.lawsons-widget-button) {
   color: ${p.primary};
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 3px;
   transition: opacity 0.2s ease;
 }
-.mce-blog-article-${brand.id} a:not(.mce-btn-primary):not(.mce-btn-secondary):not(.lawsons-widget-button):hover {
+.mce-blog-article-${brand.id} a:not(.mce-btn-primary):not(.mce-btn-secondary):not(.lawsons-widget-button):hover,
+.amblog-post-content a:not(.mce-btn-primary):not(.mce-btn-secondary):not(.lawsons-widget-button):hover {
   opacity: 0.8;
 }
 .mce-blog-article-${brand.id} ul,
-.mce-blog-article-${brand.id} ol {
+.mce-blog-article-${brand.id} ol,
+.amblog-post-content ul,
+.amblog-post-content ol {
   margin: 0 0 22px 0;
   padding-left: 24px;
   color: ${p.textMain};
 }
-.mce-blog-article-${brand.id} li {
+.mce-blog-article-${brand.id} li,
+.amblog-post-content li {
   margin-bottom: 8px;
   line-height: 1.65;
 }
 /* Single-Image Anti-Duplication Rule (Bypasses Magento PageBuilder Mobile/Desktop Double Image Bug) */
-.mce-blog-article-${brand.id} figure.mce-media-figure {
+.mce-blog-article-${brand.id} figure.mce-media-figure,
+figure.mce-media-figure {
   margin: 28px 0 !important;
   text-align: center;
   display: block !important;
   width: 100%;
 }
 .mce-blog-article-${brand.id} figure.mce-media-figure img,
+figure.mce-media-figure img,
 .mce-blog-article-${brand.id} > img,
 .mce-blog-article-${brand.id} p > img {
   display: block !important;
@@ -110,17 +127,20 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 .mce-blog-article-${brand.id} figure.mce-media-figure img.pagebuilder-mobile-only,
+figure.mce-media-figure img.pagebuilder-mobile-only,
 .mce-blog-article-${brand.id} img[data-element="mobile_image"] {
   display: none !important;
 }
-.mce-blog-article-${brand.id} figcaption {
+.mce-blog-article-${brand.id} figcaption,
+figure.mce-media-figure figcaption {
   font-size: 13px;
   color: #6b7280;
   margin-top: 8px;
   font-style: italic;
 }
 /* Responsive Data & Comparison Tables */
-.mce-blog-article-${brand.id} .mce-table-wrap {
+.mce-blog-article-${brand.id} .mce-table-wrap,
+.mce-table-wrap {
   width: 100%;
   overflow-x: auto;
   margin: 28px 0;
@@ -128,13 +148,17 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
   border: 1px solid ${p.borderTint};
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
 }
-.mce-blog-article-${brand.id} table {
+.mce-blog-article-${brand.id} table,
+.mce-table-wrap table,
+.amblog-post-content table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14.5px;
   background: #ffffff;
 }
-.mce-blog-article-${brand.id} th {
+.mce-blog-article-${brand.id} th,
+.mce-table-wrap th,
+.amblog-post-content th {
   background: ${p.primary};
   color: #ffffff;
   font-weight: 700;
@@ -143,16 +167,21 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
   border-bottom: 2px solid ${p.primaryDark || p.primary};
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
-.mce-blog-article-${brand.id} td {
+.mce-blog-article-${brand.id} td,
+.mce-table-wrap td,
+.amblog-post-content td {
   padding: 12px 16px;
   border-bottom: 1px solid #e5e7eb;
   color: ${p.textMain};
 }
-.mce-blog-article-${brand.id} tr:nth-child(even) td {
+.mce-blog-article-${brand.id} tr:nth-child(even) td,
+.mce-table-wrap tr:nth-child(even) td,
+.amblog-post-content tr:nth-child(even) td {
   background: ${p.surfaceTint};
 }
 /* Brand Spotlight Banner & Dual CTA Buttons */
-.mce-blog-article-${brand.id} .category-spotlight-box {
+.mce-blog-article-${brand.id} .category-spotlight-box,
+.category-spotlight-box {
   background: ${p.surfaceTint};
   border: 2px solid ${p.primary};
   border-radius: 10px;
@@ -161,19 +190,22 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
   text-align: center;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
 }
-.mce-blog-article-${brand.id} .category-spotlight-box h3 {
+.mce-blog-article-${brand.id} .category-spotlight-box h3,
+.category-spotlight-box h3 {
   color: ${p.primary};
   font-size: 22px;
   font-weight: 700;
   margin: 0 0 10px 0;
 }
-.mce-blog-article-${brand.id} .category-spotlight-box p {
+.mce-blog-article-${brand.id} .category-spotlight-box p,
+.category-spotlight-box p {
   color: ${p.textMain};
   font-size: 15px;
   max-width: 640px;
   margin: 0 auto 20px auto;
 }
-.mce-blog-article-${brand.id} .mce-btn-row {
+.mce-blog-article-${brand.id} .mce-btn-row,
+.category-spotlight-box .mce-btn-row {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
@@ -181,7 +213,8 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
   align-items: center;
 }
 .mce-blog-article-${brand.id} .mce-btn-primary,
-.mce-blog-article-${brand.id} .spotlight-btn {
+.mce-btn-primary,
+.spotlight-btn {
   display: inline-block;
   background: ${p.primary};
   color: #ffffff !important;
@@ -192,7 +225,8 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
   font-size: 14.5px;
   transition: transform 0.15s ease, opacity 0.15s ease;
 }
-.mce-blog-article-${brand.id} .mce-btn-secondary {
+.mce-blog-article-${brand.id} .mce-btn-secondary,
+.mce-btn-secondary {
   display: inline-block;
   background: ${p.secondary};
   color: ${p.secondaryText} !important;
@@ -205,7 +239,9 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
 }
 /* Authentic Lawsons & Brand Callout Box */
 .mce-blog-article-${brand.id} .callout-box,
-.mce-blog-article-${brand.id} .lawsons-pro-tip {
+.callout-box,
+.mce-blog-article-${brand.id} .lawsons-pro-tip,
+.lawsons-pro-tip {
   background: ${p.surfaceTint};
   border-left: 5px solid ${p.primary};
   border-radius: 6px;
@@ -213,14 +249,17 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
   margin: 28px 0;
 }
 .mce-blog-article-${brand.id} .callout-box h4,
-.mce-blog-article-${brand.id} .lawsons-pro-tip .heading {
+.callout-box h4,
+.mce-blog-article-${brand.id} .lawsons-pro-tip .heading,
+.lawsons-pro-tip .heading {
   color: ${p.primary};
   font-size: 17px;
   font-weight: 700;
   margin: 0 0 10px 0;
 }
 /* Authentic Lawsons CTA Card (Want to know more?) */
-.mce-blog-article-${brand.id} .lawsons-widget-container {
+.mce-blog-article-${brand.id} .lawsons-widget-container,
+.lawsons-widget-container {
   width: 100%;
   margin: 28px 0;
   background: #ffffff !important;
@@ -230,7 +269,8 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
   box-shadow: 0 4px 12px rgba(0,0,0,0.06);
   color: ${p.textMain} !important;
 }
-.mce-blog-article-${brand.id} .lawsons-widget-button {
+.mce-blog-article-${brand.id} .lawsons-widget-button,
+.lawsons-widget-button {
   display: inline-block;
   text-decoration: none !important;
   background: #ffffff !important;
@@ -242,12 +282,47 @@ export function generateBrandScopedCSS(brandId = "lawsons") {
   font-size: 14px;
   transition: all 0.2s ease;
 }
-.mce-blog-article-${brand.id} .lawsons-widget-button:hover {
+.mce-blog-article-${brand.id} .lawsons-widget-button:hover,
+.lawsons-widget-button:hover {
   background: ${p.primary} !important;
   color: #ffffff !important;
 }
 /* PageBuilder-Safe Product Cards Grid */
-.mce-blog-article-${brand.id} .mce-product-grid {
+.mce-blog-article-${brand.id} .mce-product-grid,
+.mce-product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  margin: 30px 0;
+}
+.mce-blog-article-${brand.id} .mce-product-card,
+.mce-product-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-bottom: 3px solid ${p.primary};
+  border-radius: 8px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.mce-blog-article-${brand.id} .mce-product-card h5,
+.mce-product-card h5 {
+  font-size: 15px;
+  font-weight: 700;
+  color: ${p.textMain};
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+}
+.mce-blog-article-${brand.id} .mce-product-card p,
+.mce-product-card p {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0 0 14px 0;
+}
+</style>`;
+}
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 18px;
