@@ -323,36 +323,6 @@ figure.mce-media-figure figcaption {
 }
 </style>`;
 }
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px;
-  margin: 30px 0;
-}
-.mce-blog-article-${brand.id} .mce-product-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-bottom: 3px solid ${p.primary};
-  border-radius: 8px;
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-.mce-blog-article-${brand.id} .mce-product-card h5 {
-  font-size: 15px;
-  font-weight: 700;
-  color: ${p.textMain};
-  margin: 0 0 8px 0;
-  line-height: 1.4;
-}
-.mce-blog-article-${brand.id} .mce-product-card p {
-  font-size: 13px;
-  color: #6b7280;
-  margin: 0 0 14px 0;
-}
-</style>`;
-}
 
 /**
  * Builds the complete, ready-to-paste Custom HTML payload for a specific brand Store View
