@@ -8,7 +8,7 @@
 import { BRANDS, BRAND_LIST, ALL_STORE_SCOPE, ALL_SCOPES_LIST, getBrandById } from "./utils/brandsConfig.js";
 import { generateAIPrompt } from "./utils/promptTemplates.js";
 import { parseAndValidateJSON } from "./utils/jsonValidator.js";
-import { autoMatchPostMedia, slugifyFilename } from "./utils/mediaMatcher.js";
+import { autoMatchPostMedia, slugifyFilename, replaceImagePlaceholdersInHtml } from "./utils/mediaMatcher.js";
 import { buildScopedHtmlPayload } from "./utils/htmlStyler.js";
 import { generateAmastyCSV, generateMagentoApiPayload } from "./utils/amastyExporter.js";
 import { calculateBatchSchedule } from "./utils/scheduler.js";
@@ -1454,7 +1454,9 @@ function renderSectionsListHTML(post, brandId, containerEl) {
   const brand = getBrandById(brandId);
   const v = (post.variations && post.variations[brand.id]) ? post.variations[brand.id] : {};
   const rawHtml = v.content_html || post.content_html || "";
-  const blocks = parseArticleIntoSections(rawHtml, brand.id, true);
+  // Ensure image placeholders like {{IMAGE:...}} are matched with state.imagePool if not already
+  const processedHtml = replaceImagePlaceholdersInHtml(rawHtml, post.mapped_images, state.imagePool, null, brand);
+  const blocks = parseArticleIntoSections(processedHtml, brand.id, true);
 
   if (!blocks || blocks.length === 0) {
     containerEl.innerHTML = `<div style="padding: 16px; text-align: center; color: #64748b; font-size: 13px;">No sections or elements found for ${brand.name}.</div>`;
@@ -1493,6 +1495,51 @@ ${escapeHtml(previewLines)}
             </button>
             <button type="button" class="btn btn-primary btn-sm" data-block-copy="html" data-block-idx="${idx}" style="background: #4f46e5; border-color: #4338ca;">
               📋 Copy ${brand.name} &lt;style&gt; Block
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // 2. STANDALONE RESPONSIVE IMAGE BLOCK
+    if (b.type === "image") {
+      const displayTitle = b.heading || b.title || "Responsive Body Image";
+      const displayAlt = b.imageAlt || b.imageCaption || b.heading || "Article Image";
+      const displayCaption = b.imageCaption ? `<div style="font-size: 11.5px; color: #64748b; font-style: italic; margin-top: 3px;">Caption: "${escapeHtml(b.imageCaption)}"</div>` : "";
+      const copyCaptionBtn = (b.imageCaption || b.imageAlt) ? `
+        <button type="button" class="btn btn-secondary btn-sm" data-block-copy="caption" data-block-idx="${idx}" title="Copy Alt Text / Caption">
+          📝 Copy Alt / Caption
+        </button>
+      ` : "";
+
+      return `
+        <div class="section-block-card image-highlight-card" style="border-left: 4px solid #0284c7; background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);">
+          <div class="section-block-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="section-block-badge badge-image" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 700;">🖼️ IMAGE BLOCK</span>
+              <strong style="font-size: 14px; color: #0f172a;">${escapeHtml(displayTitle)}</strong>
+            </div>
+            <span style="font-size: 11.5px; color: #94a3b8; font-weight: 600;">#${idx}</span>
+          </div>
+          <div style="display: flex; gap: 14px; align-items: center; padding: 10px 14px; background: #ffffff; border-radius: 8px; margin-bottom: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <img src="${escapeAttr(b.imageUrl)}" alt="${escapeAttr(displayAlt)}" style="width: 88px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1; flex-shrink: 0;" onerror="this.style.display='none'" />
+            <div style="min-width: 0; flex: 1;">
+              <div style="font-size: 13px; font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                ${escapeHtml(displayAlt)}
+              </div>
+              <div style="font-size: 11.5px; color: #0284c7; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); margin-top: 2px;">
+                ${escapeHtml(b.imageUrl)}
+              </div>
+              ${displayCaption}
+            </div>
+          </div>
+          <div class="section-block-actions">
+            <button type="button" class="btn btn-secondary btn-sm" data-block-copy="image_url" data-block-idx="${idx}" title="Copy direct image URL for Magento PageBuilder Image element">
+              🔗 Copy Image URL
+            </button>
+            ${copyCaptionBtn}
+            <button type="button" class="btn btn-primary btn-sm" data-block-copy="html" data-block-idx="${idx}" style="background: #0284c7; border-color: #0369a1;" title="Copy single-image HTML snippet">
+              📋 Copy Image HTML
             </button>
           </div>
         </div>
@@ -1574,6 +1621,20 @@ ${escapeHtml(previewLines)}
           copyToClipboard(raw, `Copied ${brand.name} Raw CSS (no <style> tags)!`);
         } else {
           copyToClipboard(b.html, `Copied ${brand.name} Scoped CSS <style> Block! Paste at the top of PageBuilder.`);
+        }
+        return;
+      }
+
+      if (b.type === "image") {
+        if (act === "image_url" || act === "text") {
+          copyToClipboard(b.imageUrl, `Copied Image URL to clipboard!`);
+        } else if (act === "caption") {
+          const cap = b.imageCaption || b.imageAlt || "";
+          copyToClipboard(cap, `Copied Alt Text / Caption: "${cap}"`);
+        } else if (act === "html") {
+          copyToClipboard(b.html, `Copied ${brand.name} Single-Image HTML snippet!`);
+        } else if (act === "heading") {
+          copyToClipboard(b.heading, `Copied Image Title: "${b.heading}"`);
         }
         return;
       }
@@ -1751,7 +1812,16 @@ function renderStorefrontModalContent(postId, brandId) {
   }
 
   if (btnFull) btnFull.onclick = () => setModalView("full");
-  if (btnSections) btnSections.onclick = () => setModalView("sections");
+  if (btnSections) {
+    btnSections.onclick = () => {
+      saveCurrentModalInPlaceEdits(false);
+      const sectionsListEl = document.getElementById("preview-sections-list");
+      if (sectionsListEl) {
+        renderSectionsListHTML(post, brand.id, sectionsListEl);
+      }
+      setModalView("sections");
+    };
+  }
   setModalView(state.modalViewMode || "full");
 
   updateLiveEditVisualClasses();

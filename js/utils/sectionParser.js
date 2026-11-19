@@ -15,6 +15,32 @@ import { generateBrandScopedCSS } from "./htmlStyler.js";
 import { getBrandById } from "./brandsConfig.js";
 
 /**
+ * Escapes characters for HTML attributes
+ */
+function escapeAttr(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+/**
+ * Escapes characters for HTML text content
+ */
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
  * Safely extracts text content from both attached and detached DOM elements.
  * Critical: In detached DOM trees created via DOMParser, element.innerText
  * returns an empty string in Chromium/WebKit engines because there is no rendered
@@ -87,8 +113,76 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
     });
   }
 
+  // Normalize images inside paragraphs or container divs:
+  // If a <p> or <div> wraps an image (or contains text followed/preceded by an image),
+  // extract the image into its own top-level <figure class="mce-media-figure">
+  // so text paragraphs and images are cleanly separated into their own distinct copy blocks.
+  if (container) {
+    const allImgs = Array.from(container.querySelectorAll("img"));
+    allImgs.forEach(img => {
+      // Skip images inside structured widgets (tables, product cards, spotlight, callouts, lists)
+      if (img.closest("figure.mce-media-figure, table, .mce-table-wrap, .mce-product-grid, .category-spotlight-box, .callout-box, ul, ol")) {
+        return;
+      }
+
+      // Find top-level ancestor inside container
+      let topEl = img;
+      while (topEl.parentElement && topEl.parentElement !== container) {
+        topEl = topEl.parentElement;
+      }
+
+      if (!topEl || topEl.parentElement !== container) return;
+
+      const src = img.getAttribute("src") || "";
+      if (!src) return;
+      const alt = img.getAttribute("alt") || "";
+      let caption = "";
+
+      const capEl = topEl.querySelector("figcaption, em, small");
+      if (capEl && capEl !== img) {
+        caption = getNodeText(capEl);
+      }
+
+      // Build clean figure element
+      const figure = doc.createElement("figure");
+      figure.className = "mce-media-figure";
+      figure.setAttribute("style", "margin:28px 0; text-align:center; display:block;");
+
+      const newImg = doc.createElement("img");
+      newImg.setAttribute("src", src);
+      newImg.setAttribute("alt", alt || caption || "Article Image");
+      newImg.setAttribute("loading", "lazy");
+      newImg.setAttribute("style", "display:block; width:100%; max-width:100%; height:auto; max-height:480px; object-fit:cover; border-radius:10px; margin:0 auto; box-shadow:0 6px 20px rgba(0,0,0,0.08);");
+      figure.appendChild(newImg);
+
+      if (caption) {
+        const figcap = doc.createElement("figcaption");
+        figcap.setAttribute("style", "font-size:13px; color:#6b7280; margin-top:8px; font-style:italic;");
+        figcap.textContent = caption;
+        figure.appendChild(figcap);
+      }
+
+      // Test whether topEl has other text content without the img & caption
+      const clone = topEl.cloneNode(true);
+      clone.querySelectorAll("img, figcaption, em, small").forEach(n => n.remove());
+      const remainingText = getNodeText(clone);
+
+      if (!remainingText) {
+        // topEl is solely an image wrapper: replace it completely
+        container.replaceChild(figure, topEl);
+      } else {
+        // topEl has real text: remove img & capEl from topEl, and insert figure right after it
+        img.remove();
+        if (capEl && topEl.contains(capEl)) capEl.remove();
+        topEl.insertAdjacentElement("afterend", figure);
+      }
+    });
+  }
+
   let pendingHeading = null;
   let currentSection = null;
+  let lastSectionHeading = "";
+  let continuationCount = 0;
   let sectionIndex = 1;
 
   function flushCurrentSection() {
@@ -236,14 +330,51 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
       continue;
     }
 
-    // 5. Headings (H2 starts a new section or titles an upcoming element)
+    // 5. Standalone Image / Figure Block
+    if (tagName === "figure" || el.classList.contains("mce-media-figure") || tagName === "img") {
+      const imgEl = (tagName === "img") ? el : (el.querySelector("img") || el);
+      const imgSrc = imgEl.getAttribute ? (imgEl.getAttribute("src") || "") : "";
+      const imgAlt = imgEl.getAttribute ? (imgEl.getAttribute("alt") || "") : "";
+      const captionEl = el.querySelector ? el.querySelector("figcaption, em, small") : null;
+      const captionText = captionEl ? getNodeText(captionEl) : "";
+
+      flushCurrentSection();
+
+      const figureHtml = `<figure class="mce-media-figure" style="margin:28px 0; text-align:center; display:block;">\n  <img src="${escapeAttr(imgSrc)}" alt="${escapeAttr(imgAlt || captionText || "Article Image")}" loading="lazy" style="display:block; width:100%; max-width:100%; height:auto; max-height:480px; object-fit:cover; border-radius:10px; margin:0 auto; box-shadow:0 6px 20px rgba(0,0,0,0.08);" />${captionText ? `\n  <figcaption style="font-size:13px; color:#6b7280; margin-top:8px; font-style:italic;">${escapeHtml(captionText)}</figcaption>` : ""}\n</figure>`;
+      const wrappedHtml = `<div class="mce-blog-article-${brand.id}">\n${figureHtml}\n</div>`;
+
+      const blockTitle = captionText || imgAlt || (lastSectionHeading ? `Image: ${lastSectionHeading}` : "Article Body Image");
+
+      blocks.push({
+        id: `img_${blocks.length + 1}`,
+        type: "image",
+        heading: blockTitle,
+        headingTag: "img",
+        headingHtml: "",
+        title: blockTitle,
+        html: wrappedHtml,
+        singleImageHtml: figureHtml,
+        imageUrl: imgSrc,
+        imageAlt: imgAlt,
+        imageCaption: captionText,
+        plainText: imgSrc,
+        badge: "IMAGE",
+        hint: `Use Magento PageBuilder's "Image" element (paste Image URL) or "HTML Code" element (paste Image HTML).`
+      });
+      continue;
+    }
+
+    // 6. Headings (H2 starts a new section or titles an upcoming element)
     if (tagName === "h2") {
       flushCurrentSection();
+      const h2Text = getNodeText(el);
       pendingHeading = {
-        text: getNodeText(el),
+        text: h2Text,
         tag: "h2",
         html: el.outerHTML
       };
+      lastSectionHeading = h2Text;
+      continuationCount = 0;
       continue;
     }
 
@@ -256,18 +387,32 @@ export function parseArticleIntoSections(htmlContent, brandId = "lawsons", inclu
         headingHtml: pendingHeading.html,
         elements: [el]
       };
+      lastSectionHeading = pendingHeading.text;
+      continuationCount = 0;
       pendingHeading = null;
       continue;
     }
 
-    // If we encounter an element before any H2, it's the Intro
+    // If we encounter an element without an active section
     if (!currentSection) {
-      currentSection = {
-        heading: "Introduction & Lead Paragraph",
-        headingTag: "intro",
-        headingHtml: "",
-        elements: [el]
-      };
+      if (lastSectionHeading) {
+        continuationCount++;
+        currentSection = {
+          heading: `${lastSectionHeading} (cont.)`,
+          headingTag: "p",
+          headingHtml: "",
+          elements: [el]
+        };
+      } else {
+        currentSection = {
+          heading: "Introduction & Lead Paragraph",
+          headingTag: "intro",
+          headingHtml: "",
+          elements: [el]
+        };
+        lastSectionHeading = "Introduction & Lead Paragraph";
+        continuationCount = 0;
+      }
       continue;
     }
 
