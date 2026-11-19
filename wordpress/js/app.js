@@ -27,7 +27,10 @@ const state = {
     startTimeStr: "09:00",
     intervalNum: 3,
     intervalUnit: "days"
-  }
+  },
+  previewModalPostId: null,
+  liveEditMode: true,
+  imagePickerTarget: null
 };
 
 // Initialize App on DOM Content Loaded
@@ -796,14 +799,6 @@ function getSafeImageDisplayUrl(imgOrUrl) {
   if (!imgOrUrl) return "";
   const targetUrl = typeof imgOrUrl === "string" ? imgOrUrl : (imgOrUrl.previewUrl || imgOrUrl.url);
   if (!targetUrl) return "";
-
-  if (targetUrl.startsWith("data:") || targetUrl.startsWith("blob:")) {
-    return targetUrl;
-  }
-
-  if (targetUrl.startsWith("http")) {
-    return `/api/wp-proxy?action=image&imgUrl=${encodeURIComponent(targetUrl)}`;
-  }
   return targetUrl;
 }
 
@@ -1504,6 +1499,12 @@ function initModals() {
   document.getElementById("btn-save-edit-post").addEventListener("click", savePostEdit);
   document.getElementById("btn-save-new-image").addEventListener("click", saveNewImage);
   document.getElementById("btn-save-settings").addEventListener("click", saveSiteSettings);
+
+  // Live In-Place Edit & Image Replacement Drawer Controls
+  document.getElementById("btn-toggle-live-edit")?.addEventListener("click", toggleInPlaceLiveEditMode);
+  document.getElementById("btn-save-preview-live-edits")?.addEventListener("click", () => saveCurrentModalInPlaceEdits(true));
+  document.getElementById("btn-close-img-drawer")?.addEventListener("click", closeImagePickerDrawer);
+  document.getElementById("drawer-instant-upload")?.addEventListener("change", handleDrawerInstantUpload);
 }
 
 function openModal(modalId) {
@@ -1518,6 +1519,9 @@ function openModal(modalId) {
 }
 
 function closeModal() {
+  saveCurrentModalInPlaceEdits(false);
+  closeImagePickerDrawer();
+  state.previewModalPostId = null;
   document.querySelectorAll(".modal-overlay").forEach(m => m.classList.add("hidden"));
 }
 
@@ -1525,7 +1529,14 @@ function openPostPreview(postId) {
   const post = state.posts.find(p => p.id === postId);
   if (!post) return;
 
-  document.getElementById("preview-modal-title").textContent = post.title;
+  state.previewModalPostId = postId;
+
+  const titleEl = document.getElementById("preview-modal-title");
+  if (titleEl) {
+    titleEl.textContent = post.title;
+    titleEl.contentEditable = state.liveEditMode ? "true" : "false";
+  }
+
   document.getElementById("preview-modal-slug").textContent = `${state.settings.blogSubpath}${post.slug}`;
 
   document.getElementById("preview-seo-title").textContent = post.yoast_meta_title || post.title;
@@ -1541,17 +1552,174 @@ function openPostPreview(postId) {
     .map(t => `<span class="badge badge-neutral">#${escapeHtml(t)}</span>`).join("");
 
   const featBox = document.getElementById("preview-featured-box");
-  if (post.featured_image) {
-    const src = getSafeImageDisplayUrl(post.featured_image);
-    featBox.innerHTML = `<img src="${escapeHtml(src)}" alt="${escapeHtml(post.title)}" onerror="recordImageError('${post.id}', '${escapeHtml(src)}');" />`;
-  } else {
-    featBox.innerHTML = "";
-  }
+  const heroThumb = post.featured_image
+    ? getSafeImageDisplayUrl(post.featured_image)
+    : "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1200&q=80";
+
+  featBox.innerHTML = `
+    <img src="${escapeHtml(heroThumb)}" alt="${escapeHtml(post.title)}" style="cursor:pointer;" title="Click to Replace Featured Hero Image" onerror="recordImageError('${post.id}', '${escapeHtml(heroThumb)}');" />
+  `;
+  featBox.onclick = () => openImagePickerDrawer("hero", null, heroThumb);
 
   const renderedHtml = replaceImagePlaceholdersInHtml(post.content_html, post.mapped_images, state.imagePool, getSafeImageDisplayUrl);
-  document.getElementById("preview-html-content").innerHTML = renderedHtml;
+  const bodyEl = document.getElementById("preview-html-content");
+  bodyEl.innerHTML = renderedHtml;
+  bodyEl.contentEditable = state.liveEditMode ? "true" : "false";
 
+  // Attach click-to-replace listeners to all <img> tags in the body
+  bodyEl.querySelectorAll("img").forEach(img => {
+    img.style.cursor = "pointer";
+    img.title = "Click to Replace Image";
+    img.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openImagePickerDrawer("body", img, img.src);
+    });
+  });
+
+  updateLiveEditVisualClasses();
   openModal("modal-preview");
+}
+
+function toggleInPlaceLiveEditMode() {
+  state.liveEditMode = !state.liveEditMode;
+  const label = document.getElementById("live-edit-btn-label");
+  const banner = document.getElementById("live-edit-indicator-bar");
+
+  if (label) label.textContent = state.liveEditMode ? "In-Place Edit: ON" : "In-Place Edit: OFF";
+  if (banner) banner.style.display = state.liveEditMode ? "flex" : "none";
+
+  const titleEl = document.getElementById("preview-modal-title");
+  const bodyEl = document.getElementById("preview-html-content");
+  if (titleEl) titleEl.contentEditable = state.liveEditMode ? "true" : "false";
+  if (bodyEl) bodyEl.contentEditable = state.liveEditMode ? "true" : "false";
+
+  updateLiveEditVisualClasses();
+  showToast(state.liveEditMode ? "Interactive In-Place Editing enabled!" : "In-Place Editing disabled.", "info");
+}
+
+function updateLiveEditVisualClasses() {
+  const modal = document.getElementById("modal-preview");
+  if (!modal) return;
+  modal.classList.toggle("live-edit-mode-active", state.liveEditMode);
+}
+
+function saveCurrentModalInPlaceEdits(showUserToast = true) {
+  if (!state.previewModalPostId) return;
+  const post = state.posts.find(p => p.id === state.previewModalPostId);
+  if (!post) return;
+
+  const titleEl = document.getElementById("preview-modal-title");
+  const bodyEl = document.getElementById("preview-html-content");
+
+  if (titleEl) {
+    const newTitle = titleEl.innerText.trim();
+    if (newTitle) post.title = newTitle;
+  }
+  if (bodyEl) {
+    post.content_html = bodyEl.innerHTML.trim() || post.content_html;
+  }
+
+  saveState();
+  renderPostQueue();
+  generateWxrXmlPreview();
+
+  if (showUserToast) {
+    showToast(`Saved live edits for "${post.title}"!`, "success");
+  }
+}
+
+function openImagePickerDrawer(targetType, imgElement = null, oldSrc = "") {
+  state.imagePickerTarget = { type: targetType, el: imgElement, oldSrc };
+  const drawer = document.getElementById("image-picker-drawer");
+  const list = document.getElementById("drawer-image-list");
+  if (!drawer || !list) return;
+
+  if (state.imagePool.length === 0) {
+    list.innerHTML = `<div style="padding:16px; font-size:13px; color:#64748b;">No images in media pool. Use "Upload & Replace" above to select a file from your computer.</div>`;
+  } else {
+    list.innerHTML = state.imagePool.map(img => {
+      const displayUrl = img.previewUrl || img.url || "";
+      return `
+        <div class="image-picker-card" data-pick-img-id="${img.id}">
+          <img src="${escapeHtml(displayUrl)}" alt="${escapeHtml(img.title || img.filename || 'Image')}">
+          <div style="padding:6px 8px; font-size:11px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            ${escapeHtml(img.title || img.filename || 'Untitled')}
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    list.querySelectorAll("[data-pick-img-id]").forEach(card => {
+      card.addEventListener("click", () => {
+        const selected = state.imagePool.find(i => i.id === card.dataset.pickImgId);
+        if (selected) applyImageReplacement(selected);
+      });
+    });
+  }
+
+  drawer.classList.add("active");
+}
+
+function closeImagePickerDrawer() {
+  document.getElementById("image-picker-drawer")?.classList.remove("active");
+  state.imagePickerTarget = null;
+}
+
+function applyImageReplacement(selectedImage) {
+  if (!state.previewModalPostId || !state.imagePickerTarget) return;
+  const post = state.posts.find(p => p.id === state.previewModalPostId);
+  if (!post) return;
+
+  const newSrc = selectedImage.previewUrl || selectedImage.url;
+
+  if (state.imagePickerTarget.type === "hero") {
+    post.featured_image = selectedImage;
+    post.featured_image_id = selectedImage.id;
+    const heroImgEl = document.querySelector("#preview-featured-box img");
+    if (heroImgEl) heroImgEl.src = newSrc;
+    showToast(`Replaced Featured Cover Image with "${selectedImage.title}"!`, "success");
+  } else if (state.imagePickerTarget.type === "body" && state.imagePickerTarget.el) {
+    state.imagePickerTarget.el.src = newSrc;
+    saveCurrentModalInPlaceEdits(false);
+    showToast(`Replaced body image with "${selectedImage.title}"!`, "success");
+  }
+
+  saveState();
+  renderPostQueue();
+  generateWxrXmlPreview();
+  closeImagePickerDrawer();
+}
+
+async function handleDrawerInstantUpload(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const cleanName = slugifyFilename(file.name);
+  const derivedTitle = file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
+  let objectUrl = null;
+  try {
+    objectUrl = URL.createObjectURL(file);
+  } catch (e) {}
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target.result;
+    const computedWpUrl = buildWpUploadUrl(cleanName, state.settings);
+    const newImg = {
+      id: "img_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+      title: derivedTitle,
+      filename: cleanName,
+      url: computedWpUrl,
+      previewUrl: objectUrl || dataUrl,
+      fileData: dataUrl,
+      tags: derivedTitle.toLowerCase().split(/\s+/)
+    };
+
+    state.imagePool.unshift(newImg);
+    renderMediaPool();
+    applyImageReplacement(newImg);
+  };
+  reader.readAsDataURL(file);
 }
 
 function openPostEdit(postId) {

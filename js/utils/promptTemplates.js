@@ -15,6 +15,7 @@ export function generateAIPrompt(params) {
     selectedBrandIds = ["lawsons", "avs", "oxford", "witham", "landscape"],
     topic = "How to Choose Between Timber & Concrete Fence Posts for Long-Lasting Garden Boundaries",
     keywords = "concrete vs timber fence posts, garden fencing installation, pressure treated fence posts, gravel boards",
+    author = "Lawsons Group",
     wordCount = "900-1300 words",
     imageCount = "2",
     customBrandLinks = {},
@@ -121,6 +122,7 @@ Your task is to take ONE core blog topic and generate a **Multi-Brand Store View
 
 ## Core Topic & Target SEO Brief
 - **Master Topic / Generic Title:** ${topic} (Keep this title broad, generic, and brand-neutral for the All Store Views master scope)
+- **Default Author:** ${author}
 - **Target Keywords:** ${keywords}
 - **Target Depth per Variation:** ${wordCount}
 - **Target Brands Count:** ${brandCount} Store Views (${brandNamesStr})
@@ -144,6 +146,7 @@ Respond ONLY with a valid \`\`\`json code block matching this exact structure:
 {
   "title": "Clean Generic Master Title for All Store Views",
   "slug": "simple-keyword-slug",
+  "author": "${author}",
   "target_brands": [${brandIdsArrayStr}],
   "categories": ["Fencing", "Landscaping Advice"],
   "tags": ["fencing", "timber", "installation-guide"],
@@ -170,6 +173,7 @@ ${schemaVariations}
 
 ## Article Brief
 - **Topic / Title:** ${topic}
+- **Author:** ${author}
 - **Target Keywords:** ${keywords}
 - **Brand Voice:** ${brand.tone}
 - **Target Length:** ${wordCount}
@@ -189,6 +193,7 @@ Return ONLY a valid \`\`\`json code block scoped strictly for **${brand.name}**:
 {
   "title": "${topic}",
   "slug": "seo-friendly-url-key",
+  "author": "${author}",
   "target_brands": ["${brand.id}"],
   "categories": ["Fencing", "Timber Guides"],
   "tags": ["fencing", "timber", "landscaping"],

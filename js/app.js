@@ -81,7 +81,7 @@ function loadStateFromStorage() {
         return {
           ...p,
           target_brands: postBrands.length > 0 ? postBrands : ["lawsons", "avs", "oxford", "witham", "landscape"],
-          author: p.author || "Lawsons Editorial Team",
+          author: p.author || "Lawsons Group",
           uploadProgress: p.uploadProgress || { all: false }
         };
       });
@@ -252,7 +252,7 @@ function bindAllEvents() {
 
   onClick("btn-reset-prompt", () => {
     document.getElementById("prompt-topic").value = "Concrete vs Timber Fence Posts Guide";
-    document.getElementById("prompt-author").value = "Lawsons Editorial Team";
+    document.getElementById("prompt-author").value = "Lawsons Group";
     document.getElementById("prompt-categories").value = "Fencing Guides, Garden Advice";
     document.getElementById("prompt-keywords").value = "concrete vs timber fence posts, slotted concrete posts, UC4 treated fence posts, gravel boards";
     refreshPromptOutput();
@@ -459,6 +459,7 @@ function renderBriefBrandSelector() {
 
 function refreshPromptOutput() {
   const topic = document.getElementById("prompt-topic")?.value || "";
+  const author = document.getElementById("prompt-author")?.value || "Lawsons Group";
   const keywords = document.getElementById("prompt-keywords")?.value || "";
   const wordCount = document.getElementById("prompt-word-count")?.value || "900-1300 words";
   const imageCount = document.getElementById("prompt-image-count")?.value || "2";
@@ -475,6 +476,7 @@ function refreshPromptOutput() {
     activeBrandId: state.selectedSingleBrand,
     selectedBrandIds: state.selectedMultiplierBrands,
     topic,
+    author,
     keywords,
     wordCount,
     imageCount,
@@ -543,7 +545,7 @@ function handleJsonIngestion() {
     return;
   }
 
-  const authorVal = document.getElementById("prompt-author")?.value || "Lawsons Editorial Team";
+  const authorVal = document.getElementById("prompt-author")?.value || "Lawsons Group";
   const matchedPosts = validation.posts.map(p => {
     const pBrands = (Array.isArray(p.target_brands) && p.target_brands.length > 0)
       ? p.target_brands
@@ -584,7 +586,7 @@ function loadSampleData(silent = false) {
 
       const postWithMeta = {
         ...p,
-        author: "Lawsons Editorial Team",
+        author: "Lawsons Group",
         uploadProgress: initialProgress
       };
       return autoMatchPostMedia(postWithMeta, state.imagePool, state.settings);
@@ -847,7 +849,7 @@ function renderPostQueue() {
     if (isGlobalScope) {
       const catStr = (post.categories || []).join(", ");
       const tagStr = (post.tags || []).join(", ");
-      const authorStr = post.author || "Lawsons Editorial Team";
+      const authorStr = post.author || "Lawsons Group";
 
       return `
         <article class="queue-card" data-post-id="${post.id}">
@@ -1236,7 +1238,7 @@ function renderPostQueue() {
       if (field === "title") {
         copyToClipboard(post.title, "Copied Master Title!");
       } else if (field === "author") {
-        copyToClipboard(post.author || "Lawsons Editorial Team", "Copied Author!");
+        copyToClipboard(post.author || "Lawsons Group", "Copied Author!");
       } else if (field === "categories") {
         copyToClipboard((post.categories || []).join(", "), "Copied Categories!");
       } else if (field === "tags") {
@@ -1244,7 +1246,7 @@ function renderPostQueue() {
       } else if (field === "date") {
         copyToClipboard(post.post_date || "", "Copied Publish Date!");
       } else if (field === "all_combined") {
-        const bundle = `Title: ${post.title}\nAuthor: ${post.author || "Lawsons Editorial Team"}\nCategories: ${(post.categories || []).join(", ")}\nTags: ${(post.tags || []).join(", ")}\nDate: ${post.post_date}`;
+        const bundle = `Title: ${post.title}\nAuthor: ${post.author || "Lawsons Group"}\nCategories: ${(post.categories || []).join(", ")}\nTags: ${(post.tags || []).join(", ")}\nDate: ${post.post_date}`;
         copyToClipboard(bundle, "Copied All Global Setup Metadata!");
       }
       renderPostQueue();
@@ -1679,7 +1681,7 @@ function renderStorefrontModalContent(postId, brandId) {
       <span>•</span>
       <span>Published on ${escapeHtml(post.post_date.split(" ")[0])}</span>
       <span>•</span>
-      <span>By ${escapeHtml(post.author || "Lawsons Editorial Team")}</span>
+      <span>By ${escapeHtml(post.author || "Lawsons Group")}</span>
     </div>
   `;
 
