@@ -1507,6 +1507,11 @@ function initModals() {
   document.getElementById("btn-toggle-live-edit")?.addEventListener("click", toggleInPlaceLiveEditMode);
   document.getElementById("btn-save-preview-live-edits")?.addEventListener("click", () => saveCurrentModalInPlaceEdits(true));
   document.getElementById("btn-close-img-drawer")?.addEventListener("click", closeImagePickerDrawer);
+  document.getElementById("btn-close-preview-modal")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    closeModal();
+  });
   document.getElementById("drawer-instant-upload")?.addEventListener("change", handleDrawerInstantUpload);
 
   window.addEventListener("keydown", (e) => {
@@ -1535,7 +1540,10 @@ function closeModal() {
   }
   closeImagePickerDrawer();
   state.previewModalPostId = null;
-  document.querySelectorAll(".modal-overlay").forEach(m => m.classList.add("hidden"));
+  document.querySelectorAll(".modal-overlay").forEach(m => {
+    m.classList.add("hidden");
+    m.classList.remove("active");
+  });
 }
 
 function openPostPreview(postId) {
