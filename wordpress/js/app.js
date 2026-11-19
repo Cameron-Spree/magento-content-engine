@@ -13,6 +13,9 @@ import { uploadImageToWordPress, updateWordPressMediaDetails, testWordPressApiCo
 import { getDiagnosticReport, recordImageError } from "./utils/debugLogger.js";
 import { initLiveCopyEditor } from "./live-copy-editor.js";
 
+// Expose recordImageError to window for inline onerror attributes
+window.recordImageError = recordImageError;
+
 // Storage Key
 const STORAGE_KEY = "wp_content_engine_state_v3";
 
@@ -1505,6 +1508,12 @@ function initModals() {
   document.getElementById("btn-save-preview-live-edits")?.addEventListener("click", () => saveCurrentModalInPlaceEdits(true));
   document.getElementById("btn-close-img-drawer")?.addEventListener("click", closeImagePickerDrawer);
   document.getElementById("drawer-instant-upload")?.addEventListener("change", handleDrawerInstantUpload);
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      closeModal();
+    }
+  });
 }
 
 function openModal(modalId) {
@@ -1519,7 +1528,11 @@ function openModal(modalId) {
 }
 
 function closeModal() {
-  saveCurrentModalInPlaceEdits(false);
+  try {
+    saveCurrentModalInPlaceEdits(false);
+  } catch (e) {
+    console.warn("Auto-save on modal close:", e);
+  }
   closeImagePickerDrawer();
   state.previewModalPostId = null;
   document.querySelectorAll(".modal-overlay").forEach(m => m.classList.add("hidden"));
@@ -1620,8 +1633,8 @@ function saveCurrentModalInPlaceEdits(showUserToast = true) {
   }
 
   saveState();
-  renderPostQueue();
-  generateWxrXmlPreview();
+  renderQueuePosts();
+  renderXmlExport();
 
   if (showUserToast) {
     showToast(`Saved live edits for "${post.title}"!`, "success");
@@ -1685,8 +1698,8 @@ function applyImageReplacement(selectedImage) {
   }
 
   saveState();
-  renderPostQueue();
-  generateWxrXmlPreview();
+  renderQueuePosts();
+  renderXmlExport();
   closeImagePickerDrawer();
 }
 

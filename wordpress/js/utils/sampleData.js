@@ -89,6 +89,8 @@ export const SAMPLE_POST_PAYLOADS = [
 <h2>1. Choosing the Right Safety Gear & Equipment</h2>
 <p>Always equip yourself with chainsaw-resistant trousers, helmet with visor, ear defenders, and anti-vibration gloves. For professional equipment recommendations, explore our <a href="https://briantsofrisborough.co.uk/product-category/garden-machinery/chainsaws/">Chainsaws</a> range.</p>
 
+<p>{{IMAGE:chainsaw protective ppe gear}}</p>
+
 <h2>2. Assessing the Tree & Felling Plan</h2>
 <p>Examine the natural lean of the tree, wind direction, and branch distribution. Establish a clear escape route at a 45-degree angle behind the planned direction of fall.</p>
 
@@ -122,7 +124,7 @@ export const SAMPLE_POST_PAYLOADS = [
 <h2>3. Executing the Directional Felling Cut</h2>
 <p>Make the directional notch facing the direction you want the tree to fall. For routine equipment checkups or chain sharpening, visit our <a href="https://briantsofrisborough.co.uk/machinery-repairs/">Garden Machinery Repairs & Servicing</a> department.</p>
 `,
-    image_placeholders: []
+    image_placeholders: ["chainsaw protective ppe gear"]
   },
   {
     title: "Essential Lawnmower Maintenance Tips for Spring Lawn Care",
@@ -135,6 +137,7 @@ export const SAMPLE_POST_PAYLOADS = [
 <p>Spring is the ideal time to get your lawnmower in peak condition after winter storage. A well-maintained mower ensures a cleaner cut and healthier lawn growth.</p>
 
 <h2>Key Spring Maintenance Checklist</h2>
+<p>{{IMAGE:lawn mower garden machinery}}</p>
 <ul>
   <li><strong>Blade Sharpening:</strong> Dull blades tear grass rather than cutting cleanly, leading to brown tips.</li>
   <li><strong>Engine Oil & Filter Change:</strong> Replace old oil to protect engine components.</li>
